@@ -2,32 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
 import '../providers/purchases_provider.dart';
-import '../services/purchases_service.dart';
+import '../services/purchase_tiers.dart';
 import '../theme/app_theme.dart';
 import '../widgets/parental_gate_dialog.dart';
 
-/// サブスクリプション（広告非表示プラン）の購入画面。
-/// 月額¥300 / 年額¥2,400。
+/// サブスクリプションの購入画面。二段階で、広告なしと、準1級・1級も学べるプレミアム。
+/// 価格はストア（RevenueCat）の商品から表示する。
 class PaywallScreen extends ConsumerWidget {
   const PaywallScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasAdsRemovedAsync = ref.watch(hasAdsRemovedProvider);
+    final adsRemoved = ref.watch(hasAdsRemovedProvider);
+    final premium = ref.watch(hasPremiumProvider);
     final packagesAsync = ref.watch(availableOffersProvider);
     final purchaseState = ref.watch(purchaseProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('プレミアムプラン'),
+        title: const Text('プラン'),
         centerTitle: true,
       ),
-      body: hasAdsRemovedAsync.when(
+      body: adsRemoved.when(
         data: (hasAdsRemoved) {
-          if (hasAdsRemoved) {
-            return _buildAlreadySubscribed(context);
+          final hasPremium = premium.valueOrNull ?? false;
+          if (hasPremium) {
+            return _buildAlreadyPremium(context);
           }
-          return _buildPaywallContent(context, ref, packagesAsync, purchaseState);
+          return _buildPaywallContent(
+            context,
+            ref,
+            packagesAsync,
+            purchaseState,
+            hasAdsRemoved: hasAdsRemoved,
+          );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('エラー: $err')),
@@ -35,7 +43,7 @@ class PaywallScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAlreadySubscribed(BuildContext context) {
+  Widget _buildAlreadyPremium(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -50,7 +58,7 @@ class PaywallScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'プレミアムプランが有効です。広告なしで学習でき、準1級・1級も利用できます。',
+              'プレミアムが有効です。広告なしで学習でき、準1級・1級も利用できます。',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black54),
             ),
@@ -69,32 +77,51 @@ class PaywallScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AsyncValue<List<EntitlementOffer>> packagesAsync,
-    AsyncValue<bool> purchaseState,
-  ) {
+    AsyncValue<bool> purchaseState, {
+    required bool hasAdsRemoved,
+  }) {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Icon(Icons.block, size: 56, color: AppColors.primary),
-        const SizedBox(height: 16),
-        const Text(
-          '広告を非表示にする',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          '演習中のバナー広告・インタースティシャル広告が表示されなくなります。\n集中して学習したい方におすすめです。',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.black54, fontSize: 13),
-        ),
-        const SizedBox(height: 28),
         packagesAsync.when(
           data: (packages) {
             if (packages.isEmpty) {
               return _buildUnavailableNotice();
             }
+            final byTier = splitOffersByTier(packages);
+            final noAds = byTier[PlanTier.noAds]!;
+            final premium = byTier[PlanTier.premium]!;
             return Column(
-              children: packages.map((p) => _buildPlanCard(context, ref, p)).toList(),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (premium.isNotEmpty)
+                  _buildTierSection(
+                    context,
+                    ref,
+                    icon: Icons.workspace_premium,
+                    title: 'プレミアム',
+                    description: '準1級・1級の問題が学べます。広告も表示されません。',
+                    offers: premium,
+                  ),
+                if (noAds.isNotEmpty && !hasAdsRemoved)
+                  _buildTierSection(
+                    context,
+                    ref,
+                    icon: Icons.block,
+                    title: '広告なし',
+                    description: '演習中のバナー広告・インタースティシャル広告が表示されなくなります。',
+                    offers: noAds,
+                  ),
+                if (hasAdsRemoved)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '広告なしに加入中です。プレミアムにすると準1級・1級も学べます。',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black54, fontSize: 13),
+                    ),
+                  ),
+              ],
             );
           },
           loading: () => const Padding(
@@ -126,6 +153,40 @@ class PaywallScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildTierSection(
+    BuildContext context,
+    WidgetRef ref, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required List<EntitlementOffer> offers,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 28, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.black54, fontSize: 13),
+          ),
+          const SizedBox(height: 12),
+          for (final offer in offers) _buildPlanCard(context, ref, offer),
+        ],
+      ),
+    );
+  }
+
   Widget _buildUnavailableNotice() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -142,7 +203,7 @@ class PaywallScreen extends ConsumerWidget {
   }
 
   Widget _buildPlanCard(BuildContext context, WidgetRef ref, EntitlementOffer offer) {
-    final isYearly = offer.productId.contains(PurchasesService.premiumYearly);
+    final isYearly = isYearlyProduct(offer.productId);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
