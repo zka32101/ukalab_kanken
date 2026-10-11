@@ -1,6 +1,6 @@
 import 'package:app_common_kit/app_common_kit.dart';
 
-/// RevenueCat経由のサブスクリプション管理（広告非表示プラン）。
+/// RevenueCat経由のサブスクリプション管理（二段階: 広告なし／プレミアム）。
 ///
 /// 参考実装: H:\マイドライブ\apps\card_rivals\lib\services\purchases_service.dart
 ///
@@ -11,6 +11,12 @@ import 'package:app_common_kit/app_common_kit.dart';
 ///     (premium-monthly: 月額¥300 / premium-yearly: 年額¥2,400)
 ///   - RevenueCatのEntitlement「ad_free」(Display Name: noads)に上記2商品を紐付け
 ///   - Offering「default」にpremium-monthly/premium-yearlyのPackageを追加
+///
+/// 【プレミアム（準1級・1級＋広告なし）の追加設定】
+///   - 商品を作成（premium-plus-monthly / premium-plus-yearly。価格は仮に月額¥480）
+///   - RevenueCatのEntitlement「premium」に上記の商品を紐付け
+///   - Offering「default」にpremium-plus-monthly/premium-plus-yearlyのPackageを追加
+///   - 既存の2商品の表示名は「広告なし」にする（商品IDは変更不可）
 class PurchasesService {
   static const String _apiKey = 'goog_PkCbEBxntkZNsLxCbKeSkHnoWEi';
 
@@ -22,6 +28,9 @@ class PurchasesService {
   static const String entitlementNoAds = 'ad_free';
   static const String premiumMonthly = 'premium-monthly';
   static const String premiumYearly = 'premium-yearly';
+
+  /// プレミアム（準1級・1級＋広告なし）のエンタイトルメント。
+  static const String entitlementPremium = 'premium';
 
   static bool _initialized = false;
   static RevenueCatEntitlementService? _entitlement;
@@ -41,7 +50,7 @@ class PurchasesService {
       // 購入前の保護者ゲートはペイウォール画面側で実施済み。
       _entitlement = await RevenueCatEntitlementService.init(
         publicSdkKey: _apiKey,
-        ids: const EntitlementIds(noAds: entitlementNoAds),
+        ids: const EntitlementIds(noAds: entitlementNoAds, premium: entitlementPremium),
       );
       _initialized = true;
     } catch (_) {
@@ -66,17 +75,27 @@ class PurchasesService {
   static Future<bool> restorePurchases() async {
     if (!_initialized) return false;
     try {
-      return (await _entitlement!.restore()).hasNoAds;
+      return (await _entitlement!.restore()).adsHidden;
     } catch (_) {
       return false;
     }
   }
 
-  /// 広告非表示エンタイトルメントを保持しているか
+  /// 広告が非表示か（広告なし、またはプレミアム）
   static Future<bool> hasAdsRemoved() async {
     if (!_initialized) return false;
     try {
-      return _entitlement!.state.hasNoAds;
+      return _entitlement!.state.adsHidden;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// プレミアム（準1級・1級を含む）を保持しているか
+  static Future<bool> hasPremium() async {
+    if (!_initialized) return false;
+    try {
+      return _entitlement!.state.hasPremium;
     } catch (_) {
       return false;
     }

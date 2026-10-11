@@ -213,8 +213,8 @@ class HomeScreen extends ConsumerWidget {
                   onTap: () => context.goSettings(),
                 ),
                 MenuGridCard(
-                  icon: Icons.block,
-                  label: '広告非表示\nプラン',
+                  icon: Icons.workspace_premium,
+                  label: 'プラン',
                   color: AppColors.primary,
                   onTap: () => context.goPaywall(),
                 ),
@@ -345,11 +345,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  /// プレミアムプラン加入者だけが学べる級（準1級・1級）
+  /// プレミアム加入者だけが学べる級（準1級・1級）。広告なしだけでは学べない
   static const premiumOnlyLevels = {'LEVEL_1_PRE', 'LEVEL_1'};
 
   Widget _buildLevelGrid(BuildContext context, WidgetRef ref, String currentLevel) {
-    final isPremium = ref.watch(hasAdsRemovedProvider).valueOrNull ?? false;
+    final isPremium = ref.watch(hasPremiumProvider).valueOrNull ?? false;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -406,8 +406,8 @@ class HomeScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('$levelNameはプレミアムプラン限定です'),
-        content: const Text('準1級・1級はプレミアムプランに加入すると学習できます（広告も非表示になります）。'),
+        title: Text('$levelNameはプレミアム限定です'),
+        content: const Text('準1級・1級はプレミアムに加入すると学習できます（広告も非表示になります）。'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('閉じる')),
           FilledButton(
