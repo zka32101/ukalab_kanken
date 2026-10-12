@@ -19,14 +19,44 @@ Future<void> showQuestionMemoDialog(
   required String qid,
   String? title,
 }) async {
-  final controller =
-      TextEditingController(text: ref.read(questionMemoProvider)[qid] ?? '');
-  final saved = await showDialog<bool>(
+  final text = await showDialog<String>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(title == null ? '自分用メモ' : '「$title」のメモ'),
+    builder: (_) => _MemoDialog(
+      title: title == null ? '自分用メモ' : '「$title」のメモ',
+      initial: ref.read(questionMemoProvider)[qid] ?? '',
+    ),
+  );
+  if (text != null) {
+    await ref.read(questionMemoProvider.notifier).setMemo(qid: qid, memo: text);
+  }
+}
+
+class _MemoDialog extends StatefulWidget {
+  const _MemoDialog({required this.title, required this.initial});
+
+  final String title;
+  final String initial;
+
+  @override
+  State<_MemoDialog> createState() => _MemoDialogState();
+}
+
+class _MemoDialogState extends State<_MemoDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
       content: TextField(
-        controller: controller,
+        controller: _controller,
         autofocus: true,
         maxLines: 4,
         minLines: 2,
@@ -37,20 +67,15 @@ Future<void> showQuestionMemoDialog(
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
+          onPressed: () => Navigator.of(context).pop(),
           child: const Text('キャンセル'),
         ),
         TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
+          onPressed: () => Navigator.of(context).pop(_controller.text),
           child: const Text('保存'),
         ),
       ],
-    ),
-  );
-  final text = controller.text;
-  controller.dispose();
-  if (saved == true) {
-    await ref.read(questionMemoProvider.notifier).setMemo(qid: qid, memo: text);
+    );
   }
 }
 
