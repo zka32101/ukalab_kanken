@@ -60,7 +60,7 @@ class _AnalyticsDashboardScreenState
   Widget _buildGrowthTab() {
     final analytics = ref.watch(userLearningAnalyticsProvider);
     final growthData = ref.watch(userGrowthDataProvider);
-    final trends = ref.watch(userLearningTrendsProvider);
+    ref.watch(userLearningTrendsProvider);
 
     return analytics.when(
       data: (data) => SingleChildScrollView(

@@ -5,7 +5,6 @@ import '../data/kanji_radical_data.dart';
 import '../data/level_kanji_data.dart';
 import '../data/stroke_order_sample_data.dart';
 import '../providers/writing_mastery_provider.dart';
-import '../router/app_router.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../views/handwriting_practice_screen.dart';
 import '../widgets/stroke_order_animation.dart';

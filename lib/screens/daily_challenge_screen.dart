@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lottie/lottie.dart';
 import '../models/daily_challenge.dart';
 import '../models/gamification_stats.dart';
 import '../providers/daily_challenge_provider.dart';

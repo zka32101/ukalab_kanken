@@ -68,8 +68,6 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
               }
 
               final eventId = _selectedEventId ?? events[0].eventId;
-              final selectedEvent =
-                  events.firstWhere((e) => e.eventId == eventId);
 
               return SingleChildScrollView(
                 child: Column(

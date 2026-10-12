@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/models/weak_area.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   group('WeakLevel Tests', () {

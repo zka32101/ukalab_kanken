@@ -94,7 +94,7 @@ final learningPlanGeneratorProvider = FutureProvider<LearningPlan?>((ref) async 
     if (history.isEmpty) return null;
 
     final latestAnalysis = history.first;
-    return _generateLearningPlan(userId, latestAnalysis);
+    return await _generateLearningPlan(userId, latestAnalysis);
   } catch (e) {
     return null;
   }

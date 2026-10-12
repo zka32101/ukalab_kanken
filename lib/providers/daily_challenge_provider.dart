@@ -17,7 +17,7 @@ final dailyChallengeProvider = FutureProvider<DailyChallenge>((ref) async {
     }
 
     // チャレンジが存在しない場合は作成
-    return _createDailyChallenge(firestore, dateStr);
+    return await _createDailyChallenge(firestore, dateStr);
   } catch (e) {
     throw Exception('Failed to load daily challenge: $e');
   }

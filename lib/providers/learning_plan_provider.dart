@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/learning_recommendation.dart';
-import '../models/weak_area.dart';
 import '../viewmodels/user_viewmodel.dart' as user_vm;
 import 'weak_area_provider.dart';
 

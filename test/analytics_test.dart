@@ -37,7 +37,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = LearningAnalytics.fromJson(json as Map<String, dynamic>);
+      final fromJson = LearningAnalytics.fromJson(json);
 
       expect(fromJson.userId, equals(original.userId));
       expect(fromJson.totalStudyMinutes, equals(original.totalStudyMinutes));
@@ -73,7 +73,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = GrowthData.fromJson(json as Map<String, dynamic>);
+      final fromJson = GrowthData.fromJson(json);
 
       expect(fromJson.accuracy, equals(original.accuracy));
       expect(fromJson.correctCount, equals(original.correctCount));
@@ -104,7 +104,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = LearningTrend.fromJson(json as Map<String, dynamic>);
+      final fromJson = LearningTrend.fromJson(json);
 
       expect(fromJson.category, equals(original.category));
       expect(fromJson.averageTrend, equals(original.averageTrend));
@@ -243,7 +243,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = StudyEfficiency.fromJson(json as Map<String, dynamic>);
+      final fromJson = StudyEfficiency.fromJson(json);
 
       expect(fromJson.userId, equals(original.userId));
       expect(fromJson.minutesStudied, equals(original.minutesStudied));

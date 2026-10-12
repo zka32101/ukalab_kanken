@@ -990,7 +990,6 @@ class PracticeScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: question.choices.asMap().entries.map((entry) {
-                  final idx = entry.key;
                   final choice = entry.value;
                   final isCorrect = choice == question.correctAnswer;
 
