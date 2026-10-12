@@ -3,9 +3,14 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/daily_goal.dart' show dailyGoalOverrides;
+import 'package:ukalab_core/reminder.dart' show reminderOverrides;
+import 'package:ukalab_core/reminder_notification.dart'
+    show ReminderNotificationWatcher, reminderNotifierProvider;
 import 'package:ukalab_core/ui.dart';
 import 'firebase_options.dart';
 import 'router/app_router.dart';
@@ -14,6 +19,7 @@ import 'widgets/startup_splash.dart';
 import 'services/ad_service.dart';
 import 'services/audioplayers_sound_backend.dart';
 import 'services/coin_sync_service.dart';
+import 'services/local_reminder_notifier.dart';
 import 'services/purchases_service.dart';
 
 void main() async {
@@ -56,6 +62,11 @@ void main() async {
       OutfitService(store: SharedPreferencesOutfitStore('kanken'));
   await outfitService.load();
 
+  // ブックマーク・問題メモ・デイリーミッション・リマインダー設定（端末内に保存）
+  final studyNotes = await studyNotesOverrides('kanken');
+  final dailyGoal = await dailyGoalOverrides('kanken');
+  final reminder = await reminderOverrides('kanken');
+
   // 全アプリ共通フィードバック機能(app_common_kit)の送信処理を注入
   final container = ProviderContainer(
     overrides: [
@@ -64,6 +75,11 @@ void main() async {
       handsFreeStoreProvider.overrideWithValue(SharedPreferencesHandsFreeStore('kanken')),
       // 解答時の効果音と触覚（app_common_kit の AnswerFeedback。音源はこのアプリの assets/sounds/）
       answerFeedbackProvider.overrideWithValue(AnswerFeedback(sound: AudioplayersSoundBackend())),
+      ...studyNotes,
+      ...dailyGoal,
+      ...reminder,
+      // 端末の通知は Android・iOS だけ。Web は何もしない既定のまま。
+      if (!kIsWeb) reminderNotifierProvider.overrideWithValue(LocalReminderNotifier()),
     ],
   );
   // ながら学習モードの設定（片手・読み上げ）を読み込む
@@ -101,6 +117,8 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: appRouter,
+      builder: (context, child) =>
+          ReminderNotificationWatcher(child: child ?? const SizedBox.shrink()),
     );
   }
 }

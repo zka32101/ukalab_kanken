@@ -2,6 +2,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import '../models/index.dart';
 import '../viewmodels/index.dart';
 import '../services/index.dart';
@@ -16,6 +17,8 @@ import '../models/user_ranking.dart';
 import '../theme/app_theme.dart';
 import '../widgets/menu_grid_card.dart';
 import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
+import '../screens/study_notes_screen.dart'
+    show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
@@ -140,6 +143,12 @@ class HomeScreen extends ConsumerWidget {
                   label: kReadingsMenuLabel,
                   color: AppColors.study,
                   onTap: () => context.goReadings(),
+                ),
+                MenuGridCard(
+                  icon: Icons.bookmarks,
+                  label: kStudyNotesMenuLabel,
+                  color: AppColors.study,
+                  onTap: () => context.goStudyNotes(),
                 ),
                 MenuGridCard(
                   icon: Icons.repeat,
@@ -977,10 +986,30 @@ class PracticeScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          TextButton.icon(
-            onPressed: () => _markAsLearned(context, ref, question),
-            icon: const Icon(Icons.check_circle_outline, size: 18),
-            label: const Text('覚えた！ 次から出さない'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: () => _markAsLearned(context, ref, question),
+                icon: const Icon(Icons.check_circle_outline, size: 18),
+                label: const Text('覚えた！ 次から出さない'),
+              ),
+              BookmarkToggleButton(qid: question.source.id),
+              IconButton(
+                icon: Icon(
+                  ref.watch(questionMemoProvider).containsKey(question.source.id)
+                      ? Icons.sticky_note_2
+                      : Icons.sticky_note_2_outlined,
+                ),
+                tooltip: '自分用メモ',
+                onPressed: () => showQuestionMemoDialog(
+                  context,
+                  ref,
+                  qid: question.source.id,
+                  title: question.source.kanji,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
 
@@ -1049,6 +1078,8 @@ class PracticeScreen extends ConsumerWidget {
     final question = ref.read(practiceViewModelProvider).currentQuestion;
 
     await practiceVM.answerQuestion(isCorrect);
+    // デイリーミッション（学習リマインダーの判定にも使う）
+    await recordDailyAnswer(ref);
 
     // 演出（Lottie + SE + ハプティクス）
     if (isCorrect) {

@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:cross_promo_kit/cross_promo_kit.dart';
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/daily_goal.dart' show DailyGoalSetting;
+import 'package:ukalab_core/reminder.dart' show ReminderSettingsSection;
 import 'package:ukalab_core/ui.dart';
+import '../data/kanken_data_parts.dart';
 import '../models/user.dart';
 import '../services/firestore_service.dart';
 import '../services/handwriting_strictness.dart';
@@ -175,8 +178,31 @@ class SettingsScreen extends ConsumerWidget {
               const _SectionHeader('ながら学習'),
               const HandsFreeSection(),
               const Divider(),
+              const _SectionHeader('リマインダー'),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DailyGoalSetting(),
+                    SizedBox(height: 16),
+                    ReminderSettingsSection(),
+                  ],
+                ),
+              ),
+              const Divider(),
               const _SectionHeader('データの引き継ぎ'),
               const TransferSection(),
+              const Divider(),
+              const _SectionHeader('データの管理'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: DataManagementSection(
+                  parts: kankenDataParts,
+                  description: 'デイリーミッションの記録と自分用メモは、'
+                      '書き出し・読み込み・リセットができます（ブックマークは対象外です）。',
+                ),
+              ),
               const Divider(),
               const _SectionHeader('公開設定'),
               SwitchListTile(

@@ -26,6 +26,7 @@ import '../screens/auth_gate_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/paywall_screen.dart';
 import '../screens/reading_list_screen.dart';
+import '../screens/study_notes_screen.dart';
 import '../models/multiplayer.dart';
 import '../models/mock_exam.dart';
 import '../views/index.dart';
@@ -242,6 +243,13 @@ final appRouter = GoRouter(
           builder: (context, state) => const ReadingListScreen(),
         ),
 
+        // ブックマーク・メモ
+        GoRoute(
+          path: 'study-notes',
+          name: 'studyNotes',
+          builder: (context, state) => const StudyNotesScreen(),
+        ),
+
         // 設定
         GoRoute(
           path: 'settings',
@@ -364,6 +372,9 @@ extension NavigationExtension on BuildContext {
 
   /// 章ごとの解説読み物の一覧に遷移
   void goReadings() => push('/readings');
+
+  /// ブックマーク・メモ一覧に遷移
+  void goStudyNotes() => push('/study-notes');
 
   /// 設定画面に遷移
   void goSettings() => push('/settings');
