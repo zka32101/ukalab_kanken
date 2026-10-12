@@ -76,6 +76,10 @@ dependencies:
       ref: v0.2.0
   share_plus: ^13.3.1
 
+  # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
+  flutter_local_notifications: ^19.4.0
+  timezone: ^0.10.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
