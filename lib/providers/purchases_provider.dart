@@ -13,7 +13,17 @@ final hasAdsRemovedProvider = StreamProvider<bool>((ref) async* {
   }
 });
 
-/// 購入可能な商品一覧（月額・年額プラン）
+/// プレミアム（準1級・1級＋広告なし）を持っているか。
+/// RevenueCat未設定の間は常にfalse。購入・復元・期限切れに追従する。
+final hasPremiumProvider = StreamProvider<bool>((ref) async* {
+  final entitlement = PurchasesService.entitlement;
+  yield entitlement?.state.hasPremium ?? false;
+  if (entitlement != null) {
+    yield* entitlement.stateStream.map((s) => s.hasPremium);
+  }
+});
+
+/// 購入可能な商品一覧（広告なし・プレミアム、それぞれ月額・年額プラン）
 final availableOffersProvider = FutureProvider<List<EntitlementOffer>>((ref) async {
   return PurchasesService.getOffers();
 });
@@ -35,6 +45,7 @@ class PurchaseNotifier extends StateNotifier<AsyncValue<bool>> {
       state = AsyncValue.data(success);
       if (success) {
         _ref.invalidate(hasAdsRemovedProvider);
+        _ref.invalidate(hasPremiumProvider);
       }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -48,6 +59,7 @@ class PurchaseNotifier extends StateNotifier<AsyncValue<bool>> {
       state = AsyncValue.data(success);
       if (success) {
         _ref.invalidate(hasAdsRemovedProvider);
+        _ref.invalidate(hasPremiumProvider);
       }
     } catch (e, st) {
       state = AsyncValue.error(e, st);
