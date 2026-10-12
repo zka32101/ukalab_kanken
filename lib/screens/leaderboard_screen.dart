@@ -87,7 +87,6 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         const SizedBox(height: 12),
 
         ...leaderboard.topEntries.asMap().entries.map((entry) {
-          final index = entry.key;
           final leaderboardEntry = entry.value;
           final medal = _getMedalEmoji(leaderboardEntry.rank);
 

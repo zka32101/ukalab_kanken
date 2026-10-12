@@ -33,7 +33,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = AppNotification.fromJson(json as Map<String, dynamic>);
+      final fromJson = AppNotification.fromJson(json);
 
       expect(fromJson.notificationId, equals(original.notificationId));
       expect(fromJson.type, equals(original.type));
@@ -81,7 +81,7 @@ void main() {
 
       final json = original.toJson();
       final fromJson =
-          NotificationSettings.fromJson(json as Map<String, dynamic>);
+          NotificationSettings.fromJson(json);
 
       expect(fromJson.userId, equals(original.userId));
       expect(fromJson.battleInviteEnabled, equals(original.battleInviteEnabled));
@@ -139,7 +139,7 @@ void main() {
       );
 
       final json = original.toJson();
-      final fromJson = NotificationStats.fromJson(json as Map<String, dynamic>);
+      final fromJson = NotificationStats.fromJson(json);
 
       expect(fromJson.userId, equals(original.userId));
       expect(fromJson.unreadCount, equals(original.unreadCount));

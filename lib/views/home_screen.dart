@@ -15,6 +15,7 @@ import '../providers/level_progress_provider.dart';
 import '../models/user_ranking.dart';
 import '../theme/app_theme.dart';
 import '../widgets/menu_grid_card.dart';
+import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
 import '../widgets/oshi_card.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
@@ -133,6 +134,12 @@ class HomeScreen extends ConsumerWidget {
                   label: '漢字の\n学習',
                   color: AppColors.study,
                   onTap: () => context.goStrokeOrder(),
+                ),
+                MenuGridCard(
+                  icon: Icons.auto_stories,
+                  label: kReadingsMenuLabel,
+                  color: AppColors.study,
+                  onTap: () => context.goReadings(),
                 ),
                 MenuGridCard(
                   icon: Icons.repeat,
@@ -983,7 +990,6 @@ class PracticeScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: question.choices.asMap().entries.map((entry) {
-                  final idx = entry.key;
                   final choice = entry.value;
                   final isCorrect = choice == question.correctAnswer;
 

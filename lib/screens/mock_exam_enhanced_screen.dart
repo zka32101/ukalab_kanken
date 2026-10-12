@@ -250,7 +250,6 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
 
                       // 選択肢
                       ...currentQuestion.options.asMap().entries.map((entry) {
-                        final idx = entry.key;
                         final option = entry.value;
 
                         return Padding(

@@ -59,15 +59,17 @@ dependencies:
   url_launcher: ^6.2.0
 
   # Common kits (全アプリ共通基盤)
+  # app_common_kit は ukalab_core v0.53.0 が v3.0.0 を指定している。pub は kit のタグが食い違うと
+  # 解決できないため、core に合わせて v3.0.0 に固定する（v3.0.1 はドキュメントと設定ファイルのみの変更）。
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v1.9.0
+      ref: v3.0.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.28.0
+      ref: v0.53.0
   cross_promo_kit:
     git:
       url: https://github.com/zka32101/cross_promo_kit
@@ -79,7 +81,6 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^2.0.0
-  riverpod_generator: ^2.3.0
   build_runner: ^2.4.0
   custom_lint: ^0.5.0
   riverpod_lint: ^2.0.0
@@ -97,3 +98,4 @@ flutter:
     - assets/sounds/
     - assets/branding/
     - assets/icons_common/
+    - assets/readings/

@@ -25,6 +25,7 @@ import '../screens/stroke_order_screen.dart';
 import '../screens/auth_gate_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/paywall_screen.dart';
+import '../screens/reading_list_screen.dart';
 import '../models/multiplayer.dart';
 import '../models/mock_exam.dart';
 import '../views/index.dart';
@@ -234,6 +235,13 @@ final appRouter = GoRouter(
           builder: (context, state) => const StrokeOrderScreen(),
         ),
 
+        // 章ごとの解説読み物
+        GoRoute(
+          path: 'readings',
+          name: 'readings',
+          builder: (context, state) => const ReadingListScreen(),
+        ),
+
         // 設定
         GoRoute(
           path: 'settings',
@@ -353,6 +361,9 @@ extension NavigationExtension on BuildContext {
 
   /// 漢字の学習画面に遷移
   void goStrokeOrder() => push('/stroke-order');
+
+  /// 章ごとの解説読み物の一覧に遷移
+  void goReadings() => push('/readings');
 
   /// 設定画面に遷移
   void goSettings() => push('/settings');

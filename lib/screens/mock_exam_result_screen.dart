@@ -68,7 +68,6 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
       final coin = ref.read(coinProvider.notifier);
       coin.takeRecent(); // 結果画面の内訳に、この試験の分だけが出るように
       await coin.grant(CoinEvent.mockDone());
-      final accuracy = session.getAccuracyRate();
       final isPassed = session.config.isPass(
           session.getCorrectAnswerCount(), session.questions.length);
       if (!isPassed) return;
@@ -122,7 +121,6 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
 
   /// 合格ラインを超えていれば、その級の合格バッジを付与する
   Future<void> _awardBadgeIfPassed() async {
-    final accuracy = session.getAccuracyRate();
     final isPassed = session.config.isPass(
           session.getCorrectAnswerCount(), session.questions.length);
     if (!isPassed) return;

@@ -190,7 +190,7 @@ final categoryExamResultsProvider = FutureProvider.family<
         double avgTime = 0;
 
         for (final doc in snapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>;
+          final data = doc.data();
           final answers = (data['answers'] as List?)
               ?.map((a) => a as Map<String, dynamic>)
               .toList() ?? [];

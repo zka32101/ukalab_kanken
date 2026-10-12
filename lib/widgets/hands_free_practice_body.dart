@@ -32,9 +32,13 @@ class HandsFreePracticeBody extends ConsumerStatefulWidget {
 class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
   static const _labels = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ'];
 
+  // dispose 中は ref を使えないため、停止用に保持しておく。
+  late final HandsFreeSpeaker _speaker;
+
   @override
   void initState() {
     super.initState();
+    _speaker = ref.read(handsFreeSpeakerProvider);
     _autoRead();
   }
 
@@ -47,7 +51,7 @@ class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
   @override
   void dispose() {
     // 画面を離れたら読み上げを止める（読み上げ中の音が残らないように）。
-    ref.read(handsFreeSpeakerProvider).stop();
+    _speaker.stop();
     super.dispose();
   }
 

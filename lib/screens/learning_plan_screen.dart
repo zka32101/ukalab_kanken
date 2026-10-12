@@ -10,7 +10,7 @@ class LearningPlanScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final planAsync = ref.watch(learningPlanProvider);
-    final activeRecsAsync = ref.watch(activeLearningRecommendationsProvider);
+    ref.watch(activeLearningRecommendationsProvider);
 
     return Scaffold(
       appBar: AppBar(

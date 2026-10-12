@@ -1,8 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kanken/models/daily_challenge.dart';
-import 'package:kanken/models/gamification_stats.dart';
 
 void main() {
   group('DailyChallengeScreen Widget テスト', () {

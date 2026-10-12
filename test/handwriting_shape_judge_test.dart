@@ -1,4 +1,3 @@
-import 'dart:ui' show Offset;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/data/stroke_order_sample_data.dart';

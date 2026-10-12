@@ -95,7 +95,7 @@ class AIWeakAnalysisService {
   }) async {
     final weakList =
         await _firestoreService.getWeakKanjiList(uid, profileId: profileId);
-    final weak = weakList.firstWhere(
+    final dynamic weak = weakList.firstWhere(
       (w) => w.kanjiId == kanjiId,
       orElse: () => null as dynamic,
     );

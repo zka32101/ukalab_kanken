@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
+  web-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build (web, 解説読み物の確認用アプリ)
+        run: |
+          flutter pub get
+          flutter create --platforms=web --project-name kanken .
+          flutter build web -t e2e/reading_main.dart
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+      - name: Serve and check
+        env:
+          E2E_READING: '解説読み物|部首|部首とは何か'
+        run: |
+          (cd build/web && python3 -m http.server 8099 >/dev/null 2>&1 &)
+          for i in $(seq 1 30); do curl -sf http://localhost:8099/ >/dev/null && break; sleep 1; done
+          mkdir -p e2e/shots
+          node e2e/check.js e2e/shots
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: e2e/shots

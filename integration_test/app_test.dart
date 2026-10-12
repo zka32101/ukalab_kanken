@@ -20,7 +20,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and tap learning button (adjust based on actual UI)
-      final learningButton = find.byTooltip('Learning') ?? find.byIcon(Icons.school);
+      final learningButton = find.byTooltip('Learning');
       if (learningButton.evaluate().isNotEmpty) {
         await tester.tap(learningButton);
         await tester.pumpAndSettle();
@@ -50,7 +50,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to profile
-      final profileButton = find.byTooltip('Profile') ?? find.byIcon(Icons.person);
+      final profileButton = find.byTooltip('Profile');
       if (profileButton.evaluate().isNotEmpty) {
         await tester.tap(profileButton);
         await tester.pumpAndSettle();
@@ -62,7 +62,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and tap shop button
-      final shopButton = find.byTooltip('Shop') ?? find.byIcon(Icons.shopping_bag);
+      final shopButton = find.byTooltip('Shop');
       if (shopButton.evaluate().isNotEmpty) {
         await tester.tap(shopButton);
         await tester.pumpAndSettle();
@@ -92,7 +92,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find battle/multiplayer button
-      final battleButton = find.byTooltip('Battle') ?? find.byIcon(Icons.sports_esports);
+      final battleButton = find.byTooltip('Battle');
       if (battleButton.evaluate().isNotEmpty) {
         await tester.tap(battleButton);
         await tester.pumpAndSettle();
@@ -104,7 +104,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to rankings
-      final rankingButton = find.byTooltip('Rankings') ?? find.byIcon(Icons.leaderboard);
+      final rankingButton = find.byTooltip('Rankings');
       if (rankingButton.evaluate().isNotEmpty) {
         await tester.tap(rankingButton);
         await tester.pumpAndSettle();
