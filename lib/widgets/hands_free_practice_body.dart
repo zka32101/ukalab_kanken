@@ -33,11 +33,12 @@ class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
   static const _labels = ['ア', 'イ', 'ウ', 'エ', 'オ', 'カ'];
 
   // dispose 中は ref を使えないため、停止用に保持しておく。
-  late final _speaker = ref.read(handsFreeSpeakerProvider);
+  late final HandsFreeSpeaker _speaker;
 
   @override
   void initState() {
     super.initState();
+    _speaker = ref.read(handsFreeSpeakerProvider);
     _autoRead();
   }
 
