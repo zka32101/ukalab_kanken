@@ -21,6 +21,7 @@ import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
 import '../screens/study_notes_screen.dart'
     show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
+import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/hands_free_practice_body.dart';
@@ -92,6 +93,8 @@ class HomeScreen extends ConsumerWidget {
               const OshiCard(),
               const SizedBox(height: 12),
               const OshiReadinessCard(),
+              const SizedBox(height: 12),
+              const ExamPrepEntryCard(),
               const SizedBox(height: 20),
 
               // メインCTA（演習・模擬試験）

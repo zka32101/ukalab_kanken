@@ -1,0 +1,7 @@
+{"itemId":"k-ticket","examId":"kanken","category":"admission","label":"受験票を用意した","venue":"venue","note":"公式の受験案内で確認する"}
+{"itemId":"k-id","examId":"kanken","category":"admission","label":"本人確認の方法を受験案内で確かめた","venue":"venue","note":"公式の受験案内で確認する"}
+{"itemId":"k-pencil","examId":"kanken","category":"belongings","label":"筆記用具を用意した","venue":"venue","note":"指定は公式の受験案内で確認する"}
+{"itemId":"k-eraser","examId":"kanken","category":"belongings","label":"消しゴムなどの持ち物を確かめた","venue":"venue","note":"公式の受験案内で確認する"}
+{"itemId":"k-allowed","examId":"kanken","category":"belongings","label":"持ち込める物・持ち込めない物を確かめた","venue":"venue","note":"公式の受験案内で確認する"}
+{"itemId":"k-route","examId":"kanken","category":"travel","label":"会場までの行き方と所要時間を確かめた","venue":"venue","note":"会場は公式の受験案内で確認する"}
+{"itemId":"k-margin","examId":"kanken","category":"travel","label":"時間に余裕をもって着く予定を立てた","venue":"venue","note":"集合時刻は公式の受験案内で確認する"}

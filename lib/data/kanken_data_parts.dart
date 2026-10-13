@@ -1,6 +1,8 @@
 import 'package:ukalab_core/daily_goal.dart';
 import 'package:ukalab_core/ui.dart';
 
+import 'exam_prep_data.dart';
+
 /// 設定画面「データの管理」（書き出し・読み込み・リセット）の対象。
 ///
 /// 端末内に保存している学習データ（デイリーミッションの目標・達成履歴、自分用メモ）。
@@ -31,5 +33,13 @@ final List<DataPart> kankenDataParts = [
         .read(questionMemoProvider.notifier)
         .restore((json as Map<String, dynamic>).cast<String, String>()),
     reset: (ref) => ref.read(questionMemoProvider.notifier).reset(),
+  ),
+  DataPart(
+    id: 'examChecklist',
+    export: (ref) => ref.read(checklistProvider).checkedIds.toList()..sort(),
+    restore: (ref, json) => ref
+        .read(checklistProvider.notifier)
+        .restore((json as List).cast<String>()),
+    reset: (ref) => ref.read(checklistProvider.notifier).reset(),
   ),
 ];
