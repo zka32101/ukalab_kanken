@@ -4,7 +4,7 @@ import 'package:ukalab_core/ui.dart' show CoinEvent, coinProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/compound_structure_data.dart';
 import '../data/exam_prep_data.dart' show historyProvider;
-import '../views/core_v069_entry.dart' show recordReviewResult;
+import '../views/core_v069_entry.dart' show recordKankenReviewResult;
 import '../data/level_kanji_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../models/index.dart';
@@ -358,7 +358,7 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
         // 試験に向けて（10分プラン・書き出し）用の端末内の解答履歴。失敗しても止めない。
         // 今日の復習の予定にも同じ時刻で反映する（履歴より先に。履歴更新で復習の件数が作り直されるため）。
         final answeredAt = DateTime.now();
-        await recordReviewResult(question.source.id,
+        await recordKankenReviewResult(question.source.id,
             correct: isCorrect, at: answeredAt);
         try {
           await ref.read(historyProvider.notifier).recordAnswer(

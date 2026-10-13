@@ -40,7 +40,7 @@ final reviewScheduleProvider =
 /// 1問の解答結果を復習予定に反映する（期限が来ている問題だけ）。
 /// [at] は履歴の ProgressRecord.at と同じ時刻を渡す（復習より後の間違いと見なされないため）。
 /// 失敗しても学習の流れは止めない。
-Future<void> recordReviewResult(
+Future<void> recordKankenReviewResult(
   String qid, {
   required bool correct,
   required DateTime at,

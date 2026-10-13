@@ -180,8 +180,8 @@ void main() {
         _item('due', stage: 1),
         _item('later', stage: 1, due: DateTime(2026, 10, 20)),
       ]);
-      await recordReviewResult('due', correct: true, at: _now, store: store);
-      await recordReviewResult('later', correct: true, at: _now, store: store);
+      await recordKankenReviewResult('due', correct: true, at: _now, store: store);
+      await recordKankenReviewResult('later', correct: true, at: _now, store: store);
       final items = {for (final i in await store.read()) i.qid: i};
       expect(items['due']!.stage, 2);
       expect(items['due']!.lastReviewedAt, _now);
@@ -191,8 +191,8 @@ void main() {
     test('間違えると1段戻り、予定にない問題は何も起きない', () async {
       final store = InMemoryReviewSchedulerStore();
       await store.write([_item('a', stage: 2)]);
-      await recordReviewResult('a', correct: false, at: _now, store: store);
-      await recordReviewResult('zzz', correct: true, at: _now, store: store);
+      await recordKankenReviewResult('a', correct: false, at: _now, store: store);
+      await recordKankenReviewResult('zzz', correct: true, at: _now, store: store);
       final items = await store.read();
       expect(items.length, 1);
       expect(items.single.stage, 1);
