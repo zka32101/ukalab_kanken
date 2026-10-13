@@ -23,6 +23,7 @@ import '../screens/study_notes_screen.dart'
     show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
 import 'core_features_entry.dart';
+import 'core_v069_entry.dart';
 import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
@@ -115,7 +116,9 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ],
                     )),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
+                    const TodayReviewEntry(),
+                    const SizedBox(height: 8),
                     _padded(Text(
                       '受験級を選択',
                       style: Theme.of(context)
@@ -154,6 +157,8 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _padded(const OshiGrowthEntry()),
+                    const SizedBox(height: 12),
                     _padded(_buildProgressCard(context, ref, user, weakKanjiCount)),
                     const SizedBox(height: 12),
                     user.when(
