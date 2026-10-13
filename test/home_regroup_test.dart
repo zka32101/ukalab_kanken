@@ -88,11 +88,11 @@ void main() {
     await _pump(t, _app());
     for (final h in ['今日やること', '記録', '試験に向けて']) {
       await _open(t, h);
-      expect(find.text(h), findsOneWidget);
+      expect(find.widgetWithText(HomeSectionHeader, h), findsOneWidget);
     }
     for (final h in ['道具', 'ソーシャル', '設定・その他']) {
       await _open(t, h);
-      expect(find.text(h), findsOneWidget);
+      expect(find.widgetWithText(HomeSectionHeader, h), findsOneWidget);
     }
   });
 
