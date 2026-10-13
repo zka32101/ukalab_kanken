@@ -4,16 +4,9 @@ on:
   # 手動トリガー
   workflow_dispatch:
 
-  # 新しいリリースタグを作成した時
-  release:
-    types: [published]
-
-  # main ブランチへのプッシュ時
-  push:
-    branches:
-      - main
-    paths:
-      - 'export_data/**'
+  # 注意: export_data/ は旧データ(取り込み禁止。docs/data_verification/README.md 参照)。
+  # 誤投入防止のため、push/release での自動実行は行わず手動実行のみとする。
+  # 正本は scripts/seed-kanji-questions.js と scripts/seed-exam-questions*.js。
 
 jobs:
   import-firestore-data:
@@ -28,18 +21,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
+      - name: Install seed script dependencies
+        working-directory: scripts
+        run: npm ci || npm install
 
       - name: Setup Firebase credentials
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
 
-      - name: Import kanji questions data
+      - name: Import kanji questions (canonical seed scripts)
+        working-directory: scripts
         run: |
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-key.json
-          firebase firestore:import export_data/kanji_questions_600.jsonl
+          node seed-kanji-questions.js
+          node seed-exam-questions.js
+          node seed-exam-questions-l9-l5.js
         env:
           FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
 
