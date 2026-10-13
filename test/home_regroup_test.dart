@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kanken/providers/achievement_provider.dart';
+import 'package:kanken/providers/oshi_provider.dart';
 import 'package:kanken/providers/ranking_provider.dart';
 import 'package:kanken/providers/spaced_repetition_provider.dart';
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
@@ -35,6 +37,12 @@ Widget _app({GoRouter? router}) {
       ]);
   return ProviderScope(
     overrides: [
+      coinServiceProvider
+          .overrideWithValue(CoinService(store: InMemoryCoinStore())),
+      outfitServiceProvider
+          .overrideWithValue(OutfitService(store: InMemoryOutfitStore())),
+      oshiStageProvider.overrideWith((ref) async => MascotStage.lv1),
+      userAchievementsProvider.overrideWith((ref) async => []),
       currentUserIdProvider.overrideWith((ref) => null),
       currentUserProvider.overrideWith((ref) async => null),
       reviewReminderCheckProvider.overrideWith((ref) async {}),

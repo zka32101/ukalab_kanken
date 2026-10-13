@@ -33,13 +33,16 @@ class CategoryProgressBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                category,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              Expanded(
+                child: Text(
+                  category,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '${(progress * 100).toStringAsFixed(1)}%',
                 style: TextStyle(
