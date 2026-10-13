@@ -10,7 +10,6 @@ import 'package:kanken/router/app_router.dart';
 import 'package:kanken/screens/glossary_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_core/glossary.dart';
-import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 List<ChapterReading> _readings() => parseChapterReadingsJsonl(
