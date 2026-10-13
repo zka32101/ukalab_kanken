@@ -68,8 +68,14 @@ Future<void> _pump(WidgetTester t, Widget w,
   await t.pump(const Duration(milliseconds: 100));
 }
 
+/// 推しカードなどの常時アニメーションがあるため、pumpAndSettle は使わない。
+Future<void> _settle(WidgetTester t) async {
+  await t.pump();
+  await t.pump(const Duration(milliseconds: 500));
+}
+
 Future<void> _open(WidgetTester t, String title) async {
-  final f = find.text(title);
+  final f = find.text(title).first;
   await t.scrollUntilVisible(f, 200,
       scrollable: find.byType(Scrollable).first);
   await t.pump();
@@ -113,7 +119,7 @@ void main() {
       await _pump(t, _app());
       await _open(t, e.key);
       await t.tap(find.text(e.key));
-      await t.pumpAndSettle();
+      await _settle(t);
       expect(find.text('page:${e.value}'), findsOneWidget, reason: e.key);
     }
   });
@@ -128,10 +134,10 @@ void main() {
       await _pump(t, _app());
       await _open(t, '道具');
       await t.tap(find.text('道具'));
-      await t.pumpAndSettle();
+      await _settle(t);
       await _open(t, e.key);
       await t.tap(find.text(e.key));
-      await t.pumpAndSettle();
+      await _settle(t);
       expect(find.text('page:${e.value}'), findsOneWidget, reason: e.key);
     }
   });
@@ -141,7 +147,7 @@ void main() {
       await _pump(t, _app());
       await _open(t, e.key);
       await t.tap(find.text(e.key));
-      await t.pumpAndSettle();
+      await _settle(t);
       expect(find.text('page:${e.value}'), findsOneWidget);
     }
   });
@@ -150,20 +156,20 @@ void main() {
     await _pump(t, _app());
     await _open(t, '道具');
     await t.tap(find.text('道具'));
-    await t.pumpAndSettle();
+    await _settle(t);
     expect(find.text('用語集'), findsOneWidget);
     final p = await SharedPreferences.getInstance();
     expect(p.getBool('ukalab_kanken_home_section_tools'), isTrue);
 
     // 作り直しても開いたまま
     await _pump(t, _app());
-    await t.pumpAndSettle();
+    await _settle(t);
     await _open(t, '用語集');
     expect(find.text('用語集'), findsOneWidget);
 
     // 閉じる
     await t.tap(find.text('道具'));
-    await t.pumpAndSettle();
+    await _settle(t);
     expect(find.text('用語集'), findsNothing);
     expect(p.getBool('ukalab_kanken_home_section_tools'), isFalse);
   });
@@ -173,7 +179,7 @@ void main() {
     for (final h in ['道具', 'ソーシャル']) {
       await _open(t, h);
       await t.tap(find.text(h));
-      await t.pumpAndSettle();
+      await _settle(t);
     }
     await _open(t, '設定・その他');
     expect(t.takeException(), isNull);
