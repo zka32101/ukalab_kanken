@@ -10,6 +10,7 @@ import 'package:kanken/screens/settings_screen.dart' show HandsFreeSection;
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
 import 'package:kanken/viewmodels/user_viewmodel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ukalab_core/ukalab_core.dart' show MistakeNoteEngine;
 
 /// ながら学習（app_common_kit v3.1.0 の NagaraSessionView）と漢検アプリの連携テスト。
 PracticeQuestion _q(int i) {
@@ -76,26 +77,56 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('誤答は履歴（間違いノートの元）に載る。正解は載らない', (tester) async {
+  testWidgets('タップ解答は1問ごとに履歴へ1件。正答も誤答も載り、二重にならない。スキップは載らない', (tester) async {
     final s = _setup();
     await tester.pumpWidget(_app(s.container, const NagaraSessionScreen()));
     await _settle(tester);
     await _settle(tester);
 
-    // 問題の並びは毎回違うので、表示中の問題の正解/不正解の選択肢を探す。
-    final prompt = find.textContaining('漢').evaluate().isNotEmpty;
-    expect(prompt, isTrue);
-    final wrong = find.textContaining('ほか');
-    expect(wrong, findsOneWidget);
-    await tester.tap(wrong);
+    // 1問目: 誤答
+    await tester.tap(find.textContaining('ほか'));
     await _settle(tester);
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
-
-    final history = s.container.read(historyProvider);
-    expect(history.where((r) => !r.correct).length, 1);
+    var history = s.container.read(historyProvider);
+    expect(history.length, 1);
+    expect(history.single.correct, isFalse);
     expect(history.single.subjectId, 'kanji');
 
+    // 次へ（スキップ相当: 答え合わせ中のスキップ）→ 2問目: 正答
+    await tester.tap(find.text('スキップ'));
+    await _settle(tester);
+    await _settle(tester);
+    await tester.tap(find.textContaining('よみ').last);
+    await _settle(tester);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    history = s.container.read(historyProvider);
+    expect(history.length, 2);
+    expect(history.last.correct, isTrue);
+
+    // 3問目: スキップ（未回答）は載らない
+    await tester.tap(find.text('スキップ'));
+    await _settle(tester);
+    await _settle(tester);
+    await tester.tap(find.text('スキップ'));
+    await _settle(tester);
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+    expect(s.container.read(historyProvider).length, 2);
+
     await tester.pumpWidget(const SizedBox());
+  });
+
+  test('誤答のあと正答が続くと、間違いノートで克服になる（履歴への記録は画面と同じ recordAnswer）', () async {
+    final s = _setup();
+    final c = s.container;
+    const engine = MistakeNoteEngine();
+    final n = c.read(historyProvider.notifier);
+    await n.recordAnswer(questionId: 'q1', level: 'LEVEL_10', correct: false);
+    final before = engine.update(const [], c.read(historyProvider));
+    expect(before.map((e) => e.qid), contains('q1'));
+    await n.recordAnswer(questionId: 'q1', level: 'LEVEL_10', correct: true);
+    await n.recordAnswer(questionId: 'q1', level: 'LEVEL_10', correct: true);
+    final after = engine.update(before, c.read(historyProvider));
+    expect(engine.newlyOvercome(before, after), contains('q1'));
   });
 
   testWidgets('終了を押すと止まり、それ以上読み上げない', (tester) async {

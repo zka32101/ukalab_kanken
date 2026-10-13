@@ -77,14 +77,15 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
   );
 }
 
-/// ながら学習での誤答を、通常の解答と同じ記録（履歴→間違いノート・推しの成長・解答ログ・復習リスト）に載せる。
+/// ながら学習でのタップ解答（正答・誤答）を、通常の解答と同じ記録（履歴→間違いノート・推しの成長・解答ログ・復習リスト）に載せる。
 /// 記録に失敗しても学習は止めない。
-Future<void> recordNagaraWrongAnswer(WidgetRef ref, PracticeQuestion q, String level) async {
+Future<void> recordNagaraAnswer(
+    WidgetRef ref, PracticeQuestion q, String level, bool correct) async {
   try {
     await ref.read(historyProvider.notifier).recordAnswer(
           questionId: q.source.id,
           level: level,
-          correct: false,
+          correct: correct,
         );
   } catch (_) {}
   String profileId = 'default';
@@ -106,13 +107,14 @@ Future<void> recordNagaraWrongAnswer(WidgetRef ref, PracticeQuestion q, String l
             uid: uid,
             profileId: profileId,
             questionId: q.source.id,
-            isCorrect: false,
+            isCorrect: correct,
             mode: AnswerMode.normal,
             answeredAt: DateTime.now(),
             level: level,
           ));
     }
   } catch (_) {}
+  if (correct) return;
   try {
     unawaited(addToSpacedRepetition(
       ref,
@@ -151,9 +153,10 @@ class NagaraSessionScreen extends ConsumerWidget {
               child: NagaraSessionView(
                 questions: [for (final q in questions) toNagaraQuestion(q)],
                 maxQuestions: nagaraSessionSize,
-                onWrongAnswer: (nq, _) {
+                // 正答・誤答とも onAnswered に一本化（未回答・スキップは呼ばれず、記録しない）。
+                onAnswered: (nq, _, correct) {
                   final q = byId[nq.id];
-                  if (q != null) unawaited(recordNagaraWrongAnswer(ref, q, level));
+                  if (q != null) unawaited(recordNagaraAnswer(ref, q, level, correct));
                 },
                 onClose: () => Navigator.of(context).pop(),
               ),
