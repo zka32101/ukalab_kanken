@@ -203,7 +203,7 @@ class SettingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: DataManagementSection(
                   parts: kankenDataParts,
-                  description: 'デイリーミッションの記録と自分用メモは、'
+                  description: 'デイリーミッションの記録、自分用メモ、用語集の「覚えた」は、'
                       '書き出し・読み込み・リセットができます（ブックマークは対象外です）。',
                 ),
               ),

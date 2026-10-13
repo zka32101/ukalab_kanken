@@ -1,7 +1,10 @@
 import 'package:ukalab_core/daily_goal.dart';
+import 'package:ukalab_core/glossary.dart'
+    show learnedTermsDataPart;
 import 'package:ukalab_core/ui.dart';
 
 import '../views/core_features_entry.dart' show kankenMistakeNoteStore;
+import '../screens/glossary_screen.dart' show kankenLearnedTermsStore;
 import 'exam_prep_data.dart';
 
 /// 設定画面「データの管理」（書き出し・読み込み・リセット）の対象。
@@ -46,4 +49,6 @@ final List<DataPart> kankenDataParts = [
   ),
   // 間違いノート（問題ID・日時・原因・級・回数だけ。画面は開くたびに端末内から読み直す）
   mistakeNoteDataPart(kankenMistakeNoteStore),
+  // 用語集の「覚えた」（用語IDだけ）
+  learnedTermsDataPart(kankenLearnedTermsStore),
 ];

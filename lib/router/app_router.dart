@@ -26,6 +26,7 @@ import '../screens/auth_gate_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/paywall_screen.dart';
 import '../screens/reading_list_screen.dart';
+import '../screens/glossary_screen.dart';
 import '../screens/study_notes_screen.dart';
 import '../models/multiplayer.dart';
 import '../models/mock_exam.dart';
@@ -243,6 +244,13 @@ final appRouter = GoRouter(
           builder: (context, state) => const ReadingListScreen(),
         ),
 
+        // 用語集
+        GoRoute(
+          path: 'glossary',
+          name: 'glossary',
+          builder: (context, state) => const GlossaryScreen(),
+        ),
+
         // ブックマーク・メモ
         GoRoute(
           path: 'study-notes',
@@ -372,6 +380,9 @@ extension NavigationExtension on BuildContext {
 
   /// 章ごとの解説読み物の一覧に遷移
   void goReadings() => push('/readings');
+
+  /// 用語集に遷移
+  void goGlossary() => push('/glossary');
 
   /// ブックマーク・メモ一覧に遷移
   void goStudyNotes() => push('/study-notes');

@@ -5898,4 +5898,7 @@ class KanjiInfoData {
   };
 
   static KanjiInfo? get(String kanji) => _data[kanji];
+
+  /// 全データ（漢字 → 読み・用例）。登録順。用語集の生成用。
+  static Iterable<MapEntry<String, KanjiInfo>> get entries => _data.entries;
 }
