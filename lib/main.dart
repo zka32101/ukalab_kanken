@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:cross_promo_kit/cross_promo_kit.dart';
 import 'package:ukalab_core/daily_goal.dart' show dailyGoalOverrides;
 import 'package:ukalab_core/reminder.dart' show reminderOverrides;
 import 'package:ukalab_core/reminder_notification.dart'
@@ -43,6 +44,12 @@ void main() async {
   } on FirebaseException catch (e) {
     if (e.code != 'duplicate-app') rethrow;
   }
+
+  // うかラボ内の相互紹介（Remote Config）。Firebase 初期化の後・別の try/catch。
+  // 失敗しても起動を止めず、取得完了後に紹介カードが自動で表示される。
+  try {
+    unawaited(CrossPromoService.init());
+  } catch (_) {}
 
   // サブスクリプション（広告非表示プラン）初期化
   await PurchasesService.initialize();

@@ -326,11 +326,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.2.0"
-      resolved-ref: "4b47afa65090bbd28cf1e01caba7d6d12ccc52f3"
+      ref: "v0.3.0"
+      resolved-ref: "3ac5ac96f0ea4b9f2346f1cadf69b28de3df9aca"
       url: "https://github.com/zka32101/cross_promo_kit"
     source: git
-    version: "0.2.0"
+    version: "0.3.0"
   crypto:
     dependency: transitive
     description:

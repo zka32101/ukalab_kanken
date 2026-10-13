@@ -248,7 +248,8 @@ class SettingsScreen extends ConsumerWidget {
               ),
               CrossPromoSection(
                 currentAppId: 'com.yourwish.ukarulab.kanji',
-                currentCategory: '学習・教育',
+                currentCategory: 'うかラボ',
+                isChildDirected: true,
                 beforeOpenStore: (context) => requireParentalGate(context),
               ),
               const _SectionHeader('このアプリについて'),
