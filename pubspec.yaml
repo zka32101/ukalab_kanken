@@ -59,12 +59,12 @@ dependencies:
   url_launcher: ^6.2.0
 
   # Common kits (全アプリ共通基盤)
-  # app_common_kit は ukalab_core v0.53.0 が v3.0.0 を指定している。pub は kit のタグが食い違うと
-  # 解決できないため、core に合わせて v3.0.0 に固定する（v3.0.1 はドキュメントと設定ファイルのみの変更）。
+  # app_common_kit は ukalab_core v0.64.0 が v3.1.0 を指定している。pub は kit のタグが食い違うと
+  # 解決できないため、core に合わせて v3.1.0 に固定する。
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.0.0
+      ref: v3.1.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
