@@ -97,6 +97,8 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               const OshiReadinessCard(),
               const SizedBox(height: 12),
+              const ExamCountdownEntry(),
+              const SizedBox(height: 8),
               const ExamPrepEntryCard(),
               const SizedBox(height: 12),
               const WeeklyRecapEntry(),
