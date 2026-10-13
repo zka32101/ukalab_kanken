@@ -173,7 +173,7 @@ class LearningGoalsScreen extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: daysLeft <= 7 && daysLeft >= 0 ? Colors.red : Colors.indigo,
+            color: Colors.indigo,
           ),
         ),
         if (achievementRate != null) ...[
