@@ -18,6 +18,7 @@ import '../models/user_ranking.dart';
 import '../theme/app_theme.dart';
 import '../widgets/menu_grid_card.dart';
 import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
+import '../screens/glossary_screen.dart' show kGlossaryMenuLabel;
 import '../screens/study_notes_screen.dart'
     show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
@@ -154,6 +155,12 @@ class HomeScreen extends ConsumerWidget {
                   label: kReadingsMenuLabel,
                   color: AppColors.study,
                   onTap: () => context.goReadings(),
+                ),
+                MenuGridCard(
+                  icon: Icons.menu_book,
+                  label: kGlossaryMenuLabel,
+                  color: AppColors.study,
+                  onTap: () => context.goGlossary(),
                 ),
                 MenuGridCard(
                   icon: Icons.bookmarks,

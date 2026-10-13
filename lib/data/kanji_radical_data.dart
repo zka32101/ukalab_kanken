@@ -1041,6 +1041,10 @@ class KanjiRadicalData {
 
   static KanjiRadicalInfo? get(String kanji) => _data[kanji];
 
+  /// 全データ（漢字 → 部首）。登録順。用語集の生成用。
+  static Iterable<MapEntry<String, KanjiRadicalInfo>> get entries =>
+      _data.entries;
+
   /// 指定した部首群の中から、正解以外の部首をランダムに選ぶ際の候補一覧
   static List<String> get allRadicals =>
       _data.values.map((e) => e.radical).toSet().toList();
