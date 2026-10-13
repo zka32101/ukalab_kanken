@@ -131,6 +131,7 @@ void main() {
       'ブックマーク・メモ': '/study-notes',
     };
     for (final e in entries.entries) {
+      SharedPreferences.setMockInitialValues({}); // 毎回、初期（閉じた）状態から
       await _pump(t, _app());
       await _open(t, '道具');
       await t.tap(find.text('道具'));
