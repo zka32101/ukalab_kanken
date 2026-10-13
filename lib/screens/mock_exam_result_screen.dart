@@ -25,7 +25,7 @@ import '../models/collection_badge.dart';
 import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../widgets/achievement_unlock_dialog.dart';
-import '../widgets/oshi_card.dart' show shareCardImage;
+import '../widgets/oshi_card.dart' show shareCardImageWithGate;
 
 class MockExamResultScreen extends ConsumerStatefulWidget {
   final ExamSessionState session;
@@ -102,7 +102,7 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
               cert: UkalabCert.kanjiKentei,
               stage: stage,
               scoreText: '正答率 ${(accuracy * 100).round()}%',
-              onShare: shareCardImage,
+              onShare: (png) => shareCardImageWithGate(context, png),
             );
           },
         ),
