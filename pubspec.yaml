@@ -69,11 +69,7 @@ dependencies:
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.53.0
-  cross_promo_kit:
-    git:
-      url: https://github.com/zka32101/cross_promo_kit
-      ref: v0.3.0
+      ref: v0.54.0
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
