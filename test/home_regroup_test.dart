@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kanken/providers/firebase_provider.dart' show currentUserIdProvider;
 import 'package:kanken/providers/ranking_provider.dart';
 import 'package:kanken/providers/spaced_repetition_provider.dart';
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
