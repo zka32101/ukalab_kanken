@@ -16,7 +16,7 @@ import '../providers/spaced_repetition_provider.dart';
 import '../providers/level_progress_provider.dart';
 import '../models/user_ranking.dart';
 import '../theme/app_theme.dart';
-import '../widgets/menu_grid_card.dart';
+import '../widgets/home_group.dart';
 import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
 import '../screens/glossary_screen.dart' show kGlossaryMenuLabel;
 import '../screens/study_notes_screen.dart'
@@ -27,7 +27,7 @@ import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/hands_free_practice_body.dart';
-import '../screens/nagara_session_screen.dart';
+import '../screens/nagara_session_screen.dart' show nagaraMenuItem;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -76,191 +76,255 @@ class HomeScreen extends ConsumerWidget {
       bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ユーザー情報・進捗セクション
-              _buildProgressCard(context, ref, user, weakKanjiCount),
-              const SizedBox(height: 12),
-              user.when(
-                data: (u) => (u == null || u.streakCount <= 0)
-                    ? const SizedBox.shrink()
-                    : StreakWidget(
-                        streakDays: u.streakCount,
-                        lastActiveDate: u.lastStudyDate ?? DateTime.now(),
+              // 最上部（分類の外）: 推し
+              _padded(const OshiCard()),
+              const SizedBox(height: 8),
+              _padded(const OshiMessageEntry()),
+
+              // ① 今日やること
+              HomeGroup(
+                id: 'today',
+                title: '今日やること',
+                subtitle: 'まずはここから',
+                emoji: '🎯',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _padded(Row(
+                      children: [
+                        Expanded(
+                          child: _buildPrimaryActionCard(
+                            icon: Icons.play_circle_fill,
+                            label: '演習を始める',
+                            color: AppColors.primary,
+                            onTap: () => _navigateToPractice(context, ref),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildPrimaryActionCard(
+                            icon: Icons.assignment,
+                            label: '模擬試験モード',
+                            color: AppColors.study,
+                            onTap: () => context.goMockExamModes(),
+                          ),
+                        ),
+                      ],
+                    )),
+                    const SizedBox(height: 16),
+                    _padded(Text(
+                      '受験級を選択',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    )),
+                    const SizedBox(height: 8),
+                    _padded(_buildLevelGrid(context, ref, currentLevel)),
+                    const SizedBox(height: 12),
+                    HomeMenuGrid(items: [
+                      HomeMenuItem(
+                        icon: Icons.repeat,
+                        title: '復習（間隔反復）',
+                        iconColor: AppColors.study,
+                        onTap: () => context.goSpacedRepetitionReview(),
                       ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                      nagaraMenuItem(context),
+                      HomeMenuItem(
+                        icon: Icons.edit_note,
+                        title: '漢字の学習',
+                        iconColor: AppColors.study,
+                        onTap: () => context.goStrokeOrder(),
+                      ),
+                    ]),
+                  ],
+                ),
               ),
-              const OshiCard(),
-              const SizedBox(height: 8),
-              const OshiMessageEntry(),
-              const SizedBox(height: 12),
-              const OshiReadinessCard(),
-              const SizedBox(height: 12),
-              const ExamCountdownEntry(),
-              const SizedBox(height: 8),
-              const ExamPrepEntryCard(),
-              const SizedBox(height: 12),
-              const WeeklyRecapEntry(),
-              const SizedBox(height: 20),
 
-              // メインCTA（演習・模擬試験）
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildPrimaryActionCard(
-                      icon: Icons.play_circle_fill,
-                      label: '演習を始める',
-                      color: AppColors.primary,
-                      onTap: () => _navigateToPractice(context, ref),
+              // ② 記録
+              HomeGroup(
+                id: 'records',
+                title: '記録',
+                subtitle: 'これまでのがんばり',
+                emoji: '📊',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _padded(_buildProgressCard(context, ref, user, weakKanjiCount)),
+                    const SizedBox(height: 12),
+                    user.when(
+                      data: (u) => (u == null || u.streakCount <= 0)
+                          ? const SizedBox.shrink()
+                          : Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                              child: StreakWidget(
+                                streakDays: u.streakCount,
+                                lastActiveDate:
+                                    u.lastStudyDate ?? DateTime.now(),
+                              ),
+                            ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildPrimaryActionCard(
-                      icon: Icons.assignment,
-                      label: '模擬試験モード',
-                      color: AppColors.study,
-                      onTap: () => context.goMockExamModes(),
-                    ),
-                  ),
-                ],
+                    _padded(const WeeklyRecapEntry()),
+                    const SizedBox(height: 12),
+                    _padded(_buildLevelProgressSection(context, ref)),
+                    const SizedBox(height: 12),
+                    HomeMenuGrid(items: [
+                      HomeMenuItem(
+                        icon: Icons.analytics,
+                        title: '苦手分析',
+                        iconColor: AppColors.analysis,
+                        onTap: () => context.goWeakAreas(),
+                      ),
+                    ]),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
 
-              // 級選択セクション
-              const Text(
-                '受験級を選択',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // ③ 試験に向けて
+              HomeGroup(
+                id: 'exam',
+                title: '試験に向けて',
+                subtitle: '本番の準備をすすめよう',
+                emoji: '📝',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _padded(const ExamCountdownEntry()),
+                    const SizedBox(height: 8),
+                    _padded(const ExamPrepEntryCard()),
+                    const SizedBox(height: 12),
+                    _padded(const OshiReadinessCard()),
+                    const SizedBox(height: 12),
+                    HomeMenuGrid(items: [
+                      HomeMenuItem(
+                        icon: Icons.lightbulb,
+                        title: '学習計画',
+                        iconColor: AppColors.analysis,
+                        onTap: () => context.goLearningPlan(),
+                      ),
+                      HomeMenuItem(
+                        icon: Icons.flag,
+                        title: '学習目標',
+                        iconColor: AppColors.analysis,
+                        onTap: () => context.goLearningGoals(),
+                      ),
+                    ]),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              _buildLevelGrid(context, ref, currentLevel),
-              const SizedBox(height: 20),
-              _buildLevelProgressSection(context, ref),
-              const SizedBox(height: 28),
 
-              // 学習セクション
-              const SectionHeader(title: '学習 📖'),
-              const SizedBox(height: 12),
-              MenuGrid(children: [
-                MenuGridCard(
-                  icon: Icons.edit_note,
-                  label: '漢字の\n学習',
-                  color: AppColors.study,
-                  onTap: () => context.goStrokeOrder(),
-                ),
-                MenuGridCard(
-                  icon: Icons.auto_stories,
-                  label: kReadingsMenuLabel,
-                  color: AppColors.study,
-                  onTap: () => context.goReadings(),
-                ),
-                MenuGridCard(
-                  icon: Icons.menu_book,
-                  label: kGlossaryMenuLabel,
-                  color: AppColors.study,
-                  onTap: () => context.goGlossary(),
-                ),
-                MenuGridCard(
-                  icon: Icons.bookmarks,
-                  label: kStudyNotesMenuLabel,
-                  color: AppColors.study,
-                  onTap: () => context.goStudyNotes(),
-                ),
-                const NagaraMenuCard(),
-                MenuGridCard(
-                  icon: Icons.repeat,
-                  label: '復習\n(間隔反復)',
-                  color: AppColors.study,
-                  onTap: () => context.goSpacedRepetitionReview(),
-                ),
-                MenuGridCard(
-                  icon: Icons.fact_check,
-                  label: '間違い\nノート',
-                  color: AppColors.study,
-                  onTap: () => openMistakeNote(context),
-                ),
-                MenuGridCard(
-                  icon: Icons.analytics,
-                  label: '苦手分析',
-                  color: AppColors.analysis,
-                  onTap: () => context.goWeakAreas(),
-                ),
-                MenuGridCard(
-                  icon: Icons.lightbulb,
-                  label: '学習計画',
-                  color: AppColors.analysis,
-                  onTap: () => context.goLearningPlan(),
-                ),
-                MenuGridCard(
-                  icon: Icons.flag,
-                  label: '学習目標',
-                  color: AppColors.analysis,
-                  onTap: () => context.goLearningGoals(),
-                ),
-              ]),
-              const SizedBox(height: 28),
+              // ④ 道具
+              HomeGroup(
+                id: 'tools',
+                title: '道具',
+                subtitle: '調べる・まとめる',
+                emoji: '🧰',
+                initiallyExpanded: false,
+                child: HomeMenuGrid(items: [
+                  HomeMenuItem(
+                    icon: Icons.auto_stories,
+                    title: kReadingsMenuLabel.replaceAll('\n', ''),
+                    iconColor: AppColors.study,
+                    onTap: () => context.goReadings(),
+                  ),
+                  HomeMenuItem(
+                    icon: Icons.menu_book,
+                    title: kGlossaryMenuLabel,
+                    iconColor: AppColors.study,
+                    onTap: () => context.goGlossary(),
+                  ),
+                  HomeMenuItem(
+                    icon: Icons.bookmarks,
+                    title: kStudyNotesMenuLabel.replaceAll('\n', ''),
+                    iconColor: AppColors.study,
+                    onTap: () => context.goStudyNotes(),
+                  ),
+                  HomeMenuItem(
+                    icon: Icons.fact_check,
+                    title: '間違いノート',
+                    iconColor: AppColors.study,
+                    onTap: () => openMistakeNote(context),
+                  ),
+                ]),
+              ),
 
-              // ソーシャルセクション
-              const SectionHeader(title: 'ソーシャル 👥'),
-              const SizedBox(height: 12),
-              MenuGrid(children: [
-                MenuGridCard(
-                  icon: Icons.people,
-                  label: 'フレンド',
-                  color: AppColors.social,
-                  onTap: () => context.goFriends(),
+              // ソーシャル（漢検だけの独自グループ）
+              HomeGroup(
+                id: 'social',
+                title: 'ソーシャル',
+                subtitle: 'ともだちと楽しむ',
+                emoji: '👥',
+                initiallyExpanded: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    HomeMenuGrid(items: [
+                      HomeMenuItem(
+                        icon: Icons.people,
+                        title: 'フレンド',
+                        iconColor: AppColors.social,
+                        onTap: () => context.goFriends(),
+                      ),
+                      HomeMenuItem(
+                        icon: Icons.sports_kabaddi,
+                        title: 'チャレンジ',
+                        iconColor: AppColors.social,
+                        onTap: () => context.goFriendChallenges(),
+                      ),
+                      HomeMenuItem(
+                        icon: Icons.leaderboard,
+                        title: 'ランキング',
+                        iconColor: AppColors.social,
+                        onTap: () => context.goGlobalRanking(),
+                      ),
+                      HomeMenuItem(
+                        icon: Icons.emoji_events,
+                        title: 'スコアボード',
+                        iconColor: AppColors.social,
+                        onTap: () => context.goLeaderboard(),
+                      ),
+                    ]),
+                    const SizedBox(height: 12),
+                    _padded(_buildRankingPreview(context, ref)),
+                    const SizedBox(height: 12),
+                    _padded(_buildFriendPreview(context, ref)),
+                  ],
                 ),
-                MenuGridCard(
-                  icon: Icons.sports_kabaddi,
-                  label: 'チャレンジ',
-                  color: AppColors.social,
-                  onTap: () => context.goFriendChallenges(),
-                ),
-                MenuGridCard(
-                  icon: Icons.leaderboard,
-                  label: 'ランキング',
-                  color: AppColors.social,
-                  onTap: () => context.goGlobalRanking(),
-                ),
-                MenuGridCard(
-                  icon: Icons.emoji_events,
-                  label: 'スコアボード',
-                  color: AppColors.social,
-                  onTap: () => context.goLeaderboard(),
-                ),
-              ]),
-              const SizedBox(height: 20),
-              _buildRankingPreview(context, ref),
-              const SizedBox(height: 12),
-              _buildFriendPreview(context, ref),
-              const SizedBox(height: 28),
+              ),
 
-              // コレクション・その他セクション
-              const SectionHeader(title: 'その他 ⭐'),
-              const SizedBox(height: 12),
-              MenuGrid(children: [
-                MenuGridCard(
-                  icon: Icons.card_giftcard,
-                  label: 'バッジ',
-                  color: AppColors.reward,
-                  onTap: () => context.goCollectionBadge(),
-                ),
-                MenuGridCard(
-                  icon: Icons.settings,
-                  label: '設定',
-                  color: AppColors.info,
-                  onTap: () => context.goSettings(),
-                ),
-                MenuGridCard(
-                  icon: Icons.workspace_premium,
-                  label: 'プラン',
-                  color: AppColors.primary,
-                  onTap: () => context.goPaywall(),
-                ),
-              ]),
+              // ⑥ 設定・その他（常に表示）
+              HomeGroup(
+                id: 'others',
+                title: '設定・その他',
+                emoji: '⭐',
+                collapsible: false,
+                child: HomeMenuGrid(items: [
+                  HomeMenuItem(
+                    icon: Icons.card_giftcard,
+                    title: 'バッジ',
+                    iconColor: AppColors.reward,
+                    onTap: () => context.goCollectionBadge(),
+                  ),
+                  HomeMenuItem(
+                    icon: Icons.settings,
+                    title: '設定',
+                    iconColor: AppColors.info,
+                    onTap: () => context.goSettings(),
+                  ),
+                  HomeMenuItem(
+                    icon: Icons.workspace_premium,
+                    title: 'プラン',
+                    iconColor: AppColors.primary,
+                    onTap: () => context.goPaywall(),
+                  ),
+                ]),
+              ),
               const SizedBox(height: 16),
             ],
           ),
@@ -268,6 +332,9 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  static Widget _padded(Widget child) =>
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: child);
 
   Widget _buildPrimaryActionCard({
     required IconData icon,
@@ -368,10 +435,12 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildStatItem(String label, String value) {
-    return Column(
+    return Expanded(
+        child: Column(
       children: [
         Text(
           value,
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -381,10 +450,11 @@ class HomeScreen extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 12, color: Colors.white70),
         ),
       ],
-    );
+    ));
   }
 
   /// プレミアム加入者だけが学べる級（準1級・1級）。広告なしだけでは学べない
@@ -392,6 +462,7 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildLevelGrid(BuildContext context, WidgetRef ref, String currentLevel) {
     final isPremium = ref.watch(hasPremiumProvider).valueOrNull ?? false;
+    final cs = Theme.of(context).colorScheme;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -410,9 +481,9 @@ class HomeScreen extends ConsumerWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : Colors.white,
+              color: isSelected ? cs.primary : cs.surface,
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey[300]!,
+                color: isSelected ? cs.primary : cs.outlineVariant,
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(12),
@@ -422,17 +493,22 @@ class HomeScreen extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (premiumOnlyLevels.contains(level) && !isPremium)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 4),
-                      child: Icon(Icons.lock, size: 16, color: Colors.black45),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Icon(Icons.lock, size: 16, color: cs.onSurfaceVariant),
                     ),
-                  Text(
-                    levelNames[level]?.split('（').first ?? level,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Colors.black87,
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        levelNames[level]?.split('（').first ?? level,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? cs.onPrimary : cs.onSurface,
+                        ),
+                      ),
                     ),
                   ),
                 ],
