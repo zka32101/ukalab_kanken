@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../providers/oshi_provider.dart';
 import '../screens/oshi_room_screen.dart';
 import '../viewmodels/user_viewmodel.dart';
+import 'oshi_medal_button.dart';
 
 /// 画像（共有カード）をOSの共有シートで共有する。
 Future<void> shareCardImage(Uint8List png) async {
@@ -43,12 +44,18 @@ class OshiCard extends ConsumerWidget {
         ),
         Align(
           alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            icon: const Icon(Icons.meeting_room_outlined),
-            label: const Text('推しの部屋'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const OshiRoomScreen()),
-            ),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              const OshiMedalButton(),
+              TextButton.icon(
+                icon: const Icon(Icons.meeting_room_outlined),
+                label: const Text('推しの部屋'),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const OshiRoomScreen()),
+                ),
+              ),
+            ],
           ),
         ),
       ],
