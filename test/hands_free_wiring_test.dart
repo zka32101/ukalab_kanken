@@ -1,10 +1,9 @@
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:app_common_kit/hands_free_tts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/models/kanji_question.dart';
-import 'package:kanken/providers/hands_free_provider.dart';
-import 'package:kanken/services/flutter_tts_speech_backend.dart';
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
 import 'package:kanken/widgets/hands_free_practice_body.dart';
 

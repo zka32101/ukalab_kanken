@@ -206,6 +206,45 @@ List<PracticeQuestion> buildRetryPracticeQuestions(
   );
 }
 
+/// ながら学習（自動で進む読み上げ学習）の1回の問題数。子ども向けに短く区切る。
+const int nagaraSessionSize = 10;
+
+/// ながら学習用の問題を作る。選択式の「読み」「書き取り」だけ（手書き・部首・熟語の構成は含めない）。
+/// 読みと書き取りを半々にまぜる。
+List<PracticeQuestion> buildNagaraPracticeQuestions(
+  List<KanjiQuestion> all,
+  String level, {
+  int size = nagaraSessionSize,
+}) {
+  final choice = all.where((q) => q.questionType == QuestionType.multipleChoice).toList();
+  final levelKanji = LevelKanjiData.forLevel(level).toSet();
+  final inLevel = levelKanji.isEmpty ? choice : choice.where((q) => levelKanji.contains(q.kanji)).toList();
+  inLevel.shuffle();
+  final selected = inLevel.take(size).toList();
+  final half = (selected.length + 1) ~/ 2;
+  final built = [
+    ..._buildPracticeQuestions(selected.take(half).toList(), PracticeMode.reading, level, distractorPool: choice),
+    ..._buildPracticeQuestions(selected.skip(half).toList(), PracticeMode.writing, level, distractorPool: choice),
+  ]..shuffle();
+  return built;
+}
+
+/// ながら学習の問題セット（その級の問題から。「覚えた」・マスター済みは除く）。
+final nagaraQuestionsProvider =
+    FutureProvider.autoDispose.family<List<PracticeQuestion>, String>((ref, level) async {
+  final firestoreService = ref.watch(firestoreServiceProvider);
+  final uid = ref.watch(currentUserIdProvider);
+  final user = await ref.watch(currentUserProvider.future);
+  final all = await firestoreService.getQuestionsByLevel(
+    level,
+    limit: 100,
+    uid: uid,
+    profileId: user?.profileId ?? 'default',
+    masteryThreshold: user?.masteryThreshold ?? 3,
+  );
+  return buildNagaraPracticeQuestions(all, level);
+});
+
 // 現在の問題セット（その級の問題からランダムに10問だけ出題する。
 // 「覚えた」チェック済み・連続正解でマスター済みの問題は除外される）
 final practiceQuestionsProvider =

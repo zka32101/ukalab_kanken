@@ -39,9 +39,6 @@ dependencies:
   # Audio & Haptics
   audioplayers: ^5.0.0
 
-  # 読み上げ（ながら学習モード。端末標準の音声合成）
-  flutter_tts: ^4.0.2
-
   # Charts
   fl_chart: ^1.0.0
 
@@ -59,17 +56,17 @@ dependencies:
   url_launcher: ^6.2.0
 
   # Common kits (全アプリ共通基盤)
-  # app_common_kit は ukalab_core v0.64.0 が v3.1.0 を指定している。pub は kit のタグが食い違うと
-  # 解決できないため、core に合わせて v3.1.0 に固定する。
+  # app_common_kit は ukalab_core v0.66.0 が v3.5.0 を指定している。pub は kit のタグが食い違うと
+  # 解決できないため、core に合わせて v3.5.0 に固定する。
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.1.0
+      ref: v3.5.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.64.0
+      ref: v0.66.0
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
