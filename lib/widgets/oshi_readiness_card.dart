@@ -19,6 +19,13 @@ bool mockPassedInLedger(CoinLedger ledger, int level) {
       (e) => e.kind == 'mockPass' && (e.id == base || e.id.startsWith('$base|')));
 }
 
+/// 級の識別子（'LEVEL_4'、'LEVEL_2_PRE' など）を、コイン台帳で使う級の数字にする。
+int kankenLevelNumber(String levelString) => levelString == 'LEVEL_2_PRE'
+    ? 25
+    : levelString == 'LEVEL_1_PRE'
+        ? 15
+        : int.tryParse(levelString.replaceFirst('LEVEL_', '')) ?? 10;
+
 /// ホームの「準備完了まで」カード。習得度と模擬試験の合格から進み具合を見せる。
 class OshiReadinessCard extends ConsumerWidget {
   const OshiReadinessCard({Key? key}) : super(key: key);
@@ -31,11 +38,7 @@ class OshiReadinessCard extends ConsumerWidget {
     try {
       ref.watch(coinProvider); // 合格のコインが付いたら再描画する
       final levelString = ref.watch(currentLevelProvider);
-      final level = levelString == 'LEVEL_2_PRE'
-          ? 25
-          : levelString == 'LEVEL_1_PRE'
-              ? 15
-              : int.tryParse(levelString.replaceFirst('LEVEL_', '')) ?? 10;
+      final level = kankenLevelNumber(levelString);
       mockPassed = mockPassedInLedger(ref.read(coinServiceProvider).ledger, level);
     } catch (_) {}
     return ReadinessProgressCard(
