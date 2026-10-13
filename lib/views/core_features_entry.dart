@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
@@ -75,6 +76,34 @@ class OshiMessageEntry extends ConsumerWidget {
         streakDays: user?.streakCount ?? 0,
         examDate: ref.watch(examPrepExamDateProvider),
         lastStudyDate: user?.lastStudyDate,
+      ),
+    );
+  }
+}
+
+/// ホームの試験日カウントダウン（ukalab_core v0.63.0 の [ExamCountdownChip]）。
+/// 試験日は既存の `User.examDate`（examPrepExamDateProvider）。未設定なら何も出ない。
+/// タップで既存の受験予定日の設定画面（学習目標画面 /learning-goals）を開く。
+/// premium 制限: core の PremiumFeature に該当が無いため無料。外部共有・外部リンクは無い。
+class ExamCountdownEntry extends ConsumerWidget {
+  const ExamCountdownEntry({super.key, this.clock = DateTime.now, this.onOpenSettings});
+
+  final DateTime Function() clock;
+
+  /// テスト用。省略時は go_router で /learning-goals を開く。
+  final void Function(BuildContext context)? onOpenSettings;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final date = ref.watch(examPrepExamDateProvider);
+    if (date == null) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ExamCountdownChip(
+        examDate: date,
+        clock: clock,
+        onTap: () => (onOpenSettings ??
+            (c) => c.push('/learning-goals'))(context),
       ),
     );
   }
