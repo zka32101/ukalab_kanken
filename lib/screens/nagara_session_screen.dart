@@ -11,24 +11,31 @@ import '../providers/spaced_repetition_provider.dart';
 import '../services/oshi_progress_store.dart';
 import '../theme/app_theme.dart';
 import '../viewmodels/index.dart';
-import '../widgets/menu_grid_card.dart';
+import 'package:ukalab_core/ui.dart' show HomeMenuItem, HomeMenuTile;
 
 /// 学習メニューの項目名。
 const String kNagaraMenuLabel = 'ながら\n学習';
 
-/// 学習メニューの「ながら学習」。タップでながら学習を開く（無料。新しい権限は使わない）。
+/// ホームの「ながら学習」の入口（無料。新しい権限は使わない）。
+HomeMenuItem nagaraMenuItem(BuildContext context) => HomeMenuItem(
+      icon: Icons.headphones,
+      title: kNagaraMenuLabel.replaceAll('\n', ''),
+      iconColor: AppColors.study,
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const NagaraSessionScreen()),
+      ),
+    );
+
+/// 単独で置くとき用の 1 列版（[nagaraMenuItem] と同じ入口）。
 class NagaraMenuCard extends StatelessWidget {
   const NagaraMenuCard({super.key});
 
   @override
-  Widget build(BuildContext context) => MenuGridCard(
-        icon: Icons.headphones,
-        label: kNagaraMenuLabel,
-        color: AppColors.study,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const NagaraSessionScreen()),
-        ),
-      );
+  Widget build(BuildContext context) {
+    final it = nagaraMenuItem(context);
+    return HomeMenuTile(
+        icon: it.icon, title: it.title, iconColor: it.iconColor, onTap: it.onTap);
+  }
 }
 
 /// 子ども向けに、終わりの声かけをやさしい調子にする（責めない）。
