@@ -75,16 +75,19 @@ class PracticeQuestion {
 List<PracticeQuestion> _buildPracticeQuestions(
   List<KanjiQuestion> questions,
   PracticeMode mode,
-  String level,
-) {
+  String level, {
+  List<KanjiQuestion>? distractorPool,
+}) {
   final random = Random();
-  final allReadings = questions
+  // 選択肢の紛らわしい候補は distractorPool（無ければ questions）から作る。
+  final pool = distractorPool ?? questions;
+  final allReadings = pool
       .expand((q) => q.allReadings)
       .map((r) => r.reading)
       .where((r) => r.isNotEmpty)
       .toSet()
       .toList();
-  final radicalsInSet = questions
+  final radicalsInSet = pool
       .map((q) => KanjiRadicalData.get(q.kanji)?.radical)
       .whereType<String>()
       .toSet()
@@ -182,10 +185,33 @@ List<PracticeQuestion> _buildPracticeQuestions(
   }).toList();
 }
 
+/// 間違いノートの「解き直す」用。非 null のあいだ、演習の出題はこの問題だけになる。
+/// 通常の演習を始めるとき・解き直しから戻るときに null へ戻す。
+final practiceRetryQuestionsProvider =
+    StateProvider<List<PracticeQuestion>?>((ref) => null);
+
+/// 間違いノートの1問 [target] を、既存の演習画面で出題できる形にする。
+/// 選択肢の候補は [pool]（同じ級の問題）から作る。出題形式は読み取り→書き取りの順で選ぶ。
+List<PracticeQuestion> buildRetryPracticeQuestions(
+  KanjiQuestion target,
+  List<KanjiQuestion> pool,
+  String level,
+) {
+  final hasReading = target.reading != null && target.reading!.isNotEmpty;
+  return _buildPracticeQuestions(
+    [target],
+    hasReading ? PracticeMode.reading : PracticeMode.writing,
+    level,
+    distractorPool: [target, ...pool.where((q) => q.id != target.id)],
+  );
+}
+
 // 現在の問題セット（その級の問題からランダムに10問だけ出題する。
 // 「覚えた」チェック済み・連続正解でマスター済みの問題は除外される）
 final practiceQuestionsProvider =
     FutureProvider.family<List<PracticeQuestion>, String>((ref, level) async {
+  final retry = ref.watch(practiceRetryQuestionsProvider);
+  if (retry != null) return retry;
   final firestoreService = ref.watch(firestoreServiceProvider);
   final uid = ref.watch(currentUserIdProvider);
   final user = await ref.watch(currentUserProvider.future);

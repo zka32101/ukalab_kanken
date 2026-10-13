@@ -21,6 +21,7 @@ import '../screens/reading_list_screen.dart' show kReadingsMenuLabel;
 import '../screens/study_notes_screen.dart'
     show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
+import 'core_features_entry.dart';
 import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
@@ -91,10 +92,14 @@ class HomeScreen extends ConsumerWidget {
                 error: (_, __) => const SizedBox.shrink(),
               ),
               const OshiCard(),
+              const SizedBox(height: 8),
+              const OshiMessageEntry(),
               const SizedBox(height: 12),
               const OshiReadinessCard(),
               const SizedBox(height: 12),
               const ExamPrepEntryCard(),
+              const SizedBox(height: 12),
+              const WeeklyRecapEntry(),
               const SizedBox(height: 20),
 
               // メインCTA（演習・模擬試験）
@@ -159,6 +164,12 @@ class HomeScreen extends ConsumerWidget {
                   label: '復習\n(間隔反復)',
                   color: AppColors.study,
                   onTap: () => context.goSpacedRepetitionReview(),
+                ),
+                MenuGridCard(
+                  icon: Icons.fact_check,
+                  label: '間違い\nノート',
+                  color: AppColors.study,
+                  onTap: () => openMistakeNote(context),
                 ),
                 MenuGridCard(
                   icon: Icons.analytics,
@@ -685,6 +696,7 @@ class HomeScreen extends ConsumerWidget {
     if (mode == null) return;
 
     ref.read(practiceModeProvider.notifier).state = mode;
+    ref.read(practiceRetryQuestionsProvider.notifier).state = null;
     ref.invalidate(practiceQuestionsProvider(level));
 
     if (!context.mounted) return;
