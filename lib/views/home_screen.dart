@@ -27,6 +27,7 @@ import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/hands_free_practice_body.dart';
+import '../screens/nagara_session_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -168,6 +169,7 @@ class HomeScreen extends ConsumerWidget {
                   color: AppColors.study,
                   onTap: () => context.goStudyNotes(),
                 ),
+                const NagaraMenuCard(),
                 MenuGridCard(
                   icon: Icons.repeat,
                   label: '復習\n(間隔反復)',

@@ -39,9 +39,6 @@ dependencies:
   # Audio & Haptics
   audioplayers: ^5.0.0
 
-  # 読み上げ（ながら学習モード。端末標準の音声合成）
-  flutter_tts: ^4.0.2
-
   # Charts
   fl_chart: ^1.0.0
 

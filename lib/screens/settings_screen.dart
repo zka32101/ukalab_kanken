@@ -62,6 +62,7 @@ class HandsFreeSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(handsFreeProvider);
     final notifier = ref.read(handsFreeProvider.notifier);
+    final nagara = KitStrings.of(context).nagara;
     return Column(
       children: [
         SwitchListTile(
@@ -79,9 +80,52 @@ class HandsFreeSection extends ConsumerWidget {
             value: settings.speakQuestion,
             onChanged: notifier.setSpeakQuestion,
           ),
+        // ながら学習（自動で進むセッション）の間。ながら学習モードのオン・オフとは別に使える。
+        ListTile(
+          leading: const Icon(Icons.hourglass_empty),
+          title: Text(nagara.settingsThinkSeconds),
+          trailing: _secondsDropdown(
+            value: settings.thinkSeconds,
+            options: HandsFreeSettings.thinkSecondsOptions,
+            label: nagara.secondsOption,
+            onChanged: notifier.setThinkSeconds,
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.coffee),
+          title: Text(nagara.settingsBetweenSeconds),
+          trailing: _secondsDropdown(
+            value: settings.betweenSeconds,
+            options: HandsFreeSettings.betweenSecondsOptions,
+            label: nagara.secondsOption,
+            onChanged: notifier.setBetweenSeconds,
+          ),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.skip_next),
+          title: Text(nagara.settingsAutoAdvance),
+          value: settings.autoAdvance,
+          onChanged: notifier.setAutoAdvance,
+        ),
       ],
     );
   }
+}
+
+Widget _secondsDropdown({
+  required int value,
+  required List<int> options,
+  required String Function(int) label,
+  required ValueChanged<int> onChanged,
+}) {
+  final items = {...options, value}.toList()..sort();
+  return DropdownButton<int>(
+    value: value,
+    items: [for (final v in items) DropdownMenuItem(value: v, child: Text(label(v)))],
+    onChanged: (v) {
+      if (v != null) onChanged(v);
+    },
+  );
 }
 
 /// 学習の引き継ぎ（機種変更）。コイン・衣装・推しの成長を、ログイン中のアカウントに保存／復元する。

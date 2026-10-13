@@ -1,8 +1,8 @@
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:app_common_kit/hands_free_tts.dart' show handsFreeSpeakerProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/hands_free_provider.dart';
 import '../viewmodels/index.dart';
 
 /// 演習（選択式）の、ながら学習モードの表示。問題文は上、大きな選択肢ボタンは下に寄せる。
