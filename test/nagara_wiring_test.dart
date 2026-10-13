@@ -174,7 +174,7 @@ void main() {
         reading: 'て',
       ),
     ];
-    final built = buildNagaraPracticeQuestions(all, 'LEVEL_TEST') // 配当漢字表が無い級は絞り込まない;
+    final built = buildNagaraPracticeQuestions(all, 'LEVEL_TEST'); // 配当漢字表が無い級は絞り込まない
     expect(built.length, nagaraSessionSize);
     expect(built.any((q) => q.source.id == 'hw'), isFalse);
     expect(
