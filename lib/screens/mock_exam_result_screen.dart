@@ -26,6 +26,8 @@ import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../widgets/achievement_unlock_dialog.dart';
 import '../widgets/oshi_card.dart' show shareCardImageWithGate;
+import '../views/core_v069_entry.dart' show MockExamAnalysisEntry;
+import 'package:ukalab_core/ukalab_core.dart' show MockExamAnswer;
 
 class MockExamResultScreen extends ConsumerStatefulWidget {
   final ExamSessionState session;
@@ -553,6 +555,19 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
               _buildDetailedStats(context),
               const SizedBox(height: 24),
               _buildCategoryAnalysis(context),
+              const SizedBox(height: 24),
+              MockExamAnalysisEntry(
+                answers: [
+                  for (var i = 0; i < session.questions.length; i++)
+                    MockExamAnswer(
+                      topicId:
+                          session.questions[i].category.toString().split('.').last,
+                      correct: session.userAnswers[i] ==
+                          session.questions[i].correctAnswer,
+                    ),
+                ],
+                topicLabel: categoryLabel,
+              ),
               const SizedBox(height: 24),
               _buildWeakPointAnalysis(context),
               const SizedBox(height: 32),
