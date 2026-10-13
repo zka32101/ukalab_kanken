@@ -6,6 +6,7 @@ import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import '../models/index.dart';
 import '../viewmodels/index.dart';
 import '../services/index.dart';
+import '../widgets/level_progress_card.dart';
 import '../widgets/index.dart';
 import '../router/app_router.dart';
 import '../providers/ranking_provider.dart';
@@ -448,38 +449,13 @@ class HomeScreen extends ConsumerWidget {
         final progress = levelProgressFor(stats, currentLevel);
         final levelLabel = levelNames[currentLevel] ?? currentLevel;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CategoryProgressBar(
-                category: levelLabel,
-                progress: progress.accuracyRate,
-                correctCount: progress.correctCount,
-                totalCount: progress.totalCount,
-              ),
-              if (progress.isCleared)
-                const Text(
-                  '✅ この級はクリア基準を達成しています！',
-                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
-                )
-              else
-                Text(
-                  'あと${progress.remainingCorrectToClear}問正解で次の級へ！',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-            ],
-          ),
+        // 演習画面と同じ判定（その級の問題が1問も無い）。読み込み中は通常の表示にする。
+        final noQuestions =
+            ref.watch(practiceQuestionsProvider(currentLevel)).valueOrNull?.isEmpty ?? false;
+        return LevelProgressCard(
+          levelLabel: levelLabel,
+          progress: progress,
+          noQuestions: noQuestions,
         );
       },
       loading: () => const SizedBox.shrink(),
