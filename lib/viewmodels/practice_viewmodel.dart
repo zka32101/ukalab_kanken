@@ -216,19 +216,34 @@ final practiceQuestionsProvider =
   final uid = ref.watch(currentUserIdProvider);
   final user = await ref.watch(currentUserProvider.future);
   final mode = ref.watch(practiceModeProvider);
-  final all = await firestoreService.getQuestionsByLevel(
-    level,
-    limit: 100,
-    uid: uid,
-    profileId: user?.profileId ?? 'default',
-    masteryThreshold: user?.masteryThreshold ?? 3,
-  );
   // その級で新しく習う漢字（公式級別漢字表の配当漢字）の問題だけに絞る。
   // 下の級の漢字が混ざらないようにするため。配当表が無い級は絞り込まない。
-  final levelKanji = LevelKanjiData.forLevel(level).toSet();
-  final inLevel = levelKanji.isEmpty
+  final levelKanji = LevelKanjiData.forLevel(level);
+  final List<KanjiQuestion> all;
+  if (levelKanji.length > 100) {
+    // limit(100) だとID順の先頭100字しか出ないため、級内の全字から
+    // ランダムに選んだ字をID指定で取得する（読み取り量は数十件）。
+    all = await firestoreService.getQuestionsByLevelSampled(
+      level,
+      levelKanji,
+      need: practiceSessionSize,
+      uid: uid,
+      profileId: user?.profileId ?? 'default',
+      masteryThreshold: user?.masteryThreshold ?? 3,
+    );
+  } else {
+    all = await firestoreService.getQuestionsByLevel(
+      level,
+      limit: 100,
+      uid: uid,
+      profileId: user?.profileId ?? 'default',
+      masteryThreshold: user?.masteryThreshold ?? 3,
+    );
+  }
+  final levelSet = levelKanji.toSet();
+  final inLevel = levelSet.isEmpty
       ? all
-      : all.where((q) => levelKanji.contains(q.kanji)).toList();
+      : all.where((q) => levelSet.contains(q.kanji)).toList();
   inLevel.shuffle();
   final selected = inLevel.take(practiceSessionSize).toList();
   return _buildPracticeQuestions(selected, mode, level);

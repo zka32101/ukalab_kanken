@@ -152,6 +152,54 @@ class FirestoreService {
     return questions;
   }
 
+  /// 級内の全漢字から偏りなく出題するための取得。
+  /// 級の漢字が多い場合に limit だけで取ると、ドキュメントID順の先頭しか出題されない。
+  /// そこで [kanjiPool]（その級の配当漢字）をシャッフルし、[batchSize] 字ずつ
+  /// ドキュメントIDで直接取得する（読み取り数は取得した字数ぶんだけ）。
+  /// 「覚えた」除外後に [need] 件そろうまで、最大 [maxBatches] 回まで続ける。
+  Future<List<KanjiQuestion>> getQuestionsByLevelSampled(
+    String level,
+    List<String> kanjiPool, {
+    int need = 10,
+    int batchSize = 30,
+    int maxBatches = 4,
+    String? uid,
+    String profileId = 'default',
+    int masteryThreshold = 3,
+  }) async {
+    final pool = [...kanjiPool]..shuffle();
+    var excludeIds = <String>{};
+    if (uid != null) {
+      excludeIds = (await getMasteredQuestionIds(
+        uid,
+        profileId: profileId,
+        masteryThreshold: masteryThreshold,
+      ))
+          .toSet();
+    }
+    final result = <KanjiQuestion>[];
+    for (var b = 0; b < maxBatches && result.length < need; b++) {
+      final start = b * batchSize;
+      if (start >= pool.length) break;
+      final ids = pool
+          .skip(start)
+          .take(batchSize)
+          .map((k) => '$level-$k')
+          .where((id) => !excludeIds.contains(id))
+          .toList();
+      for (var i = 0; i < ids.length; i += 10) {
+        final chunk = ids.sublist(i, i + 10 > ids.length ? ids.length : i + 10);
+        final snap = await _firestore
+            .collection('questions')
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
+        result.addAll(snap.docs.map(
+            (d) => KanjiQuestion.fromJson({...d.data(), 'id': d.id})));
+      }
+    }
+    return result;
+  }
+
   Future<KanjiQuestion?> getKanjiQuestion(String questionId) async {
     final doc = await _firestore.collection('questions').doc(questionId).get();
     if (!doc.exists) return null;
