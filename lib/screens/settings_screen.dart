@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:cross_promo_kit/cross_promo_kit.dart';
 import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromoSection;
 import 'package:ukalab_core/daily_goal.dart' show DailyGoalSetting;
 import 'package:ukalab_core/reminder.dart' show ReminderSettingsSection;
 import 'package:ukalab_core/ui.dart';
@@ -246,9 +246,9 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 },
               ),
-              CrossPromoSection(
+              UkalabCrossPromoSection(
                 currentAppId: 'com.yourwish.ukarulab.kanji',
-                currentCategory: '学習・教育',
+                isChildDirected: true,
                 beforeOpenStore: (context) => requireParentalGate(context),
               ),
               const _SectionHeader('このアプリについて'),

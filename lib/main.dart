@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/daily_goal.dart' show dailyGoalOverrides;
+import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromo;
 import 'package:ukalab_core/reminder.dart' show reminderOverrides;
 import 'package:ukalab_core/reminder_notification.dart'
     show ReminderNotificationWatcher, reminderNotifierProvider;
@@ -43,6 +44,10 @@ void main() async {
   } on FirebaseException catch (e) {
     if (e.code != 'duplicate-app') rethrow;
   }
+
+  // うかラボ内の相互紹介（Remote Config）。Firebase 初期化済みなら core は再初期化しない。
+  // 失敗しても例外を投げないので、起動をブロックせず unawaited で呼ぶ。
+  unawaited(UkalabCrossPromo.init());
 
   // サブスクリプション（広告非表示プラン）初期化
   await PurchasesService.initialize();
