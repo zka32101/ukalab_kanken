@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:ukalab_core/ui.dart' show CoinEvent, coinProvider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/compound_structure_data.dart';
+import '../data/exam_prep_data.dart' show historyProvider;
 import '../data/level_kanji_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../models/index.dart';
@@ -271,6 +272,15 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
             level: level,
             questionId: question.source.id,
           );
+        } catch (_) {}
+
+        // 試験に向けて（10分プラン・書き出し）用の端末内の解答履歴。失敗しても止めない。
+        try {
+          await ref.read(historyProvider.notifier).recordAnswer(
+                questionId: question.source.id,
+                level: level,
+                correct: isCorrect,
+              );
         } catch (_) {}
 
         // 学習コイン：初めて解く問題で付与（同じ問題は二度付与されない）。

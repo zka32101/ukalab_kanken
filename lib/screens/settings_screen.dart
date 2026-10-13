@@ -1,3 +1,4 @@
+import '../views/exam_prep_entry.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
@@ -190,6 +191,9 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const Divider(),
+              const _SectionHeader('試験に向けて'),
+              const ExamPrepSettingsEntry(),
               const Divider(),
               const _SectionHeader('データの引き継ぎ'),
               const TransferSection(),
