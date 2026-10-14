@@ -4,6 +4,7 @@ import 'package:kanken/models/friend.dart';
 import 'package:kanken/providers/friend_provider.dart';
 import 'package:kanken/providers/friend_challenge_provider.dart';
 import 'package:kanken/services/firestore_service.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class FriendListScreen extends ConsumerStatefulWidget {
   const FriendListScreen({Key? key}) : super(key: key);
@@ -32,7 +33,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('フレンド'),
+        title: const FitTitle('フレンド'),
         centerTitle: true,
         elevation: 0,
         actions: [
@@ -42,12 +43,13 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
             onPressed: () => _showAddFriendDialog(context),
           ),
         ],
-        bottom: TabBar(
+        bottom: fitTabBar(
+          context,
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.people), text: 'フレンド'),
-            Tab(icon: Icon(Icons.inbox), text: 'リクエスト'),
-            Tab(icon: Icon(Icons.send), text: '送信済み'),
+            FitTabSpec('フレンド', icon: Icons.people),
+            FitTabSpec('リクエスト', icon: Icons.inbox),
+            FitTabSpec('送信済み', icon: Icons.send),
           ],
         ),
       ),
@@ -70,8 +72,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
           ? _buildEmptyState('フレンドを追加しましょう')
           : ListView.builder(
               itemCount: friends.length,
-              itemBuilder: (context, index) =>
-                  _buildFriendCard(friends[index]),
+              itemBuilder: (context, index) => _buildFriendCard(friends[index]),
             ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(child: Text('エラー: $error')),
@@ -155,7 +156,9 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
                   children: [
                     Text(
                       friend.userName,
@@ -164,7 +167,6 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
                         fontSize: 14,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     Text(
                       'Lv ${friend.level}',
                       style: TextStyle(
@@ -175,12 +177,13 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
                   ],
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
                   children: [
                     _buildStatBadge('EXP', friend.experience.toString()),
-                    const SizedBox(width: 12),
-                    _buildStatBadge('正答率', '${(friend.accuracyRate * 100).toStringAsFixed(0)}%'),
-                    const SizedBox(width: 12),
+                    _buildStatBadge('正答率',
+                        '${(friend.accuracyRate * 100).toStringAsFixed(0)}%'),
                     _buildStatBadge('🔥', friend.streak.toString()),
                   ],
                 ),
@@ -208,7 +211,8 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
                     onTap: () => _showConfirmDialog(
                       'フレンド削除',
                       '${friend.userName} を削除しますか？',
-                      () => ref.read(friendNotifierProvider.notifier)
+                      () => ref
+                          .read(friendNotifierProvider.notifier)
                           .removeFriend(friend.userId),
                     ),
                   ),
@@ -231,84 +235,88 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue.shade300, width: 1),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.person_add, color: Colors.blue),
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${request.fromUserName} からのリクエスト',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+      child: _buttonsBesideOrBelow(
+        stack: textScaleOf(context) > 1.5,
+        leading: Row(
+          children: [
+            const Icon(Icons.person_add, color: Colors.blue),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${request.fromUserName} からのリクエスト',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'リクエスト日: ${_formatDate(request.createdAt)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
+                  const SizedBox(height: 4),
+                  Text(
+                    'リクエスト日: ${_formatDate(request.createdAt)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-
-          // アクションボタン
-          Row(
-            children: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                onPressed: () async {
-                  // フレンド情報を取得して承認
-                  final friendData = Friend(
-                    userId: request.fromUserId,
-                    userName: request.fromUserName,
-                    level: 1,
-                    experience: 0,
-                    accuracyRate: 0.0,
-                    streak: 0,
-                    status: FriendStatus.friend,
-                    addedAt: DateTime.now(),
-                  );
-
-                  await ref.read(friendNotifierProvider.notifier)
-                      .acceptFriendRequest(request, friendData);
-                },
-                child: const Text(
-                  '承認',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+          ],
+        ),
+        // アクションボタン
+        buttons: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
               ),
-              const SizedBox(width: 8),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                ),
-                onPressed: () => ref.read(friendNotifierProvider.notifier)
-                    .rejectFriendRequest(request),
-                child: const Text(
-                  '拒否',
-                  style: TextStyle(fontSize: 12),
+              onPressed: () async {
+                // フレンド情報を取得して承認
+                final friendData = Friend(
+                  userId: request.fromUserId,
+                  userName: request.fromUserName,
+                  level: 1,
+                  experience: 0,
+                  accuracyRate: 0.0,
+                  streak: 0,
+                  status: FriendStatus.friend,
+                  addedAt: DateTime.now(),
+                );
+
+                await ref
+                    .read(friendNotifierProvider.notifier)
+                    .acceptFriendRequest(request, friendData);
+              },
+              child: const Text(
+                '承認',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
               ),
-            ],
-          ),
-        ],
+              onPressed: () => ref
+                  .read(friendNotifierProvider.notifier)
+                  .rejectFriendRequest(request),
+              child: const Text(
+                '拒否',
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -322,51 +330,72 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.orange.shade300, width: 1),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.schedule, color: Colors.orange),
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  friend.userName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+      child: _buttonsBesideOrBelow(
+        stack: textScaleOf(context) > 1.5,
+        leading: Row(
+          children: [
+            const Icon(Icons.schedule, color: Colors.orange),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    friend.userName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'リクエスト待機中...',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.orange,
+                  const SizedBox(height: 4),
+                  const Text(
+                    'リクエスト待機中...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // キャンセルボタン
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
+                ],
               ),
             ),
-            onPressed: () => ref.read(friendNotifierProvider.notifier)
-                .removeFriend(friend.userId),
-            child: const Text(
-              'キャンセル',
-              style: TextStyle(fontSize: 12),
+          ],
+        ),
+        // キャンセルボタン
+        buttons: OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
             ),
           ),
-        ],
+          onPressed: () => ref
+              .read(friendNotifierProvider.notifier)
+              .removeFriend(friend.userId),
+          child: const Text(
+            'キャンセル',
+            style: TextStyle(fontSize: 12),
+          ),
+        ),
       ),
+    );
+  }
+
+  /// 通常は「左に内容・右にボタン」。文字がとても大きいときは、ボタンを内容の下に出す。
+  Widget _buttonsBesideOrBelow({
+    required bool stack,
+    required Widget leading,
+    required Widget buttons,
+  }) {
+    if (!stack) {
+      return Row(children: [Expanded(child: leading), buttons]);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        leading,
+        const SizedBox(height: 8),
+        Align(alignment: Alignment.centerRight, child: buttons),
+      ],
     );
   }
 
@@ -377,25 +406,29 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
         color: Colors.grey.shade200,
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey.shade600,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: label,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade600,
+              ),
             ),
-          ),
-          const SizedBox(width: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        ),
       ),
     );
   }
@@ -412,6 +445,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: Text(title),
         content: Text(message),
         actions: [
@@ -439,6 +473,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('チャレンジを送信'),
         content: Text('${friend.userName} に目標スコア80点のチャレンジを送信しますか？'),
         actions: [
@@ -450,7 +485,8 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
             onPressed: () async {
               Navigator.pop(context);
 
-              final target = FirestoreService.parseCompositeProfileId(friend.userId);
+              final target =
+                  FirestoreService.parseCompositeProfileId(friend.userId);
 
               // チャレンジを送信
               await createChallenge(
@@ -486,6 +522,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('フレンドを追加'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -496,7 +533,7 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
             TextField(
               controller: controller,
               decoration: const InputDecoration(
-                labelText: 'フレンドID',
+                label: FitTitle('フレンドID'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -514,7 +551,9 @@ class _FriendListScreenState extends ConsumerState<FriendListScreen>
 
               Navigator.pop(context);
               try {
-                await ref.read(friendNotifierProvider.notifier).sendFriendRequest(targetId);
+                await ref
+                    .read(friendNotifierProvider.notifier)
+                    .sendFriendRequest(targetId);
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('フレンドリクエストを送信しました')),
