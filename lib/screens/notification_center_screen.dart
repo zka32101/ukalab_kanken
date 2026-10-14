@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/notifications.dart';
 import '../providers/notification_provider.dart';
+import '../widgets/text_fit.dart';
 
 class NotificationCenterScreen extends ConsumerWidget {
   const NotificationCenterScreen({Key? key}) : super(key: key);
@@ -13,7 +14,7 @@ class NotificationCenterScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('通知センター'),
+        title: const FitTitle('通知センター'),
         centerTitle: true,
         elevation: 0,
         actions: [
@@ -25,7 +26,10 @@ class NotificationCenterScreen extends ConsumerWidget {
                 child: Center(
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.done_all, size: 16),
-                    label: const Text('すべて既読'),
+                    label: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('すべて既読'),
+                    ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -114,7 +118,8 @@ class NotificationCenterScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                Expanded(
+                  child: Row(
                   children: [
                     // 通知アイコン
                     Container(
@@ -132,7 +137,8 @@ class NotificationCenterScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     // タイトル
-                    Column(
+                    Expanded(
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -153,7 +159,9 @@ class NotificationCenterScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    ),
                   ],
+                ),
                 ),
                 // 未読インジケーター
                 if (!notification.isRead)
@@ -296,6 +304,7 @@ class NotificationCenterScreen extends ConsumerWidget {
         data: (setting) {
           if (setting == null) {
             return AlertDialog(
+              scrollable: true,
               title: const Text('通知設定'),
               content: const Text('設定を読み込めませんでした'),
               actions: [
@@ -365,6 +374,7 @@ class _NotificationSettingsDialogState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: const Text('通知設定'),
       content: SingleChildScrollView(
         child: Column(
@@ -503,7 +513,7 @@ class _NotificationSettingsDialogState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Expanded(child: Text(label)),
           Switch(
             value: value,
             onChanged: onChanged,
