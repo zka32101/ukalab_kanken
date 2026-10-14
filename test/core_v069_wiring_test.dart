@@ -111,7 +111,7 @@ void main() {
       expect(find.text(ReviewSchedulerStrings.ja.start), findsOneWidget);
     });
 
-    testWidgets('記録に推しの成長の一言が出る', (t) async {
+    testWidgets('ホームに成長の吹き出しは出ず、節目の祝福ダイアログは出る', (t) async {
       _seedHistory(12);
       await _pump(t, _app());
       await t.pump(const Duration(milliseconds: 300));
@@ -119,8 +119,9 @@ void main() {
       expect(find.byType(OshiGrowthCelebrationCard), findsOneWidget);
       Navigator.of(t.element(find.byType(OshiGrowthCelebrationCard))).pop();
       await t.pump(const Duration(milliseconds: 500));
-      await _show(t, find.byType(OshiGrowthBubble));
-      expect(find.byType(OshiGrowthBubble), findsOneWidget);
+      // 見張り役は残り、吹き出しはホームのどこにも無い
+      expect(find.byType(OshiGrowthEntry, skipOffstage: false), findsOneWidget);
+      expect(find.byType(OshiGrowthBubble, skipOffstage: false), findsNothing);
     });
 
     testWidgets('節目の祝福は一度だけ出る', (t) async {
@@ -149,7 +150,6 @@ void main() {
         await t.pump(const Duration(milliseconds: 500));
       }
       await _show(t, find.byType(TodayReviewCard));
-      await _show(t, find.byType(OshiGrowthBubble));
       expect(t.takeException(), isNull);
     });
   });
