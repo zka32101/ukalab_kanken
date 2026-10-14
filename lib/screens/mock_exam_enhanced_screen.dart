@@ -4,6 +4,7 @@ import '../models/category_label.dart';
 import '../models/mock_exam_modes.dart';
 import '../providers/exam_session_provider.dart';
 import 'mock_exam_result_screen.dart';
+import 'package:kanken/utils/option_shuffle.dart';
 import 'package:kanken/widgets/text_fit.dart';
 
 class MockExamEnhancedScreen extends ConsumerStatefulWidget {
@@ -259,9 +260,12 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
                       const SizedBox(height: 16),
 
                       // 選択肢
-                      ...currentQuestion.options.asMap().entries.map((entry) {
-                        final option = entry.value;
-
+                      // 正解が常にAにならないよう、問題IDから決めた安定した順序で並べる。
+                      // 回答・採点は選択肢の文字列で行うので、順序が変わっても壊れない。
+                      ...shuffledOptions(
+                        currentQuestion.questionId,
+                        currentQuestion.options,
+                      ).map((option) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: SizedBox(
