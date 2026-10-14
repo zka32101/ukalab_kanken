@@ -114,7 +114,7 @@ class ExamCountdownEntry extends ConsumerWidget {
   }
 }
 
-/// ホームの週間ふりかえり（週１回分のまとめ。月曜始まり）。
+/// ホームの週間ふりかえり（週1回分のまとめ。月曜始まり）。
 /// メダル数は日付を持たないため渡さない（行は出ない）。
 class WeeklyRecapEntry extends ConsumerWidget {
   const WeeklyRecapEntry({super.key, this.clock = DateTime.now});
