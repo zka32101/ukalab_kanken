@@ -56,7 +56,9 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
     _registerWrongAnswersForReview();
     _updateLearningGoalsProgress();
     _awardBadgeIfPassed();
-    _awardCoinsAndReadiness();
+    // initState 中に coinProvider の state を変える(takeRecent/grant)と Riverpod が例外を出し、
+    // catch で握りつぶされてコインが一切付かなかった。ビルド後に実行する。
+    Future.microtask(_awardCoinsAndReadiness);
     recordStudyActivity(ref).catchError((_) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowAchievements();
