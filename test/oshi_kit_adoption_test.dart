@@ -44,7 +44,7 @@ void main() {
     return c;
   }
 
-  test('漢字検定の衣装がショップに並ぶ（通常衣装は300コイン）', () {
+  test('漢字検定の衣装がショップに並ぶ（通常衣装は200コイン）', () {
     final items = OutfitCatalog.shopItems([UkalabCert.kanjiKentei]);
     expect(items, hasLength(1));
     expect(items.single.price, OutfitCatalog.regularPrice);
