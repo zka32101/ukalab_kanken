@@ -4,7 +4,7 @@ import 'package:app_common_kit/app_common_kit.dart';
 import '../providers/purchases_provider.dart';
 import '../services/purchase_tiers.dart';
 import '../theme/app_theme.dart';
-import '../widgets/parental_gate_dialog.dart';
+import 'package:app_common_kit/parental_gate.dart';
 
 /// サブスクリプションの購入画面。二段階で、広告なしと、準1級・1級も学べるプレミアム。
 /// 価格はストア（RevenueCat）の商品から表示する。

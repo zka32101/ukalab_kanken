@@ -22,7 +22,7 @@ import '../services/oshi_medals.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'oshi_card.dart' show shareCardImage;
 import 'oshi_readiness_card.dart' show kankenLevelNumber, mockPassedInLedger;
-import 'parental_gate_dialog.dart' show requireParentalGate;
+import 'package:app_common_kit/parental_gate.dart' show requireParentalGate;
 
 /// ホームの推しカードの下に置く「メダルを見る・共有」。
 /// 連続学習・模擬試験・実績から作ったメダルを選び、共有カードを開く。

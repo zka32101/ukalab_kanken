@@ -9,7 +9,7 @@ import '../providers/oshi_provider.dart';
 import '../screens/oshi_room_screen.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'oshi_medal_button.dart';
-import 'parental_gate_dialog.dart' show requireParentalGate;
+import 'package:app_common_kit/parental_gate.dart' show requireParentalGate;
 
 /// 画像（共有カード）をOSの共有シートで共有する。
 Future<void> shareCardImage(Uint8List png) async {

@@ -16,7 +16,7 @@ import '../services/handwriting_strictness.dart';
 import '../services/learning_transfer_service.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../viewmodels/services_provider.dart';
-import '../widgets/parental_gate_dialog.dart';
+import 'package:app_common_kit/parental_gate.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
 
 /// プロフィールのアイコンに使える絵文字候補
