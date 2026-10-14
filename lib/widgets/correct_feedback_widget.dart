@@ -79,12 +79,15 @@ class _CorrectFeedbackWidgetState extends State<CorrectFeedbackWidget>
                 ),
                 const SizedBox(height: 16),
                 // 正解テキスト
-                const Text(
-                  '✨ 正解！',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '✨ 正解！',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -111,12 +114,14 @@ class _CorrectFeedbackWidgetState extends State<CorrectFeedbackWidget>
                         activeColor: Colors.green,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'この漢字は覚えた',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
+                      const Flexible(
+                        child: Text(
+                          'この漢字は覚えた',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
                     ],
