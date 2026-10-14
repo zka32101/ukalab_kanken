@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../viewmodels/index.dart';
-import 'text_fit.dart';
 
 /// 演習（選択式）の、ながら学習モードの表示。問題文は上、大きな選択肢ボタンは下に寄せる。
 /// 問題が変わるたびに、設定に従って問題文と選択肢を自動で読み上げる。
@@ -67,11 +66,9 @@ class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
     final q = widget.question;
     final speaker = ref.read(handsFreeSpeakerProvider);
 
-    // 文字が大きく、選択肢のボタンが画面より高くなるときは、全体を縦にスクロールできるようにする
-    // （共通キットの骨組みは、選択肢の領域がスクロールしないため）。収まるときは見た目は同じ。
-    return MinHeightScroll(
-      intrinsicHeight: true,
-      child: HandsFreeQuestionLayout(
+    // 文字が大きいときのスクロールは、共通キット v3.11.0 の HandsFreeQuestionLayout が行う
+    // （問題文・選択肢の領域がそれぞれスクロールする）。ここでは包まない。
+    return HandsFreeQuestionLayout(
       question: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -102,7 +99,6 @@ class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
             onTap: () => widget.onAnswer(q.choices[i] == q.correctAnswer),
           ),
       ],
-      ),
     );
   }
 }
