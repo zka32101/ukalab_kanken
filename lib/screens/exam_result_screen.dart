@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/category_label.dart';
 import '../models/mock_exam.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class ExamResultScreen extends StatelessWidget {
   final ExamResult result;
@@ -15,7 +16,7 @@ class ExamResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('試験結果'),
+        title: const FitTitle('試験結果'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -112,23 +113,29 @@ class ExamResultScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildScoreTile(
-                  context,
-                  '${result.calculateScore()}',
-                  '得点',
-                  Colors.blue,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${result.calculateScore()}',
+                    '得点',
+                    Colors.blue,
+                  ),
                 ),
-                _buildScoreTile(
-                  context,
-                  '${(result.accuracyRate * 100).toStringAsFixed(1)}%',
-                  '正答率',
-                  Colors.green,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${(result.accuracyRate * 100).toStringAsFixed(1)}%',
+                    '正答率',
+                    Colors.green,
+                  ),
                 ),
-                _buildScoreTile(
-                  context,
-                  '${result.correctAnswers}/${result.totalQuestions}',
-                  '正答数',
-                  Colors.orange,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${result.correctAnswers}/${result.totalQuestions}',
+                    '正答数',
+                    Colors.orange,
+                  ),
                 ),
               ],
             ),
@@ -146,16 +153,20 @@ class ExamResultScreen extends StatelessWidget {
   ) {
     return Column(
       children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
@@ -204,8 +215,10 @@ class ExamResultScreen extends StatelessWidget {
   Widget _buildStatRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 8,
+        runSpacing: 2,
         children: [
           Text(label),
           Text(
@@ -244,8 +257,9 @@ class ExamResultScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: 8,
                       children: [
                         Text(categoryLabel(category)),
                         Text('${(score * 100).toStringAsFixed(1)}%'),
