@@ -61,7 +61,7 @@ dependencies:
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.5.0
+      ref: v3.7.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
