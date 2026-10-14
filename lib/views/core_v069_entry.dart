@@ -95,7 +95,8 @@ OshiGrowthProgress oshiGrowthProgressFrom(List<ProgressRecord> history) {
   return OshiGrowthProgress(totalAnswered: history.length, studyDays: days.length);
 }
 
-/// ホーム「記録」の先頭に出す、これまでの積み重ねへの推しの一言。
+/// ホーム「記録」に置く、推しの成長の節目の見張り役。
+/// ホームには吹き出しを出さない（常時表示は「推しの一言」だけ）。
 /// 節目に届いたときは、一度だけ祝福ダイアログを出す（久しぶりでも1回だけ）。
 class OshiGrowthEntry extends ConsumerStatefulWidget {
   const OshiGrowthEntry({super.key, this.clock = DateTime.now});
@@ -136,7 +137,7 @@ class _OshiGrowthEntryState extends ConsumerState<OshiGrowthEntry> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _check(progress);
     });
-    return OshiGrowthBubble(progress: progress, now: widget.clock());
+    return const SizedBox.shrink();
   }
 }
 
