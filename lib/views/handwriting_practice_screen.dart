@@ -8,6 +8,7 @@ import '../services/handwriting_strictness.dart';
 import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../providers/writing_mastery_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 手書き練習画面
 /// 「漢字の学習」画面で選択中の1文字を対象に、手書き→判定を行う。
@@ -39,7 +40,7 @@ class _HandwritingPracticeScreenState
     final kanji = widget.kanji;
     if (kanji == null || kanji.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('手書き練習')),
+        appBar: AppBar(title: const FitTitle('手書き練習')),
         body: const Center(child: Text('練習する漢字が指定されていません')),
       );
     }
@@ -49,155 +50,171 @@ class _HandwritingPracticeScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('手書き練習'),
+        title: const FitTitle('手書き練習'),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '「$kanji」と書いてください',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  if (isMastered) ...[
-                    const SizedBox(width: 8),
-                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // 手書き入力エリア
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    _canvasSize = [constraints.maxWidth, constraints.maxHeight];
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.white,
-                      ),
-                      child: GestureDetector(
-                        onPanDown: (details) {
-                          setState(() {
-                            _isDrawing = true;
-                            _strokes.add([
-                              [details.localPosition.dx, details.localPosition.dy]
-                            ]);
-                          });
-                        },
-                        onPanUpdate: (details) {
-                          if (_isDrawing && _strokes.isNotEmpty) {
-                            setState(() {
-                              _strokes.last.add([
-                                details.localPosition.dx,
-                                details.localPosition.dy,
-                              ]);
-                            });
-                          }
-                        },
-                        onPanEnd: (_) {
-                          setState(() => _isDrawing = false);
-                        },
-                        child: CustomPaint(
-                          painter: DrawingPainter(_strokes),
-                          child: Container(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              if (_lastJudgement != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _lastJudgement!.isCorrect ? Icons.circle : Icons.close,
-                        color: _lastJudgement!.isCorrect ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _lastJudgement!.message,
-                        style: TextStyle(
-                          color: _lastJudgement!.isCorrect ? Colors.green[700] : Colors.red[700],
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // ボタン
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.delete),
-                      label: const Text('消す'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[300],
-                        foregroundColor: Colors.black,
-                      ),
-                      onPressed: () {
+          child: LayoutBuilder(
+            builder: (context, box) {
+              // 文字が大きい・画面が低いときは、手書き欄を一定の高さにして全体を縦にスクロールできるようにする
+              // （収まるときは今までどおり、手書き欄が残りの高さいっぱいに広がる）。
+              final scale = textScaleOf(context);
+              final compact = scale > 1.15 || box.maxHeight < 520;
+              final canvas = LayoutBuilder(
+                builder: (context, constraints) {
+                  _canvasSize = [constraints.maxWidth, constraints.maxHeight];
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                    ),
+                    child: GestureDetector(
+                      onPanDown: (details) {
                         setState(() {
-                          _strokes.clear();
-                          _lastJudgement = null;
+                          _isDrawing = true;
+                          _strokes.add([
+                            [details.localPosition.dx, details.localPosition.dy]
+                          ]);
                         });
                       },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.check),
-                      label: const Text('判定'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                      onPanUpdate: (details) {
+                        if (_isDrawing && _strokes.isNotEmpty) {
+                          setState(() {
+                            _strokes.last.add([
+                              details.localPosition.dx,
+                              details.localPosition.dy,
+                            ]);
+                          });
+                        }
+                      },
+                      onPanEnd: (_) {
+                        setState(() => _isDrawing = false);
+                      },
+                      child: CustomPaint(
+                        painter: DrawingPainter(_strokes),
+                        child: Container(),
                       ),
-                      onPressed: (_strokes.isEmpty || _isJudging)
-                          ? null
-                          : () => _judgeHandwriting(kanji),
+                    ),
+                  );
+                },
+              );
+
+              final clearButton = ElevatedButton.icon(
+                icon: const Icon(Icons.delete),
+                label: const Text('消す'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[300],
+                  foregroundColor: Colors.black,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _strokes.clear();
+                    _lastJudgement = null;
+                  });
+                },
+              );
+              final judgeButton = ElevatedButton.icon(
+                icon: const Icon(Icons.check),
+                label: const Text('判定'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: (_strokes.isEmpty || _isJudging)
+                    ? null
+                    : () => _judgeHandwriting(kanji),
+              );
+
+              final children = <Widget>[
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '「$kanji」と書いてください',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    if (isMastered) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // 手書き入力エリア
+                if (compact) SizedBox(height: 280, child: canvas) else Expanded(child: canvas),
+                const SizedBox(height: 12),
+
+                if (_lastJudgement != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Icon(
+                          _lastJudgement!.isCorrect ? Icons.circle : Icons.close,
+                          color: _lastJudgement!.isCorrect ? Colors.green : Colors.red,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _lastJudgement!.message,
+                          style: TextStyle(
+                            color: _lastJudgement!.isCorrect ? Colors.green[700] : Colors.red[700],
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
 
-              // 覚えたチェック
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  icon: Icon(
-                    isMastered ? Icons.check_circle : Icons.check_circle_outline,
-                    color: isMastered ? Colors.green : null,
+                // ボタン（文字がとても大きいときは縦に並べる）
+                if (scale > 1.5)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [clearButton, const SizedBox(height: 8), judgeButton],
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(child: clearButton),
+                      const SizedBox(width: 12),
+                      Expanded(child: judgeButton),
+                    ],
                   ),
-                  label: Text(isMastered ? '覚えた（タップで解除）' : 'これは覚えた！'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: isMastered ? Colors.green : null,
-                    side: isMastered ? const BorderSide(color: Colors.green) : null,
+                const SizedBox(height: 8),
+
+                // 覚えたチェック
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: Icon(
+                      isMastered ? Icons.check_circle : Icons.check_circle_outline,
+                      color: isMastered ? Colors.green : null,
+                    ),
+                    label: Text(isMastered ? '覚えた（タップで解除）' : 'これは覚えた！'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isMastered ? Colors.green : null,
+                      side: isMastered ? const BorderSide(color: Colors.green) : null,
+                    ),
+                    onPressed: () async {
+                      if (isMastered) {
+                        await unmarkWritingKanjiMastered(ref, kanji);
+                      } else {
+                        await markWritingKanjiMastered(ref, kanji);
+                      }
+                    },
                   ),
-                  onPressed: () async {
-                    if (isMastered) {
-                      await unmarkWritingKanjiMastered(ref, kanji);
-                    } else {
-                      await markWritingKanjiMastered(ref, kanji);
-                    }
-                  },
                 ),
-              ),
-            ],
+              ];
+              return compact
+                  ? SingleChildScrollView(child: Column(children: children))
+                  : Column(children: children);
+            },
           ),
         ),
       ),
