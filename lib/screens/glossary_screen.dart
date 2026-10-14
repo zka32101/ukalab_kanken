@@ -4,6 +4,7 @@ import 'package:ukalab_core/ukalab_core.dart' show ChapterReading;
 
 import '../data/chapter_readings.dart';
 import '../data/kanken_glossary.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ホームの「学習」メニューに出す、用語集への入口の名前。
 const String kGlossaryMenuLabel = '用語集';
@@ -29,7 +30,7 @@ class _GlossaryScreenState extends State<GlossaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(kGlossaryMenuLabel)),
+      appBar: AppBar(title: const FitTitle(kGlossaryMenuLabel)),
       body: FutureBuilder<List<ChapterReading>>(
         future: _future,
         builder: (context, snapshot) {
