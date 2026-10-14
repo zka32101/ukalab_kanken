@@ -4,6 +4,7 @@ import 'package:ukalab_core/ui.dart'
 import 'package:ukalab_core/ukalab_core.dart' show ChapterReading;
 
 import '../data/chapter_readings.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ホームの「学習」メニューに出す、解説読み物への入口の名前。
 const String kReadingsMenuLabel = '章ごとの\n解説読み物';
@@ -29,7 +30,7 @@ class _ReadingListScreenState extends State<ReadingListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('章ごとの解説読み物')),
+      appBar: AppBar(title: const FitTitle('章ごとの解説読み物')),
       body: FutureBuilder<List<ChapterReading>>(
         future: _future,
         builder: (context, snapshot) {
@@ -86,7 +87,7 @@ class ReadingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(reading.title)),
+      appBar: AppBar(title: FitTitle(reading.title)),
       body: ChapterReadingWidget(
         title: reading.title,
         sections: [
