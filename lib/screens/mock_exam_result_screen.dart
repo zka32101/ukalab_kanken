@@ -402,8 +402,11 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
       );
     }
 
-    final allCategoriesMastered = analysis.categoryPerformance.isNotEmpty &&
-        analysis.categoryPerformance.values.every((p) => p.accuracy >= 0.9);
+    // 今回解いたカテゴリだけで判定すると、1カテゴリの全問正解で付与されてしまう。
+    // 5カテゴリのマスター実績が(過去分+今回分で)そろったときだけ付与する。
+    final allCategoriesMastered = categoryMasterInfo.values.every((info) =>
+        _isUnlocked(info.$1, currentAchievements) ||
+        newAchievements.any((a) => a.id == info.$1));
     if (allCategoriesMastered &&
         !_isUnlocked('category_all_master', currentAchievements)) {
       newAchievements.add(
