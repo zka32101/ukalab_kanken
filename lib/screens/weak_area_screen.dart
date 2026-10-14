@@ -4,6 +4,7 @@ import '../models/category_label.dart';
 import '../models/weak_area.dart';
 import '../providers/weak_area_provider.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class WeakAreaScreen extends ConsumerWidget {
   const WeakAreaScreen({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class WeakAreaScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('📊 苦手分野分析'),
+        title: const FitTitle('📊 苦手分野分析'),
         centerTitle: true,
         backgroundColor: Colors.red.shade50,
         elevation: 0,
@@ -78,23 +79,29 @@ class WeakAreaScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatTile(
-                  icon: '📚',
-                  label: '分野数',
-                  value: '${analysis.totalCategories}',
-                  color: Colors.blue,
+                Expanded(
+                  child: _buildStatTile(
+                    icon: '📚',
+                    label: '分野数',
+                    value: '${analysis.totalCategories}',
+                    color: Colors.blue,
+                  ),
                 ),
-                _buildStatTile(
-                  icon: '⚠️',
-                  label: '苦手分野',
-                  value: '${analysis.weakCategoryCount}',
-                  color: Colors.red,
+                Expanded(
+                  child: _buildStatTile(
+                    icon: '⚠️',
+                    label: '苦手分野',
+                    value: '${analysis.weakCategoryCount}',
+                    color: Colors.red,
+                  ),
                 ),
-                _buildStatTile(
-                  icon: '⭐',
-                  label: '全体正答率',
-                  value: '${(analysis.overallAccuracy * 100).toStringAsFixed(1)}%',
-                  color: Colors.amber,
+                Expanded(
+                  child: _buildStatTile(
+                    icon: '⭐',
+                    label: '全体正答率',
+                    value: '${(analysis.overallAccuracy * 100).toStringAsFixed(1)}%',
+                    color: Colors.amber,
+                  ),
                 ),
               ],
             ),
@@ -115,17 +122,22 @@ class WeakAreaScreen extends ConsumerWidget {
       children: [
         UkalabEmoji(icon, size: 28),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
             color: Colors.grey.shade600,
@@ -158,14 +170,16 @@ class WeakAreaScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Text(
-                  '🎯 最も苦手な分野',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                const Expanded(
+                  child: Text(
+                    '🎯 最も苦手な分野',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -211,8 +225,10 @@ class WeakAreaScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   '正答率: ${worstArea.getAccuracyPercentage()}',
@@ -320,8 +336,6 @@ class WeakAreaScreen extends ConsumerWidget {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -358,8 +372,10 @@ class WeakAreaScreen extends ConsumerWidget {
             const SizedBox(height: 8),
 
             // 詳細情報
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   '正答率: ${area.getAccuracyPercentage()}',

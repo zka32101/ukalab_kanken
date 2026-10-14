@@ -4,6 +4,7 @@ import '../models/category_label.dart';
 import '../models/mock_exam_modes.dart';
 import '../providers/exam_session_provider.dart';
 import 'mock_exam_result_screen.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class MockExamEnhancedScreen extends ConsumerStatefulWidget {
   final ExamConfig config;
@@ -109,7 +110,7 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
 
     if (sessionAsync == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('試験読み込み中')),
+        appBar: AppBar(title: const FitTitle('試験読み込み中')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -124,6 +125,7 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
+            scrollable: true,
             title: const Text('試験を中断しますか？'),
             content: const Text('進捗が失われます'),
             actions: [
@@ -145,31 +147,38 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(modeName),
+          title: FitTitle(modeName),
           centerTitle: true,
           elevation: 0,
           actions: [
             Padding(
               // 縦に余白を取ると、AppBarの高さ(56)を超えて「BOTTOM OVERFLOWED」になる。
               padding: const EdgeInsets.symmetric(horizontal: 16),
+              // 文字が大きいときは、AppBar の高さ（56）と幅に収まるまで縮める。
               child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '残り時間',
-                      style: Theme.of(context).textTheme.labelSmall,
+                child: CapWidth(
+                  maxFraction: 0.3,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '残り時間',
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                        Text(
+                          _formatTime(remainingTime),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: isTimeWarning ? Colors.red : Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      _formatTime(remainingTime),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: isTimeWarning ? Colors.red : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -189,8 +198,9 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
                         minHeight: 8,
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 8,
                         children: [
                           Text(
                             '問題 ${session.currentQuestionIndex + 1} / ${session.questions.length}',
