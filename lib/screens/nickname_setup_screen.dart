@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 初回起動時のニックネーム設定画面（保護者が入力する想定）
 class NicknameSetupScreen extends ConsumerStatefulWidget {
@@ -88,7 +89,8 @@ class _NicknameSetupScreenState extends ConsumerState<NicknameSetupScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: MinHeightScroll(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -112,7 +114,7 @@ class _NicknameSetupScreenState extends ConsumerState<NicknameSetupScreen> {
                 controller: _controller,
                 maxLength: 20,
                 decoration: InputDecoration(
-                  labelText: 'ニックネーム',
+                  label: const FitTitle('ニックネーム'),
                   errorText: _errorText,
                   border: const OutlineInputBorder(),
                 ),
@@ -133,6 +135,7 @@ class _NicknameSetupScreenState extends ConsumerState<NicknameSetupScreen> {
                     : const Text('はじめる'),
               ),
             ],
+            ),
           ),
         ),
       ),

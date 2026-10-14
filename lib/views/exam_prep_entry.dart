@@ -4,6 +4,7 @@ import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../data/exam_prep_data.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ukalab_core の「試験に向けて」共通画面をこのアプリのデータにつなぐ部分。
 /// 画面・文言は core 側。ここは取得・保存・premium 判定・遷移だけ。
@@ -87,7 +88,7 @@ void _openPractice(
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => Scaffold(
-        appBar: AppBar(title: Text(title)),
+        appBar: AppBar(title: FitTitle(title)),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: ExamPrepPracticeView(pool: pool, emptyMessage: empty),
