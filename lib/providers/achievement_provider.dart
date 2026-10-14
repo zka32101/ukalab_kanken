@@ -231,9 +231,19 @@ Future<List<Achievement>> _detectNewAchievements(
     }
   }
 
-  // すべてのカテゴリでマスター達成をチェック
-  final allCategoriesMastered = analysis.categoryPerformance.values
-      .every((p) => p.accuracy >= 0.9);
+  // すべてのカテゴリでマスター達成をチェック。
+  // 今回の試験で解いたカテゴリだけで判定すると、1カテゴリ(例: 読み4問)の全問正解で
+  // 付与されてしまうため、5カテゴリのマスター実績が(過去分+今回分で)そろったときだけ付与する。
+  const masterIds = [
+    'category_reading_master',
+    'category_meaning_master',
+    'category_stroke_master',
+    'category_writing_master',
+    'category_usage_master',
+  ];
+  final allCategoriesMastered = masterIds.every((id) =>
+      _isUnlocked(id, currentAchievements) ||
+      newAchievements.any((a) => a.id == id));
   if (allCategoriesMastered &&
       !_isUnlocked('category_all_master', currentAchievements)) {
     newAchievements.add(
