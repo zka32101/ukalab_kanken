@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kanken/models/user_ranking.dart';
 import 'package:kanken/providers/ranking_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class RankingScreen extends ConsumerStatefulWidget {
   const RankingScreen({Key? key}) : super(key: key);
@@ -27,7 +28,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ランキング'),
+        title: const FitTitle('ランキング'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -90,12 +91,17 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (rank != null) ...[
-                  Text(
-                    rank.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        rank.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -255,9 +261,12 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           SizedBox(
             width: 50,
             child: Center(
-              child: Text(
-                ranking.getRankBadge(),
-                style: const TextStyle(fontSize: 28),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  ranking.getRankBadge(),
+                  style: const TextStyle(fontSize: 28),
+                ),
               ),
             ),
           ),
@@ -274,16 +283,14 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 4,
                   children: [
                     _buildStat('Lv', ranking.level.toString()),
-                    const SizedBox(width: 16),
                     _buildStat('EXP', ranking.experience.toString()),
-                    const SizedBox(width: 16),
                     _buildStat('正答率', '${(ranking.accuracyRate * 100).toStringAsFixed(1)}%'),
                   ],
                 ),
@@ -292,24 +299,27 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
           ),
 
           // ストリーク
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '🔥 ${ranking.streak}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          FitWidth(
+            maxFraction: 0.25,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '🔥 ${ranking.streak}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                '連続',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+                Text(
+                  '連続',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -327,11 +337,15 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
             color: Colors.grey.shade600,
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
           ),
         ),
       ],
