@@ -29,6 +29,7 @@ import '../widgets/oshi_readiness_card.dart';
 import '../widgets/banner_ad_widget.dart';
 import '../widgets/hands_free_practice_body.dart';
 import '../screens/nagara_session_screen.dart' show nagaraMenuItem;
+import 'package:kanken/widgets/text_fit.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -72,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('うかラボ漢字検定'),
+        title: const FitTitle('うかラボ漢字検定'),
       ),
       bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       body: SingleChildScrollView(
@@ -529,6 +530,7 @@ class HomeScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         title: Text('$levelNameはプレミアム限定です'),
         content: const Text('準1級・1級はプレミアムに加入すると学習できます（広告も非表示になります）。'),
         actions: [
@@ -604,9 +606,12 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: Row(
                   children: [
-                    Text(
-                      ranking.getRankBadge(),
-                      style: const TextStyle(fontSize: 20),
+                    FitWidth(
+                      maxFraction: 0.15,
+                      child: Text(
+                        ranking.getRankBadge(),
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -630,9 +635,12 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Text(
-                      '🔥${ranking.streak}',
-                      style: const TextStyle(fontSize: 12),
+                    FitWidth(
+                      maxFraction: 0.2,
+                      child: Text(
+                        '🔥${ranking.streak}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -725,9 +733,12 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Text(
-                      friend.getStatusIcon(),
-                      style: const TextStyle(fontSize: 12),
+                    FitWidth(
+                      maxFraction: 0.15,
+                      child: Text(
+                        friend.getStatusIcon(),
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -901,7 +912,7 @@ class PracticeScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('演習中'),
+          title: const FitTitle('演習中'),
           leading: BackButton(
             onPressed: () {
               ref.read(practiceViewModelProvider.notifier).reset();
@@ -916,7 +927,8 @@ class PracticeScreen extends ConsumerWidget {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
+                  child: MinHeightScroll(
+                    child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.hourglass_empty, size: 72, color: Colors.grey),
@@ -935,12 +947,13 @@ class PracticeScreen extends ConsumerWidget {
                         child: const Text('ホームに戻る'),
                       ),
                     ],
+                    ),
                   ),
                 ),
               );
             }
             if (currentIndex >= qList.length) {
-              return Center(
+              return MinHeightScroll(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1017,7 +1030,11 @@ class PracticeScreen extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      // 文字が大きいとき・画面が小さいときは、内容が画面より高くなるので縦にスクロールできるようにする
+      // （収まるときは今までどおり、選択肢を残りの高さの中央に並べる）。
+      child: MinHeightScroll(
+        intrinsicHeight: true,
+        child: Column(
         children: [
           // 進捗バー
           LinearProgressIndicator(
@@ -1043,8 +1060,9 @@ class PracticeScreen extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // 正解数・コンボ表示
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 8,
             children: [
               Text('正解: $correctCount問', style: const TextStyle(fontSize: 14)),
               Text('コンボ: $comboCount', style: const TextStyle(fontSize: 14, color: Colors.blue)),
@@ -1069,8 +1087,9 @@ class PracticeScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               TextButton.icon(
                 onPressed: () => _markAsLearned(context, ref, question),
@@ -1151,6 +1170,7 @@ class PracticeScreen extends ConsumerWidget {
               ),
             ),
         ],
+        ),
       ),
     );
   }
