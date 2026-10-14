@@ -12,6 +12,7 @@ import '../viewmodels/practice_viewmodel.dart';
 import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'home_screen.dart' show HomeScreen, PracticeScreen;
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ukalab_core v0.58〜v0.61 の「推しの一言」「週間ふりかえり」「間違いノート」を
 /// このアプリのデータにつなぐ部分。画面・文言は core 側。ここは入力の組み立て・保存・遷移だけ。
@@ -97,19 +98,23 @@ class ExamCountdownEntry extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final date = ref.watch(examPrepExamDateProvider);
     if (date == null) return const SizedBox.shrink();
+    // 文字が大きいとき、チップが画面の幅を超えて文字が切れないよう、収まるまで縮める。
     return Align(
       alignment: Alignment.centerLeft,
-      child: ExamCountdownChip(
-        examDate: date,
-        clock: clock,
-        onTap: () => (onOpenSettings ??
-            (c) => c.push('/learning-goals'))(context),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: ExamCountdownChip(
+          examDate: date,
+          clock: clock,
+          onTap: () => (onOpenSettings ??
+              (c) => c.push('/learning-goals'))(context),
+        ),
       ),
     );
   }
 }
 
-/// ホームの週間ふりかえり（週1回分のまとめ。月曜始まり）。
+/// ホームの週間ふりかえり（週１回分のまとめ。月曜始まり）。
 /// メダル数は日付を持たないため渡さない（行は出ない）。
 class WeeklyRecapEntry extends ConsumerWidget {
   const WeeklyRecapEntry({super.key, this.clock = DateTime.now});
@@ -250,7 +255,7 @@ class _MistakeNoteScreenState extends ConsumerState<MistakeNoteScreen> {
   Widget build(BuildContext context) {
     final notes = ref.watch(mistakeNotesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(MistakeNoteStrings.ja.title)),
+      appBar: AppBar(title: FitTitle(MistakeNoteStrings.ja.title)),
       body: _body(notes),
     );
   }
