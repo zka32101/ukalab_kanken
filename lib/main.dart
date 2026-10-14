@@ -55,6 +55,9 @@ void main() async {
   // 広告初期化（児童向け設定を含む。権利状態に依存するため購入初期化の後）
   await AdService.initialize();
 
+  // 文字の大きさ（アプリ内設定）を復元する
+  await loadSavedTextScale();
+
   // 学習コイン（app_common_kit）。財布はアプリごと。端末内に保存する。
   // コインは学習の成長でのみ獲得する（課金・広告視聴での付与はしない）。
   final coinService = CoinService(
@@ -122,8 +125,11 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: appRouter,
-      builder: (context, child) =>
-          ReminderNotificationWatcher(child: child ?? const SizedBox.shrink()),
+      // 文字の大きさ（設定画面で選ぶ）を端末の文字サイズに掛け合わせる。
+      builder: (context, child) => applyAppTextScale(
+        context,
+        ReminderNotificationWatcher(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }
