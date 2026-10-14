@@ -373,10 +373,13 @@ class StreakWidget extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Text(
-                '🔥',
-                style: TextStyle(fontSize: 32),
+            child: const Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '🔥',
+                  style: TextStyle(fontSize: 32),
+                ),
               ),
             ),
           ),
