@@ -6,6 +6,7 @@ import '../providers/mock_exam_enhanced_provider.dart';
 import '../providers/exam_session_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'mock_exam_enhanced_screen.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 'LEVEL_10' 形式の級表記を、examQuestionsコレクションが使う
 /// int形式の級番号(10級=10, 1級=1)に変換する。
@@ -26,7 +27,7 @@ class MockExamModesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('模擬試験モード'),
+        title: const FitTitle('模擬試験モード'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -226,17 +227,23 @@ class MockExamModesScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem(
-                        '受験回数',
-                        stats.totalExamsTaken.toString(),
+                      Expanded(
+                        child: _buildStatItem(
+                          '受験回数',
+                          stats.totalExamsTaken.toString(),
+                        ),
                       ),
-                      _buildStatItem(
-                        '合格数',
-                        stats.totalPassed.toString(),
+                      Expanded(
+                        child: _buildStatItem(
+                          '合格数',
+                          stats.totalPassed.toString(),
+                        ),
                       ),
-                      _buildStatItem(
-                        '最高点',
-                        '${stats.bestScore}点',
+                      Expanded(
+                        child: _buildStatItem(
+                          '最高点',
+                          '${stats.bestScore}点',
+                        ),
                       ),
                     ],
                   ),
@@ -244,13 +251,17 @@ class MockExamModesScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem(
-                        '平均正答率',
-                        '${(stats.averageAccuracy * 100).toStringAsFixed(1)}%',
+                      Expanded(
+                        child: _buildStatItem(
+                          '平均正答率',
+                          '${(stats.averageAccuracy * 100).toStringAsFixed(1)}%',
+                        ),
                       ),
-                      _buildStatItem(
-                        '平均時間',
-                        '${stats.averageTimePerQuestion.toStringAsFixed(1)}秒',
+                      Expanded(
+                        child: _buildStatItem(
+                          '平均時間',
+                          '${stats.averageTimePerQuestion.toStringAsFixed(1)}秒',
+                        ),
                       ),
                     ],
                   ),
@@ -270,17 +281,21 @@ class MockExamModesScreen extends ConsumerWidget {
   Widget _buildStatItem(String label, String value) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 12,
             color: Colors.grey,
@@ -323,6 +338,7 @@ class MockExamModesScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('カテゴリを選択'),
         content: SizedBox(
           width: double.maxFinite,

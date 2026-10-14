@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/oshi_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 推しの部屋で立たせる場面のポーズ。試験日の前日は応援、3日以上の連続学習は炎。
 /// どちらでもなければ null（通常のポーズ）。ホームの推しカードと同じ基準。
@@ -54,7 +55,7 @@ class _OshiRoomScreenState extends ConsumerState<OshiRoomScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('推しの部屋')),
+      appBar: AppBar(title: const FitTitle('推しの部屋')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

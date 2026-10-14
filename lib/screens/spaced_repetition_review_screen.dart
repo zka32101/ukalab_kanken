@@ -6,6 +6,7 @@ import '../providers/learning_goal_provider.dart';
 import '../providers/spaced_repetition_provider.dart';
 import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class SpacedRepetitionReviewScreen extends ConsumerStatefulWidget {
   const SpacedRepetitionReviewScreen({Key? key}) : super(key: key);
@@ -101,7 +102,7 @@ class _SpacedRepetitionReviewScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('間隔反復復習'),
+        title: const FitTitle('間隔反復復習'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -116,9 +117,9 @@ class _SpacedRepetitionReviewScreenState
   }
 
   Widget _buildFinishedView(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: MinHeightScroll(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -158,7 +159,10 @@ class _SpacedRepetitionReviewScreenState
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      // 文字が大きく、評価ボタンが何段にもなるときは、全体を縦にスクロールできるようにする。
+      child: MinHeightScroll(
+        intrinsicHeight: true,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 進捗バー
@@ -189,9 +193,12 @@ class _SpacedRepetitionReviewScreenState
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          item.kanji,
-                          style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.kanji,
+                            style: const TextStyle(fontSize: 64, fontWeight: FontWeight.bold),
+                          ),
                         ),
                         if (item.question.isNotEmpty) ...[
                           const SizedBox(height: 16),
@@ -227,6 +234,7 @@ class _SpacedRepetitionReviewScreenState
           // 評価ボタン（回答表示後のみ）
           if (_showAnswer) _buildQualityButtons(),
         ],
+        ),
       ),
     );
   }

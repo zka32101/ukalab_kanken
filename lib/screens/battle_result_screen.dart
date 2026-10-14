@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../models/multiplayer.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class BattleResultScreen extends StatelessWidget {
   final BattleResult result;
@@ -16,7 +17,7 @@ class BattleResultScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('対戦結果'),
+        title: const FitTitle('対戦結果'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -128,14 +129,17 @@ class BattleResultScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Text(
-                        '$rank',
-                        style:
-                            const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '$rank',
+                          style:
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                        ),
                       ),
                     ),
                   ),
@@ -155,12 +159,16 @@ class BattleResultScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text(
-                    '${participant.currentScore}点',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _getRankColor(rank),
-                        ),
+                  const SizedBox(width: 8),
+                  FitWidth(
+                    maxFraction: 0.3,
+                    child: Text(
+                      '${participant.currentScore}点',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _getRankColor(rank),
+                          ),
+                    ),
                   ),
                 ],
               ),
@@ -208,8 +216,10 @@ class BattleResultScreen extends StatelessWidget {
   Widget _buildStatRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 8,
+        runSpacing: 2,
         children: [
           Text(label),
           Text(

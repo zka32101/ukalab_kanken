@@ -28,6 +28,7 @@ import '../widgets/achievement_unlock_dialog.dart';
 import '../widgets/oshi_card.dart' show shareCardImageWithGate;
 import '../views/core_v069_entry.dart' show MockExamAnalysisEntry;
 import 'package:ukalab_core/ukalab_core.dart' show MockExamAnswer;
+import 'package:kanken/widgets/text_fit.dart';
 
 class MockExamResultScreen extends ConsumerStatefulWidget {
   final ExamSessionState session;
@@ -540,7 +541,7 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('試験結果'),
+        title: const FitTitle('試験結果'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -642,23 +643,29 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildScoreTile(
-                  context,
-                  '${session.getCorrectAnswerCount()}',
-                  '正解数',
-                  Colors.blue,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${session.getCorrectAnswerCount()}',
+                    '正解数',
+                    Colors.blue,
+                  ),
                 ),
-                _buildScoreTile(
-                  context,
-                  '${(accuracy * 100).toStringAsFixed(1)}%',
-                  '正答率',
-                  Colors.green,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${(accuracy * 100).toStringAsFixed(1)}%',
+                    '正答率',
+                    Colors.green,
+                  ),
                 ),
-                _buildScoreTile(
-                  context,
-                  '${session.getCorrectAnswerCount()}/${session.questions.length}',
-                  '出題数',
-                  Colors.orange,
+                Expanded(
+                  child: _buildScoreTile(
+                    context,
+                    '${session.getCorrectAnswerCount()}/${session.questions.length}',
+                    '出題数',
+                    Colors.orange,
+                  ),
                 ),
               ],
             ),
@@ -676,16 +683,20 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
   ) {
     return Column(
       children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelSmall,
         ),
       ],
@@ -734,8 +745,10 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
   Widget _buildStatRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 8,
+        runSpacing: 2,
         children: [
           Text(label),
           Text(
@@ -778,8 +791,9 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: 8,
                       children: [
                         Text(
                           categoryLabel(category),
@@ -887,11 +901,13 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
                             size: 20,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            categoryLabel(point['category'] ?? ''),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                          Expanded(
+                            child: Text(
+                              categoryLabel(point['category'] ?? ''),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
                             ),
                           ),
                         ],

@@ -62,7 +62,7 @@ class UkalabEmoji extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = assetNameFor(emoji);
     if (name == null) {
-      return Text(emoji, style: (style ?? const TextStyle()).copyWith(fontSize: size));
+      return _fallback();
     }
     return Image.asset(
       'assets/icons_common/$name.webp',
@@ -70,8 +70,14 @@ class UkalabEmoji extends StatelessWidget {
       height: size,
       fit: BoxFit.contain,
       excludeFromSemantics: true,
-      errorBuilder: (context, error, stackTrace) =>
-          Text(emoji, style: (style ?? const TextStyle()).copyWith(fontSize: size)),
+      errorBuilder: (context, error, stackTrace) => _fallback(),
     );
   }
+
+  /// 画像に置き換えられない文字。端末の文字サイズで大きくなっても、
+  /// 置かれた箱（順位の「12位」など）からはみ出さないよう、収まらないときだけ縮める。
+  Widget _fallback() => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(emoji, style: (style ?? const TextStyle()).copyWith(fontSize: size)),
+      );
 }

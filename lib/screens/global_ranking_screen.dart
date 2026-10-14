@@ -7,6 +7,7 @@ import '../providers/event_provider.dart';
 import '../providers/ranking_provider.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
 import '../theme/app_theme.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class GlobalRankingScreen extends ConsumerStatefulWidget {
   const GlobalRankingScreen({Key? key}) : super(key: key);
@@ -41,19 +42,20 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🌍 グローバルランキング'),
+        title: const FitTitle('🌍 グローバルランキング'),
         centerTitle: true,
         backgroundColor: AppColors.primarySoft,
         elevation: 0,
         foregroundColor: Colors.black87,
-        bottom: TabBar(
+        bottom: fitTabBar(
+          context,
           controller: _tabController,
           labelColor: AppColors.primaryDark,
           unselectedLabelColor: Colors.grey,
           indicatorColor: AppColors.primaryDark,
           tabs: const [
-            Tab(child: Text('イベント別')),
-            Tab(child: Text('全体')),
+            FitTabSpec('イベント別'),
+            FitTabSpec('全体'),
           ],
         ),
       ),
@@ -126,14 +128,13 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
           DropdownButton<String>(
             value: selectedEvent.eventId,
             isExpanded: true,
+            itemHeight: null,
             underline: Container(),
             items: events.map((event) {
               return DropdownMenuItem<String>(
                 value: event.eventId,
                 child: Text(
                   '${event.getStatusEmoji()} ${event.eventName}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               );
             }).toList(),
@@ -243,12 +244,17 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (userRank != null) ...[
-                Text(
-                  userRank.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      userRank.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -329,8 +335,6 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (isCurrentUser)
@@ -355,8 +359,11 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,8 +562,6 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (isCurrentUser)
@@ -581,8 +586,11 @@ class _GlobalRankingScreenState extends ConsumerState<GlobalRankingScreen>
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

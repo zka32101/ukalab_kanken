@@ -5,6 +5,7 @@ import '../providers/purchases_provider.dart';
 import '../services/purchase_tiers.dart';
 import '../theme/app_theme.dart';
 import 'package:app_common_kit/parental_gate.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// サブスクリプションの購入画面。二段階で、広告なしと、準1級・1級も学べるプレミアム。
 /// 価格はストア（RevenueCat）の商品から表示する。
@@ -20,7 +21,7 @@ class PaywallScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('プラン'),
+        title: const FitTitle('プラン'),
         centerTitle: true,
       ),
       body: adsRemoved.when(
@@ -166,8 +167,9 @@ class PaywallScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Icon(icon, size: 28, color: AppColors.primary),
               const SizedBox(width: 8),
@@ -219,7 +221,8 @@ class PaywallScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         isYearly ? '年額プラン' : '月額プラン',

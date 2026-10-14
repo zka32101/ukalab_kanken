@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/leaderboard.dart';
 import '../providers/leaderboard_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
 
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -20,7 +21,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('リーダーボード'),
+        title: const FitTitle('リーダーボード'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -159,7 +160,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -180,12 +182,17 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   ),
                 ],
               ),
-              Text(
-                '${userEntry.totalScore}点',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(width: 8),
+              FitWidth(
+                maxFraction: 0.35,
+                child: Text(
+                  '${userEntry.totalScore}点',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -194,9 +201,15 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('正答率', '${(userEntry.averageAccuracy * 100).toStringAsFixed(1)}%', Colors.white70),
-              _buildStatItem('試験数', '${userEntry.examsCompleted}回', Colors.white70),
-              _buildStatItem('連続', '${userEntry.streak}日', Colors.white70),
+              Expanded(
+                child: _buildStatItem('正答率', '${(userEntry.averageAccuracy * 100).toStringAsFixed(1)}%', Colors.white70),
+              ),
+              Expanded(
+                child: _buildStatItem('試験数', '${userEntry.examsCompleted}回', Colors.white70),
+              ),
+              Expanded(
+                child: _buildStatItem('連続', '${userEntry.streak}日', Colors.white70),
+              ),
             ],
           ),
         ],
@@ -207,17 +220,22 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   Widget _buildStatItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(
-          value,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
             color: color,
             fontSize: 12,

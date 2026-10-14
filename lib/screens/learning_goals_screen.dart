@@ -4,6 +4,7 @@ import '../models/learning_goal.dart';
 import '../providers/learning_goal_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 // 各級の配当漢字数（累計）の目安。受験日から逆算した1日あたりの
 // 学習ペースを提案する際の参考値として使う簡略化された値であり、
@@ -35,7 +36,7 @@ class LearningGoalsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('学習目標'),
+        title: const FitTitle('学習目標'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -107,16 +108,19 @@ class LearningGoalsScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.event, color: Colors.indigo),
                 const SizedBox(width: 8),
-                Text(
-                  '受験日',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                Expanded(
+                  child: Text(
+                    '受験日',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () => _pickExamDate(context, ref, examDate),
-                  child: Text(examDate == null ? '登録する' : '変更'),
+                CapWidth(
+                  child: TextButton(
+                    onPressed: () => _pickExamDate(context, ref, examDate),
+                    child: Text(examDate == null ? '登録する' : '変更'),
+                  ),
                 ),
                 if (examDate != null)
                   IconButton(
@@ -287,15 +291,19 @@ class LearningGoalsScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    UkalabEmoji(goal.typeIcon, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      goal.typeLabel,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      UkalabEmoji(goal.typeIcon, size: 20),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          goal.typeLabel,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
@@ -317,8 +325,10 @@ class LearningGoalsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Text(
                   '${goal.currentValue} / ${goal.targetValue} ${goal.unit}',
@@ -396,6 +406,7 @@ class LearningGoalsScreen extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
+            scrollable: true,
             title: const Text('新しい目標を設定'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -404,12 +415,12 @@ class LearningGoalsScreen extends ConsumerWidget {
                 const Text('目標の種類', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 DropdownButton<GoalType>(
-                  value: selectedType,
+                                    value: selectedType,
                   isExpanded: true,
                   items: GoalType.values.map((type) {
                     return DropdownMenuItem(
                       value: type,
-                      child: Text(_getGoalTypeLabel(type)),
+                      child: FitText(_getGoalTypeLabel(type)),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -423,7 +434,7 @@ class LearningGoalsScreen extends ConsumerWidget {
                   controller: targetController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: '目標値 (${_getGoalTypeUnit(selectedType)})',
+                    label: FitTitle('目標値 (${_getGoalTypeUnit(selectedType)})'),
                   ),
                 ),
               ],

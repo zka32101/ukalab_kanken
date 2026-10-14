@@ -12,6 +12,7 @@ import '../services/oshi_progress_store.dart';
 import '../theme/app_theme.dart';
 import '../viewmodels/index.dart';
 import 'package:ukalab_core/ui.dart' show HomeMenuItem, HomeMenuTile;
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 学習メニューの項目名。
 const String kNagaraMenuLabel = 'ながら\n学習';
@@ -145,7 +146,7 @@ class NagaraSessionScreen extends ConsumerWidget {
     final level = ref.watch(currentLevelProvider);
     final async = ref.watch(nagaraQuestionsProvider(level));
     return Scaffold(
-      appBar: AppBar(title: const Text('ながら学習')),
+      appBar: AppBar(title: const FitTitle('ながら学習')),
       body: SafeArea(
         child: async.when(
           loading: () => const Center(child: CircularProgressIndicator()),

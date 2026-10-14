@@ -78,25 +78,23 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // ページインジケータ
               if (totalCount > 1)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${_currentIndex + 1} / $totalCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  child: Center(
+                    child: Text(
+                      '${_currentIndex + 1} / $totalCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
@@ -107,6 +105,7 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
               // 「新しいバッジを獲得」
               const Text(
                 '🎉 新しいバッジを獲得！',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -118,6 +117,7 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
               // バッジ名
               Text(
                 achievement.name,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -183,6 +183,7 @@ class _AchievementUnlockDialogState extends State<AchievementUnlockDialog>
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
