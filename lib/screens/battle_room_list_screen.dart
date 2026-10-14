@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/multiplayer.dart';
 import '../providers/battle_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class BattleRoomListScreen extends ConsumerWidget {
   const BattleRoomListScreen({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class BattleRoomListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('オンライン対戦'),
+        title: const FitTitle('オンライン対戦'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -86,29 +87,37 @@ class BattleRoomListScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                context,
-                '対戦',
-                '${stats.totalBattles}',
-                Colors.white,
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  '対戦',
+                  '${stats.totalBattles}',
+                  Colors.white,
+                ),
               ),
-              _buildStatItem(
-                context,
-                '勝',
-                '${stats.victories}',
-                Colors.lightGreen.shade300,
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  '勝',
+                  '${stats.victories}',
+                  Colors.lightGreen.shade300,
+                ),
               ),
-              _buildStatItem(
-                context,
-                '敗',
-                '${stats.defeats}',
-                Colors.red.shade300,
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  '敗',
+                  '${stats.defeats}',
+                  Colors.red.shade300,
+                ),
               ),
-              _buildStatItem(
-                context,
-                '勝率',
-                '${(stats.getWinRate() * 100).toStringAsFixed(1)}%',
-                Colors.amber.shade300,
+              Expanded(
+                child: _buildStatItem(
+                  context,
+                  '勝率',
+                  '${(stats.getWinRate() * 100).toStringAsFixed(1)}%',
+                  Colors.amber.shade300,
+                ),
               ),
             ],
           ),
@@ -125,16 +134,20 @@ class BattleRoomListScreen extends ConsumerWidget {
   ) {
     return Column(
       children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Colors.white70,
               ),
@@ -165,7 +178,6 @@ class BattleRoomListScreen extends ConsumerWidget {
                       Text(
                         room.roomName,
                         style: Theme.of(context).textTheme.titleMedium,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -175,19 +187,23 @@ class BattleRoomListScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade100,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${room.participants.length}/${room.maxParticipants}人',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.bold,
-                        ),
+                const SizedBox(width: 8),
+                CapWidth(
+                  maxFraction: 0.3,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${room.participants.length}/${room.maxParticipants}人',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
                   ),
                 ),
               ],
@@ -260,6 +276,7 @@ class BattleRoomListScreen extends ConsumerWidget {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('ルームを作成'),
         content: SingleChildScrollView(
           child: Column(
@@ -267,7 +284,7 @@ class BattleRoomListScreen extends ConsumerWidget {
             children: [
               TextField(
                 decoration: InputDecoration(
-                  labelText: 'ルーム名',
+                  label: FitTitle('ルーム名'),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

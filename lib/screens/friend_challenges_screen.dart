@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/friend_challenge.dart';
 import '../providers/friend_challenge_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class FriendChallengesScreen extends ConsumerWidget {
   const FriendChallengesScreen({Key? key}) : super(key: key);
@@ -15,13 +16,14 @@ class FriendChallengesScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('フレンドチャレンジ'),
+          title: const FitTitle('フレンドチャレンジ'),
           centerTitle: true,
           elevation: 0,
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: '受け取ったチャレンジ'),
-              Tab(text: '送信したチャレンジ'),
+          bottom: fitTabBar(
+            context,
+            tabs: const [
+              FitTabSpec('受け取ったチャレンジ'),
+              FitTabSpec('送信したチャレンジ'),
             ],
           ),
         ),
@@ -164,18 +166,21 @@ class FriendChallengesScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(width: 8),
+                CapWidth(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -213,8 +218,10 @@ class FriendChallengesScreen extends ConsumerWidget {
   }
 
   Widget _buildTargetInfo(FriendChallenge challenge) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      spacing: 8,
+      runSpacing: 8,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,14 +285,18 @@ class FriendChallengesScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildScoreDisplay(
-                challenge.challengerName,
-                challenge.challengerScore ?? 0,
+              Expanded(
+                child: _buildScoreDisplay(
+                  challenge.challengerName,
+                  challenge.challengerScore ?? 0,
+                ),
               ),
               const Text('vs', style: TextStyle(fontWeight: FontWeight.bold)),
-              _buildScoreDisplay(
-                challenge.changetesName,
-                challenge.challengeeScore ?? 0,
+              Expanded(
+                child: _buildScoreDisplay(
+                  challenge.changetesName,
+                  challenge.challengeeScore ?? 0,
+                ),
               ),
             ],
           ),
@@ -299,6 +310,7 @@ class FriendChallengesScreen extends ConsumerWidget {
       children: [
         Text(
           name,
+          textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 12),
         ),
         const SizedBox(height: 4),
