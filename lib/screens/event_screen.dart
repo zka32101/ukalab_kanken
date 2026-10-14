@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/global_event.dart';
 import '../providers/event_provider.dart';
+import '../widgets/text_fit.dart';
 
 class EventScreen extends ConsumerStatefulWidget {
   const EventScreen({Key? key}) : super(key: key);
@@ -30,20 +31,21 @@ class _EventScreenState extends ConsumerState<EventScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎉 イベント'),
+        title: const FitTitle('🎉 イベント'),
         centerTitle: true,
         backgroundColor: Colors.amber.shade50,
         elevation: 0,
         foregroundColor: Colors.black87,
-        bottom: TabBar(
+        bottom: fitTabBar(
+          context,
           controller: _tabController,
           labelColor: Colors.amber.shade700,
           unselectedLabelColor: Colors.grey,
           indicatorColor: Colors.amber.shade700,
           tabs: const [
-            Tab(child: Text('実行中')),
-            Tab(child: Text('開始前')),
-            Tab(child: Text('終了')),
+            FitTabSpec('実行中'),
+            FitTabSpec('開始前'),
+            FitTabSpec('終了'),
           ],
         ),
       ),
@@ -194,8 +196,6 @@ class _EventScreenState extends ConsumerState<EventScreen>
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -211,21 +211,24 @@ class _EventScreenState extends ConsumerState<EventScreen>
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '参加: ${event.participantCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(width: 8),
+                  CapWidth(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '参加: ${event.participantCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -242,8 +245,6 @@ class _EventScreenState extends ConsumerState<EventScreen>
                   fontSize: 12,
                   color: Colors.grey.shade700,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(height: 12),
@@ -268,8 +269,10 @@ class _EventScreenState extends ConsumerState<EventScreen>
             // イベント情報
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 8,
+                runSpacing: 4,
                 children: [
                   Text(
                     '目標: ${event.targetScore} 点',
@@ -355,8 +358,6 @@ class _EventScreenState extends ConsumerState<EventScreen>
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -368,8 +369,6 @@ class _EventScreenState extends ConsumerState<EventScreen>
                 fontSize: 12,
                 color: Colors.grey.shade700,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 12),
             Container(
@@ -428,10 +427,9 @@ class _EventScreenState extends ConsumerState<EventScreen>
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -459,8 +457,6 @@ class _EventScreenState extends ConsumerState<EventScreen>
                 fontSize: 12,
                 color: Colors.grey.shade600,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -473,6 +469,7 @@ class _EventScreenState extends ConsumerState<EventScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('イベントに参加'),
         content: Text('「${event.eventName}」に参加しますか？'),
         actions: [
