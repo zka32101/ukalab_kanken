@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/kanji_info_data.dart';
@@ -9,6 +11,7 @@ import '../viewmodels/user_viewmodel.dart';
 import '../views/handwriting_practice_screen.dart';
 import '../widgets/stroke_order_animation.dart';
 import '../theme/app_theme.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 選択中の級の配当漢字（公式級別漢字表準拠、`LevelKanjiData`）のうち、
 /// 書き順データがあるものに絞る。
@@ -50,7 +53,7 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('漢字の学習'),
+        title: const FitTitle('漢字の学習'),
         centerTitle: true,
       ),
       body: kanjiListAsync.when(
@@ -92,7 +95,14 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
     // 用例の数などで高さが変動しても、下の漢字選択グリッドの表示領域が
     // つぶれないよう、詳細エリアは画面の45%までに収め、はみ出す分は
     // その中だけでスクロールできるようにする。
-    final maxDetailHeight = MediaQuery.of(context).size.height * 0.45;
+    // 文字が大きいとき、下の「かんじをえらぼう」の見出しとグリッドの分を必ず残す。
+    final scale = textScaleOf(context);
+    final headerHeight = scale > 1.2 ? 28.0 * scale * 3 + 16 : 48.0;
+    return LayoutBuilder(builder: (context, constraints) {
+    final maxDetailHeight = math.min(
+      MediaQuery.of(context).size.height * 0.45,
+      math.max(120.0, constraints.maxHeight - headerHeight - 160),
+    );
 
     return Column(
       children: [
@@ -156,7 +166,10 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                               runSpacing: 6,
                               children: info.readings.map((reading) {
                                 return Chip(
-                                  label: Text(reading),
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(reading),
+                                  ),
                                   backgroundColor: Colors.white,
                                   visualDensity: VisualDensity.compact,
                                 );
@@ -170,7 +183,10 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                               ),
                               const SizedBox(height: 4),
                               Chip(
-                                label: Text('${radicalInfo.radical}（${radicalInfo.radicalName}）'),
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text('${radicalInfo.radical}（${radicalInfo.radicalName}）'),
+                                ),
                                 backgroundColor: Colors.white,
                                 visualDensity: VisualDensity.compact,
                               ),
@@ -201,8 +217,10 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
         const Divider(height: 1),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 4,
             children: [
               Text(
                 'かんじをえらぼう',
@@ -211,12 +229,15 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                 ),
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 16),
                   const SizedBox(width: 4),
-                  Text(
-                    '${kanjiList.where(mastered.contains).length} / ${kanjiList.length} 覚えた',
-                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  Flexible(
+                    child: Text(
+                      '${kanjiList.where(mastered.contains).length} / ${kanjiList.length} 覚えた',
+                      style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    ),
                   ),
                 ],
               ),
@@ -266,12 +287,15 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                           ),
                         ),
                         child: Center(
-                          child: Text(
-                            kanji,
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black87,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              kanji,
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.white : Colors.black87,
+                              ),
                             ),
                           ),
                         ),
@@ -291,5 +315,6 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
         ),
       ],
     );
+    });
   }
 }
