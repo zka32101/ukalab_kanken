@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 以下の起動画面: ブランド色の背景 + 中央にアダプティブアイコンの前景（漢） -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_background" />
+    <item>
+        <bitmap android:gravity="center" android:src="@mipmap/ic_launcher_foreground" />
+    </item>
 </layer-list>
