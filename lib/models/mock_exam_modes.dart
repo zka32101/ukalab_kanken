@@ -50,11 +50,11 @@ class ExamConfig {
     this.passThreshold = 60,
   });
 
-  // 現状examQuestionsコレクションに投入済みのデータは1級につき20問
-  // （読み/意味/書き/使い方 各5問）のみのため、各モードの問題数は
-  // 実際に用意できる件数を超えないようにしている。件数を増やす場合は
-  // scripts/seed-exam-questions-l9-l5.js側のデータ拡充と合わせて
-  // ここも見直すこと（lib/screens/mock_exam_modes_screen.dartの
+  // examQuestionsの問題数は級によって異なる（5級はパイロットで増量済み、
+  // 他の級は1級につき20問程度）。各モードの問題数は実際に用意できる件数を
+  // 超えないようにしている。件数を増やす場合は
+  // scripts/seed-exam-questions-l9-l5.js・scripts/generate-exam-questions-pilot.js
+  // 側のデータ拡充と合わせてここも見直すこと（lib/screens/mock_exam_modes_screen.dartの
   // サブタイトル表示もquestionCountと連動させている）。
 
   /// 日本漢字能力検定の公式の検定時間（分）。8級以下（8・9・10級）は40分、

@@ -97,3 +97,12 @@
 - **対象外**: 準1級・1級の表外漢字（公的な用例が無い）
 
 読みの差分(欠落515・過剰51)の原因別分類と、表記だけで決まる誤り3件の修正は `readings_diff_classification.md` に記録した（`scripts/classify_readings_diff.py`）。
+
+## 模擬試験の増量パイロット（5級・2026-10-15）
+
+`examQuestions` は1級あたり約20問で、標準試験（20問）が毎回ほぼ同じ内容になっていた。5級だけ、検証済みデータから機械的に90問を追加した（既存20問は変更しない。計110問）。
+
+- 生成: `node scripts/generate-exam-questions-pilot.js`（読み40・書き取り30・画数20。配当漢字・読み・用例・画数のデータだけから作る。意味・使い方は検証済みデータが無いので作っていない）→ `scripts/data/exam-questions-pilot-l5.json`
+- 検証: `node scripts/verify-exam-questions-pilot.js 5`（配当範囲・誤答が別解でないこと・重複なし・スキーマ一致）と `test/mock_exam_pilot_l5_data_test.dart`
+- 本番投入（要・ユーザー操作。このPRでは実行していない）: 検証が OK であることを確認してから `cd scripts && GOOGLE_APPLICATION_CREDENTIALS=... node seed-exam-questions-pilot.js`。新しいIDだけを `set` するので既存ドキュメントは上書きしない
+- アプリ側: `enhancedExamQuestionsProvider` は `orderBy` 無しで `limit(questionCount*1.5)` していたため、問題を増やしてもドキュメントID順の先頭30件しか使われなかった。母集団を200件取ってから shuffle するよう修正した（問題の追加とセットで必要）

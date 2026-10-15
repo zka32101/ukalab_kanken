@@ -22,6 +22,9 @@ final examHistoryProvider = FutureProvider<List<ExamResult>>((ref) async {
       .toList();
 });
 
+/// 模擬試験の母集団として1回に取得する最大件数（Firestore の limit）。
+const int _kExamPoolLimit = 200;
+
 /// Enhanced exam questions with full dataset
 final enhancedExamQuestionsProvider =
     FutureProvider.family<List<EnhancedExamQuestion>, ExamConfig>(
@@ -47,8 +50,11 @@ final enhancedExamQuestionsProvider =
         );
       }
 
-      // Fetch more questions to allow randomization
-      final limit = (config.questionCount * 1.5).toInt();
+      // 無作為に選ぶための母集団を広く取る。orderBy 無しの limit は
+      // ドキュメントID順の先頭しか返さないため、questionCount*1.5 件だけ
+      // 取ると問題を増やしても毎回同じ問題になる。1級・カテゴリの問題は
+      // 最大でも数百件なので、まとめて取ってから shuffle する。
+      final limit = _kExamPoolLimit;
       final snapshot = await query.limit(limit).get();
 
       var questions = snapshot.docs
