@@ -19,14 +19,17 @@ import re
 SRC = 'scripts/data/kanji_meaning_draft_source.tsv'
 DART = 'lib/data/kanji_meaning_draft_data.dart'
 REVIEW = 'docs/data_verification/meaning_review.md'
+LEVELS = '10 9 8 7 6 5 4 3 準2 2'.split()
+TOTAL = 2136  # 10〜5級 1,026字 + 4級313 + 3級284 + 準2級328 + 2級185
 
 
 def level_of():
     src = open('lib/data/level_kanji_data.dart', encoding='utf-8').read()
     out = {}
-    for m in re.finditer(r"'LEVEL_(\d+)':\s*'([^']*)'", src):
+    for m in re.finditer(r"'LEVEL_(\w+)':\s*'([^']*)'", src):
         for c in m.group(2):
-            out[c] = m.group(1)
+            # 準2級のキーは LEVEL_2_PRE。一覧では「準2」と表記する。
+            out[c] = '準2' if m.group(1) == '2_PRE' else m.group(1)
     return out
 
 
@@ -37,12 +40,12 @@ def main():
         if line.startswith('#') or not line.strip():
             continue
         k, st, m = line.rstrip('\n').split('\t')
-        assert k in lv and lv[k] in '10 9 8 7 6 5'.split(), k
+        assert k in lv and lv[k] in LEVELS, k
         rows.append((k, st, m))
-    assert len({r[0] for r in rows}) == len(rows) == 1026
+    assert len({r[0] for r in rows}) == len(rows) == TOTAL
     with open(DART, 'w', encoding='utf-8') as f:
         f.write('// GENERATED FILE - do not edit by hand. Run scripts/generate_kanji_meaning_draft.py.\n')
-        f.write('//\n// 漢字の「意味」の下書き(10級〜5級の1,026字のうち意味を入れた字)。\n')
+        f.write('//\n// 漢字の「意味」の下書き(10級〜2級の2,136字のうち意味を入れた字)。\n')
         f.write('// 【重要】この意味は AI(Claude)が自分の言葉で書いた下書きで、公的データでも検定協会の\n')
         f.write('// 公式でもない。人(漢検の指導者等)の確認が済むまで本番画面には出さない。\n')
         f.write('// 辞書・参考書等の文章は転載していない。入力元: scripts/data/kanji_meaning_draft_source.tsv\n')
@@ -69,11 +72,16 @@ def main():
         f.write('# 漢字の意味(AI下書き)の要確認一覧\n\n')
         f.write('**この意味は AI(Claude)が書いた下書きです。公的データ・検定協会の公式ではありません。** ')
         f.write('人(漢検の指導者等)の確認が済むまで本番画面には出しません(`kKanjiMeaningVisible = false`)。\n\n')
-        f.write('対象は10級〜5級の1,026字。辞書・参考書等の文章は転載せず、短い自作の言い換えで書いています。\n')
+        f.write('対象は10級〜2級(準2級を含む)の2,136字。辞書・参考書等の文章は転載せず、短い自作の言い換えで書いています。\n')
         f.write('この一覧は `scripts/generate_kanji_meaning_draft.py` が `scripts/data/kanji_meaning_draft_source.tsv` から生成します。\n\n')
         f.write(f'| 区分 | 字数 |\n|---|---|\n| draft(意味あり・未確認) | {n["draft"]} |\n')
         f.write(f'| needsReview(意味あり・疑わしい/多義) | {n["needsReview"]} |\n| 意味なし(確信が持てず空欄) | {n["blank"]} |\n')
         f.write(f'| 計 | {len(rows)} |\n\n')
+        f.write('## 級別の件数\n\n| 級 | draft | needsReview | 空欄 | 計 |\n|---|---|---|---|---|\n')
+        for L in LEVELS:
+            c = {s: sum(1 for r in rows if lv[r[0]] == L and r[1] == s) for s in ('draft', 'needsReview', 'blank')}
+            f.write(f'| {L} | {c["draft"]} | {c["needsReview"]} | {c["blank"]} | {sum(c.values())} |\n')
+        f.write('\n')
         f.write('## 意味なし(空欄)\n\n| 級 | 字 | 理由 |\n|---|---|---|\n')
         for k, st, m in rows:
             if st == 'blank':
