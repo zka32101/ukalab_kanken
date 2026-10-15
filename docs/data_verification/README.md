@@ -95,3 +95,5 @@
 - **結果**: [official_check_report.md](official_check_report.md)（欠落・過剰・用例のない読み・要確認の一覧）。readings は変更せず報告のみ
 - **追加した用例**: `scripts/data/joyo_adopted_examples.tsv`（表の「例」から抽出できた語だけ。既存の用例は削除・置換していない）。`test/joyo_adopted_examples_test.dart` が検査する
 - **対象外**: 準1級・1級の表外漢字（公的な用例が無い）
+
+読みの差分(欠落515・過剰51)の原因別分類と、表記だけで決まる誤り3件の修正は `readings_diff_classification.md` に記録した（`scripts/classify_readings_diff.py`）。
