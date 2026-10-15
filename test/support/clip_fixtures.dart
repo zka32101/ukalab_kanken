@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kanken/data/compound_structure_data.dart';
 import 'package:kanken/models/index.dart';
@@ -550,6 +551,27 @@ List<Override> fixtureOverrides() {
 /// Firestore の代わり。バッジだけ持たせる。
 class ClipFirestoreService extends FirestoreService {
   ClipFirestoreService() : super();
+
+  // 実 Firestore に触れない（応答しない）ままにする。実装側のタイムアウト用 Timer を
+  // widget test に残さないため、問題取得は本物の _getWithCacheFallback を通さない。
+  @override
+  Future<List<KanjiQuestion>> getQuestionsByLevel(String level,
+          {int limit = 50,
+          String? uid,
+          String profileId = 'default',
+          int masteryThreshold = 3}) =>
+      Completer<List<KanjiQuestion>>().future;
+
+  @override
+  Future<List<KanjiQuestion>> getQuestionsByLevelSampled(
+          String level, List<String> kanjiPool,
+          {int need = 10,
+          int batchSize = 30,
+          int maxBatches = 4,
+          String? uid,
+          String profileId = 'default',
+          int masteryThreshold = 3}) =>
+      Completer<List<KanjiQuestion>>().future;
 
   @override
   Future<List<CollectionBadge>> getUserBadges(String uid,

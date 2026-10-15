@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/index.dart';
 
@@ -6,6 +7,37 @@ class FirestoreService {
 
   FirestoreService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  /// オフライン時にサーバー応答待ち(数十秒)で出題が止まらないようにするための取得。
+  /// まず通常の get() を [serverTimeout] だけ待ち、時間切れ/通信不可ならローカルキャッシュから読む。
+  /// 一度フォールバックしたら、次にサーバー取得が成功するまではキャッシュを先に読む
+  /// （1回の出題で待ち時間が何度も積み上がらないように）。
+  bool _preferCache = false;
+  static const Duration serverTimeout = Duration(seconds: 3);
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _getWithCacheFallback(
+    Query<Map<String, dynamic>> query,
+  ) async {
+    if (_preferCache) {
+      try {
+        final cached = await query.get(const GetOptions(source: Source.cache));
+        if (cached.docs.isNotEmpty) return cached;
+      } catch (_) {
+        // キャッシュが読めなければ通常取得へ
+      }
+    }
+    try {
+      final snap = await query.get().timeout(serverTimeout);
+      _preferCache = false;
+      return snap;
+    } on TimeoutException {
+      _preferCache = true;
+    } on FirebaseException catch (e) {
+      if (e.code != 'unavailable') rethrow;
+      _preferCache = true;
+    }
+    return query.get(const GetOptions(source: Source.cache));
+  }
 
   // User(プロフィール) operations
   //
@@ -128,11 +160,10 @@ class FirestoreService {
     String profileId = 'default',
     int masteryThreshold = 3,
   }) async {
-    final snapshot = await _firestore
+    final snapshot = await _getWithCacheFallback(_firestore
         .collection('questions')
         .where('level', isEqualTo: level)
-        .limit(limit)
-        .get();
+        .limit(limit));
 
     var questions = snapshot.docs
         .map((doc) => KanjiQuestion.fromJson({...doc.data(), 'id': doc.id}))
@@ -189,10 +220,9 @@ class FirestoreService {
           .toList();
       for (var i = 0; i < ids.length; i += 10) {
         final chunk = ids.sublist(i, i + 10 > ids.length ? ids.length : i + 10);
-        final snap = await _firestore
+        final snap = await _getWithCacheFallback(_firestore
             .collection('questions')
-            .where(FieldPath.documentId, whereIn: chunk)
-            .get();
+            .where(FieldPath.documentId, whereIn: chunk));
         result.addAll(snap.docs.map(
             (d) => KanjiQuestion.fromJson({...d.data(), 'id': d.id})));
       }
@@ -364,15 +394,14 @@ class FirestoreService {
     final excludeIds = <String>{};
     final profileRef = _profileDoc(uid, profileId);
 
-    final learnedSnapshot = await profileRef.collection('learnedKanjis').get();
+    final learnedSnapshot = await _getWithCacheFallback(profileRef.collection('learnedKanjis'));
     excludeIds.addAll(
       learnedSnapshot.docs.map((d) => d.data()['questionId'] as String? ?? d.id),
     );
 
-    final statsSnapshot = await profileRef
+    final statsSnapshot = await _getWithCacheFallback(profileRef
         .collection('questionStats')
-        .where('correctStreak', isGreaterThanOrEqualTo: masteryThreshold)
-        .get();
+        .where('correctStreak', isGreaterThanOrEqualTo: masteryThreshold));
     excludeIds.addAll(statsSnapshot.docs.map((d) => d.id));
 
     return excludeIds;
