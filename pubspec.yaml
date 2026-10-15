@@ -66,7 +66,7 @@ dependencies:
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.74.0
+      ref: v0.75.0
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
