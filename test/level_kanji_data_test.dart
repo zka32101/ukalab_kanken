@@ -63,6 +63,21 @@ void main() {
       expect(all.toSet().length, all.length, reason: '級をまたいだ重複');
       expect(all.length, 2136);
     });
+
+    test('級別漢字表(2020年2月発表)で2級配当の字が準2級に入っていない', () {
+      // 公式 https://www.kanken.or.jp/kanken/outline/data/outline_degree_national_list20200217.pdf の2級(185字)に載る字
+      const l2Only = '嵐咽怨牙瓦潰崖蓋柿釜鎌韓亀嗅僅憬隙桁拳鍵股虎喉駒頃痕餌嫉袖拭尻芯腎戚腺狙';
+      final pre = LevelKanjiData.forLevel('LEVEL_2_PRE').toSet();
+      final l2 = LevelKanjiData.forLevel('LEVEL_2').toSet();
+      for (final c in l2Only.split('')) {
+        expect(l2.contains(c), isTrue, reason: '$c は2級配当');
+        expect(pre.contains(c), isFalse, reason: '$c は準2級ではない');
+      }
+      // 公式の準2級に載る字の例
+      for (final c in '且丙俸劾唆嗣嚇塑奔娠嫡'.split('')) {
+        expect(pre.contains(c), isTrue, reason: '$c は準2級配当');
+      }
+    });
   });
 
   group('準1級(941字・要照合)', () {

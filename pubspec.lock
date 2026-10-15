@@ -476,7 +476,7 @@ packages:
     source: hosted
     version: "3.15.2"
   firebase_core_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: firebase_core_platform_interface
       sha256: "0ecda14c1bfc9ed8cac303dd0f8d04a320811b479362a9a4efb14fd331a473ce"
@@ -1347,7 +1347,7 @@ packages:
     description:
       path: "."
       ref: "v0.71.3"
-      resolved-ref: 3147778ae7c2a20539ee8e256c2c1a8bec534c95
+      resolved-ref: "3147778ae7c2a20539ee8e256c2c1a8bec534c95"
       url: "https://github.com/zka32101/ukalab_core.git"
     source: git
     version: "0.71.3"
