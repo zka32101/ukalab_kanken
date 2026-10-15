@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:path_drawing/path_drawing.dart';
+import '../data/kanji_stroke_count_data.dart';
 import '../models/stroke_order.dart';
 
 /// 漢字の書き順を1画ずつアニメーション表示するウィジェット
@@ -97,7 +98,7 @@ class _StrokeOrderAnimationWidgetState
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text(
-              '全${widget.data.strokeCount}画',
+              '全${kanjiStrokeCount(widget.data.kanji) ?? widget.data.strokeCount}画',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             ),
             const SizedBox(width: 16),
