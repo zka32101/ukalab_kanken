@@ -260,7 +260,8 @@ class _HandwritingPracticeScreenState
     final user = await ref.read(currentUserProvider.future);
     final profileId = user?.profileId ?? 'default';
 
-    await ref.read(firestoreServiceProvider).addAnswerLog(UserAnswerLog(
+    // 待つとオフラインで進まなくなるので、待たずに書く。
+    ref.read(firestoreServiceProvider).addAnswerLog(UserAnswerLog(
           id: '',
           uid: uid,
           profileId: profileId,
@@ -269,7 +270,7 @@ class _HandwritingPracticeScreenState
           mode: AnswerMode.handwriting,
           answeredAt: DateTime.now(),
           level: level,
-        ));
+        )).catchError((_) {});
 
     incrementDailyQuestionGoal(ref).catchError((_) {});
 
