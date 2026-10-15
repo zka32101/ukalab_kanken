@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/cross_promo.dart' show UkalabCrossPromoSection;
@@ -28,6 +29,19 @@ const String appDisclaimer =
     '本アプリは、各漢字検定の実施団体・主催者とは一切関係のない、Your Wish が制作した非公式の学習アプリです。\n'
     '試験名は、学習の対象を示すためにのみ使用しています。問題・解説は独自に作成したもので、実際の試験の出題内容や合格を保証するものではありません。\n'
     '最新の試験情報は、実施団体の公式サイトでご確認ください。';
+
+/// 出典・ライセンス表示（画数・書き順・配当漢字のデータ）。
+const String appCredits =
+    '【データの出典】\n'
+    '・画数: KANJIDIC2（EDRDG, Electronic Dictionary Research and Development Group）。'
+    'クリエイティブ・コモンズ 表示-継承 4.0 国際（CC BY-SA 4.0）。\n'
+    '・書き順: KanjiVG（Ulrich Apel ほか）。'
+    'クリエイティブ・コモンズ 表示-継承 3.0（CC BY-SA 3.0）。\n'
+    '・配当漢字: 常用漢字表（文化庁）、学年別漢字配当表（文部科学省）。\n'
+    'ライセンスの詳細は EDRDG ライセンスのページをご覧ください。';
+
+/// EDRDG ライセンスのページ（KANJIDIC2 の出典表示先）。
+const String edrdgLicenseUrl = 'https://www.edrdg.org/edrdg/licence.html';
 
 /// 手書き練習の合格ライン（60/65/70/75/80点、初期は65点）。端末内に保存。
 class HandwritingStrictnessTile extends ConsumerWidget {
@@ -311,6 +325,24 @@ class SettingsScreen extends ConsumerWidget {
                   style: TextStyle(fontSize: 12, height: 1.6, color: Colors.black54),
                 ),
               ),
+              const _SectionHeader('出典・ライセンス'),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text(
+                  appCredits,
+                  style: TextStyle(fontSize: 12, height: 1.6, color: Colors.black54),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.open_in_new),
+                title: const Text('EDRDG ライセンスのページを開く'),
+                subtitle: const Text(edrdgLicenseUrl),
+                onTap: () async {
+                  if (!await requireParentalGate(context)) return;
+                  await launchUrl(Uri.parse(edrdgLicenseUrl), mode: LaunchMode.externalApplication);
+                },
+              ),
+              const SizedBox(height: 32),
             ],
           );
         },
