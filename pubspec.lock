@@ -37,11 +37,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v3.10.0"
-      resolved-ref: "44f51704892931149b24255460b2f318beadebbd"
+      ref: "v3.11.0"
+      resolved-ref: "7eeaad36fc96e2a3a0980d319b88441b91ad946f"
       url: "https://github.com/zka32101/app_common_kit.git"
     source: git
-    version: "3.10.0"
+    version: "3.11.0"
   archive:
     dependency: transitive
     description:
@@ -476,7 +476,7 @@ packages:
     source: hosted
     version: "3.15.2"
   firebase_core_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: firebase_core_platform_interface
       sha256: "0ecda14c1bfc9ed8cac303dd0f8d04a320811b479362a9a4efb14fd331a473ce"
@@ -1346,11 +1346,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.71.0"
-      resolved-ref: a1f0511a4f98e40fa52cfaefb3c22d87ad69d897
+      ref: "v0.71.3"
+      resolved-ref: "3147778ae7c2a20539ee8e256c2c1a8bec534c95"
       url: "https://github.com/zka32101/ukalab_core.git"
     source: git
-    version: "0.71.0"
+    version: "0.71.3"
   url_launcher:
     dependency: "direct main"
     description:

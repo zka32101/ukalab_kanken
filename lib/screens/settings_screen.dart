@@ -18,6 +18,7 @@ import '../viewmodels/user_viewmodel.dart';
 import '../viewmodels/services_provider.dart';
 import 'package:app_common_kit/parental_gate.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// プロフィールのアイコンに使える絵文字候補
 const _avatarIconChoices = ['🙂', '😀', '😊', '🐱', '🐶', '🐻', '🦁', '🐼', '🐸', '🦊', '⭐', '🌸'];
@@ -41,9 +42,9 @@ class HandwritingStrictnessTile extends ConsumerWidget {
       subtitle: const Text('やさしい：ざっくり合っていれば合格\nふつう\nきびしい：形をていねいに'),
       isThreeLine: true,
       trailing: DropdownButton<HandwritingStrictness>(
-        value: level,
+                value: level,
         items: HandwritingStrictness.values
-            .map((e) => DropdownMenuItem(value: e, child: Text(e.label)))
+            .map((e) => DropdownMenuItem(value: e, child: FitText(e.label)))
             .toList(),
         onChanged: (v) {
           if (v == null) return;
@@ -120,8 +121,8 @@ Widget _secondsDropdown({
 }) {
   final items = {...options, value}.toList()..sort();
   return DropdownButton<int>(
-    value: value,
-    items: [for (final v in items) DropdownMenuItem(value: v, child: Text(label(v)))],
+        value: value,
+    items: [for (final v in items) DropdownMenuItem(value: v, child: FitText(label(v)))],
     onChanged: (v) {
       if (v != null) onChanged(v);
     },
@@ -184,7 +185,7 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('設定'),
+        title: const FitTitle('設定'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -204,9 +205,9 @@ class SettingsScreen extends ConsumerWidget {
                 title: const Text('出題除外の条件'),
                 subtitle: Text('${user.masteryThreshold}回連続正解したら出題しない'),
                 trailing: DropdownButton<int>(
-                  value: user.masteryThreshold,
+                                    value: user.masteryThreshold,
                   items: const [1, 2, 3, 5, 10]
-                      .map((n) => DropdownMenuItem(value: n, child: Text('$n回')))
+                      .map((n) => DropdownMenuItem(value: n, child: FitText('$n回')))
                       .toList(),
                   onChanged: (value) async {
                     if (value == null) return;
@@ -357,8 +358,40 @@ class _ProfileManagementSection extends ConsumerWidget {
       data: (profiles) {
         return Column(
           children: [
-            ...profiles.map(
-              (profile) => ListTile(
+            ...profiles.map((profile) {
+              final actions = <Widget>[
+                IconButton(
+                  icon: const Icon(Icons.badge_outlined, size: 20),
+                  tooltip: 'フレンドIDを表示',
+                  onPressed: () => _showFriendIdDialog(context, uid, profile),
+                ),
+                if (profile.profileId == activeProfileId)
+                  const Icon(Icons.check_circle, color: Colors.blue)
+                else
+                  TextButton(
+                    onPressed: () {
+                      ref.read(activeProfileIdProvider.notifier).state = profile.profileId;
+                    },
+                    child: const Text('切り替え'),
+                  ),
+                if (profiles.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () => _confirmDeleteProfile(
+                      context,
+                      ref,
+                      uid,
+                      profile,
+                      activeProfileId,
+                      profiles,
+                    ),
+                  ),
+              ];
+              // 画面が狭い・文字が大きいと、右の操作ボタン（3 つ）で名前が押しつぶされるので、
+              // そのときだけ操作ボタンを名前の下に回す。
+              final narrow =
+                  MediaQuery.sizeOf(context).width < 420 || textScaleOf(context) > 1.15;
+              return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: profile.profileId == activeProfileId
                       ? Colors.blue.shade100
@@ -366,40 +399,23 @@ class _ProfileManagementSection extends ConsumerWidget {
                   child: UkalabEmoji(profile.avatarIcon, size: 20),
                 ),
                 title: Text(profile.displayName.isEmpty ? '(名前未設定)' : profile.displayName),
-                subtitle: Text(profile.currentLevel),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.badge_outlined, size: 20),
-                      tooltip: 'フレンドIDを表示',
-                      onPressed: () => _showFriendIdDialog(context, uid, profile),
-                    ),
-                    if (profile.profileId == activeProfileId)
-                      const Icon(Icons.check_circle, color: Colors.blue)
-                    else
-                      TextButton(
-                        onPressed: () {
-                          ref.read(activeProfileIdProvider.notifier).state = profile.profileId;
-                        },
-                        child: const Text('切り替え'),
-                      ),
-                    if (profiles.length > 1)
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, size: 20),
-                        onPressed: () => _confirmDeleteProfile(
-                          context,
-                          ref,
-                          uid,
-                          profile,
-                          activeProfileId,
-                          profiles,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
+                subtitle: narrow
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FitText(profile.currentLevel),
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: actions,
+                          ),
+                        ],
+                      )
+                    : Text(profile.currentLevel),
+                trailing: narrow
+                    ? null
+                    : Row(mainAxisSize: MainAxisSize.min, children: actions),
+              );
+            }),
             ListTile(
               leading: const CircleAvatar(child: Icon(Icons.add)),
               title: const Text('プロフィールを追加'),
@@ -428,6 +444,7 @@ class _ProfileManagementSection extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: Text('${profile.displayName}のフレンドID'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -472,6 +489,7 @@ class _ProfileManagementSection extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('プロフィールを削除しますか？'),
         content: Text(
           '「${profile.displayName}」の学習履歴・目標・ランキングもすべて削除されます。この操作は取り消せません。',
@@ -529,6 +547,7 @@ class _ProfileManagementSection extends ConsumerWidget {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
+            scrollable: true,
             title: const Text('プロフィールを追加'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -537,7 +556,7 @@ class _ProfileManagementSection extends ConsumerWidget {
                 TextField(
                   controller: controller,
                   maxLength: 20,
-                  decoration: const InputDecoration(labelText: 'ニックネーム'),
+                  decoration: const InputDecoration(label: FitTitle('ニックネーム')),
                 ),
                 const SizedBox(height: 8),
                 const Text('アイコン', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -556,10 +575,10 @@ class _ProfileManagementSection extends ConsumerWidget {
                 const SizedBox(height: 12),
                 const Text('受験級', style: TextStyle(fontWeight: FontWeight.bold)),
                 DropdownButton<String>(
-                  value: selectedLevel,
+                                    value: selectedLevel,
                   isExpanded: true,
                   items: levels
-                      .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                      .map((l) => DropdownMenuItem(value: l, child: FitText(l)))
                       .toList(),
                   onChanged: (value) {
                     if (value != null) setState(() => selectedLevel = value);

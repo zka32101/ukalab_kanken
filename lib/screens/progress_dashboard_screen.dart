@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../models/gamification_stats.dart';
 import '../providers/gamification_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
 
 /// 学習進捗ダッシュボード画面
@@ -15,7 +16,7 @@ class ProgressDashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('学習進捗'),
+        title: const FitTitle('学習進捗'),
         elevation: 0,
         backgroundColor: Colors.purple.shade400,
       ),
@@ -94,11 +95,13 @@ class ProgressDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                Text(
-                  '${stats.level}',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                FitWidth(
+                  child: Text(
+                    '${stats.level}',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -125,10 +128,14 @@ class ProgressDashboardScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        '${stats.experience} / ${stats.level * 500} EXP',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.white70,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${stats.experience} / ${stats.level * 500} EXP',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ],
@@ -166,20 +173,26 @@ class ProgressDashboardScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatColumn(
-                  label: '総問題数',
-                  value: '${stats.totalQuestions}',
-                  icon: '📝',
+                Expanded(
+                  child: _StatColumn(
+                    label: '総問題数',
+                    value: '${stats.totalQuestions}',
+                    icon: '📝',
+                  ),
                 ),
-                _StatColumn(
-                  label: '正解数',
-                  value: '${stats.correctCount}',
-                  icon: '✅',
+                Expanded(
+                  child: _StatColumn(
+                    label: '正解数',
+                    value: '${stats.correctCount}',
+                    icon: '✅',
+                  ),
                 ),
-                _StatColumn(
-                  label: '正答率',
-                  value: '${(stats.accuracyRate * 100).toStringAsFixed(1)}%',
-                  icon: '📊',
+                Expanded(
+                  child: _StatColumn(
+                    label: '正答率',
+                    value: '${(stats.accuracyRate * 100).toStringAsFixed(1)}%',
+                    icon: '📊',
+                  ),
                 ),
               ],
             ),
@@ -255,6 +268,7 @@ class ProgressDashboardScreen extends ConsumerWidget {
                           return Text(
                             days[index],
                             style: const TextStyle(fontSize: 12),
+                            textScaler: chartTextScaler(context),
                           );
                         },
                       ),
@@ -262,10 +276,12 @@ class ProgressDashboardScreen extends ConsumerWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        reservedSize: 32 * chartTextScaler(context).scale(1),
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${value.toInt()}%',
                             style: const TextStyle(fontSize: 10),
+                            textScaler: chartTextScaler(context),
                           );
                         },
                         interval: 10,
@@ -367,9 +383,13 @@ class ProgressDashboardScreen extends ConsumerWidget {
                           if (index < 0 || index >= categories.length) {
                             return const SizedBox();
                           }
-                          return Text(
-                            categories[index],
-                            style: const TextStyle(fontSize: 10),
+                          return FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              categories[index],
+                              style: const TextStyle(fontSize: 10),
+                              textScaler: chartTextScaler(context),
+                            ),
                           );
                         },
                       ),
@@ -377,10 +397,12 @@ class ProgressDashboardScreen extends ConsumerWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        reservedSize: 32 * chartTextScaler(context).scale(1),
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${value.toInt()}%',
                             style: const TextStyle(fontSize: 10),
+                            textScaler: chartTextScaler(context),
                           );
                         },
                         interval: 20,
@@ -498,15 +520,20 @@ class _StatColumn extends StatelessWidget {
       children: [
         UkalabEmoji(icon, size: 24),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Colors.grey,
           ),

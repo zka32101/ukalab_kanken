@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/multiplayer.dart';
 import '../providers/battle_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class BattleScreen extends ConsumerStatefulWidget {
   final String roomId;
@@ -49,7 +50,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
 
     if (battleState.currentRoom == null || battleState.currentSession == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('対戦中')),
+        appBar: AppBar(title: const FitTitle('対戦中')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -59,27 +60,34 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('対戦中'),
+        title: const FitTitle('対戦中'),
         centerTitle: true,
         elevation: 0,
         actions: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            // 縦の余白は AppBar の高さ（56）に収めるため 0（中央寄せなので見た目は同じ）
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
-              child: Text(
-                _formatTime(300 - _elapsedSeconds), // 5分制限
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: _elapsedSeconds > 240
-                          ? Colors.red
-                          : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  _formatTime(300 - _elapsedSeconds), // 5分制限
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: _elapsedSeconds > 240
+                            ? Colors.red
+                            : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
               ),
             ),
           ),
         ],
       ),
-      body: Column(
+      // 文字が大きいときは、全体を縦にスクロールできるようにする（収まるときは今までどおり）。
+      body: MinHeightScroll(
+        intrinsicHeight: true,
+        child: Column(
         children: [
           // 参加者のスコア表示
           _buildScoreBoard(context, session, room.participants),
@@ -176,6 +184,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -195,13 +204,13 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
           final isCurrentUser = participant.userId ==
               ref.read(battleRoomNotifierProvider).currentRoom?.creatorId;
 
-          return Column(
+          return Expanded(
+            child: Column(
             children: [
               Text(
                 participant.displayName,
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
               ),
               const SizedBox(height: 4),
               Container(
@@ -211,15 +220,19 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
                   color: isCurrentUser ? Colors.blue : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  '$score点',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: isCurrentUser ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '$score点',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: isCurrentUser ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
               ),
             ],
+            ),
           );
         }).toList(),
       ),

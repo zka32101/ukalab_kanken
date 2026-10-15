@@ -66,6 +66,8 @@ class _HandsFreePracticeBodyState extends ConsumerState<HandsFreePracticeBody> {
     final q = widget.question;
     final speaker = ref.read(handsFreeSpeakerProvider);
 
+    // 文字が大きいときのスクロールは、共通キット v3.11.0 の HandsFreeQuestionLayout が行う
+    // （問題文・選択肢の領域がそれぞれスクロールする）。ここでは包まない。
     return HandsFreeQuestionLayout(
       question: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

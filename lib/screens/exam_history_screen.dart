@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/mock_exam.dart';
 import '../providers/mock_exam_enhanced_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 模擬試験の受験履歴一覧画面
 class ExamHistoryScreen extends ConsumerWidget {
@@ -14,7 +15,7 @@ class ExamHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('試験履歴'),
+        title: const FitTitle('試験履歴'),
         centerTitle: true,
         elevation: 0,
       ),
@@ -119,12 +120,15 @@ class _ExamHistoryTile extends StatelessWidget {
           '(${result.correctAnswers}/${result.totalQuestions}問)',
         ),
         isThreeLine: true,
-        trailing: Text(
-          '$score点',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: result.isPassed ? Colors.green : Colors.redAccent,
-              ),
+        trailing: FitWidth(
+          maxFraction: 0.3,
+          child: Text(
+            '$score点',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: result.isPassed ? Colors.green : Colors.redAccent,
+                ),
+          ),
         ),
         onTap: () {
           context.push('/exam-result', extra: result);

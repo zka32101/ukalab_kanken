@@ -56,17 +56,17 @@ dependencies:
   url_launcher: ^6.2.0
 
   # Common kits (全アプリ共通基盤)
-  # app_common_kit は ukalab_core v0.71.0 が v3.10.0 を指定している。pub は kit のタグが食い違うと
-  # 解決できないため、core に合わせて v3.10.0 に固定する。
+  # app_common_kit は ukalab_core v0.71.2 が v3.11.0 を指定している。pub は kit のタグが食い違うと
+  # 解決できないため、core に合わせて v3.11.0 に固定する。
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.10.0
+      ref: v3.11.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.71.0
+      ref: v0.71.3
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
@@ -86,6 +86,7 @@ dev_dependencies:
   mocktail: ^1.0.0
   integration_test:
     sdk: flutter
+  firebase_core_platform_interface: ^6.0.3
 
 flutter:
   uses-material-design: true

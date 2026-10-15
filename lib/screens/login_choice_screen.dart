@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewmodels/services_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ログイン方法を選ぶ画面（ゲスト or Google）
 class LoginChoiceScreen extends ConsumerStatefulWidget {
@@ -37,7 +38,8 @@ class _LoginChoiceScreenState extends ConsumerState<LoginChoiceScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
+          child: MinHeightScroll(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -104,6 +106,7 @@ class _LoginChoiceScreenState extends ConsumerState<LoginChoiceScreen> {
                 const Center(child: CircularProgressIndicator()),
               ],
             ],
+            ),
           ),
         ),
       ),

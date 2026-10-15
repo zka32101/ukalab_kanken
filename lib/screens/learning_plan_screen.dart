@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/learning_recommendation.dart';
 import '../providers/learning_plan_provider.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class LearningPlanScreen extends ConsumerWidget {
   const LearningPlanScreen({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class LearningPlanScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎯 学習推奨プラン'),
+        title: const FitTitle('🎯 学習推奨プラン'),
         centerTitle: true,
         backgroundColor: Colors.blue.shade50,
         elevation: 0,
@@ -73,23 +74,29 @@ class LearningPlanScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildSummaryTile(
-                  icon: '📚',
-                  label: '推奨項目',
-                  value: '${plan.recommendations.length}',
-                  color: Colors.blue,
+                Expanded(
+                  child: _buildSummaryTile(
+                    icon: '📚',
+                    label: '推奨項目',
+                    value: '${plan.recommendations.length}',
+                    color: Colors.blue,
+                  ),
                 ),
-                _buildSummaryTile(
-                  icon: '📅',
-                  label: '推定期間',
-                  value: '${plan.totalEstimatedDays}日',
-                  color: Colors.purple,
+                Expanded(
+                  child: _buildSummaryTile(
+                    icon: '📅',
+                    label: '推定期間',
+                    value: '${plan.totalEstimatedDays}日',
+                    color: Colors.purple,
+                  ),
                 ),
-                _buildSummaryTile(
-                  icon: '✅',
-                  label: '完了',
-                  value: '${plan.completedCount}/${plan.recommendations.length}',
-                  color: Colors.green,
+                Expanded(
+                  child: _buildSummaryTile(
+                    icon: '✅',
+                    label: '完了',
+                    value: '${plan.completedCount}/${plan.recommendations.length}',
+                    color: Colors.green,
+                  ),
                 ),
               ],
             ),
@@ -129,20 +136,26 @@ class LearningPlanScreen extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const Text(
-                    '📊 推奨日次出題数:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                  const Expanded(
+                    child: Text(
+                      '📊 推奨日次出題数:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    '${plan.totalDailyQuestions} 問/日',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                  const SizedBox(width: 8),
+                  CapWidth(
+                    maxFraction: 0.35,
+                    child: Text(
+                      '${plan.totalDailyQuestions} 問/日',
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ],
@@ -165,17 +178,22 @@ class LearningPlanScreen extends ConsumerWidget {
       children: [
         UkalabEmoji(icon, size: 24),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey.shade600,
@@ -264,6 +282,11 @@ class LearningPlanScreen extends ConsumerWidget {
             // ヘッダー
             Row(
               children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
                 // 優先度バッジ
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -283,7 +306,6 @@ class LearningPlanScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
 
                 // 難易度
                 Container(
@@ -305,7 +327,9 @@ class LearningPlanScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const Spacer(),
+                    ],
+                  ),
+                ),
 
                 // 完了チェック
                 if (rec.isCompleted)
@@ -325,8 +349,6 @@ class LearningPlanScreen extends ConsumerWidget {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 8),
 
@@ -337,8 +359,6 @@ class LearningPlanScreen extends ConsumerWidget {
                 fontSize: 12,
                 color: Colors.grey.shade700,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 12),
 
@@ -372,8 +392,10 @@ class LearningPlanScreen extends ConsumerWidget {
               ),
 
             // 詳細情報
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

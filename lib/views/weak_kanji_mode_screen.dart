@@ -5,6 +5,7 @@ import '../models/index.dart';
 import '../services/index.dart';
 import '../viewmodels/index.dart';
 import '../widgets/correct_feedback_widget.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// 苦手集中モード画面
 class WeakKanjiModeScreen extends ConsumerWidget {
@@ -17,7 +18,7 @@ class WeakKanjiModeScreen extends ConsumerWidget {
 
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('苦手集中トレーニング')),
+        appBar: AppBar(title: const FitTitle('苦手集中トレーニング')),
         body: const Center(child: Text('ユーザーログインが必要です')),
       );
     }
@@ -41,7 +42,7 @@ class WeakKanjiModeScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('苦手集中トレーニング'),
+          title: const FitTitle('苦手集中トレーニング'),
           backgroundColor: Colors.orange[300],
           leading: BackButton(
             onPressed: () {
@@ -147,7 +148,9 @@ class WeakKanjiModeScreen extends ConsumerWidget {
   ) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
+      child: MinHeightScroll(
+        intrinsicHeight: true,
+        child: Column(
         children: [
           // 進捗バー
           LinearProgressIndicator(
@@ -158,8 +161,11 @@ class WeakKanjiModeScreen extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // 進捗表示
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               Text(
                 '進捗: ${currentIndex + 1}/$totalQuestions',
@@ -243,6 +249,7 @@ class WeakKanjiModeScreen extends ConsumerWidget {
               ),
             ),
         ],
+        ),
       ),
     );
   }

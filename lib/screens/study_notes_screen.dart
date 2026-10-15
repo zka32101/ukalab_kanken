@@ -5,6 +5,7 @@ import 'package:ukalab_core/ui.dart'
 
 import '../models/kanji_question.dart';
 import '../viewmodels/services_provider.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// ホームの「学習」メニューに出す、ブックマークとメモへの入口の名前。
 const String kStudyNotesMenuLabel = 'ブックマーク\n・メモ';
@@ -54,6 +55,7 @@ class _MemoDialogState extends State<_MemoDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      scrollable: true,
       title: Text(widget.title),
       content: TextField(
         controller: _controller,
@@ -62,6 +64,8 @@ class _MemoDialogState extends State<_MemoDialog> {
         minLines: 2,
         decoration: const InputDecoration(
           hintText: '間違えた理由や覚え方を書き残せます',
+          // 文字が大きいときも、ヒントを「…」で省略せず最後まで折り返して出す。
+          hintMaxLines: 20,
           border: OutlineInputBorder(),
         ),
       ),
@@ -94,11 +98,12 @@ class StudyNotesScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('ブックマーク・メモ'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'ブックマーク'),
-              Tab(text: 'メモ'),
+          title: const FitTitle('ブックマーク・メモ'),
+          bottom: fitTabBar(
+            context,
+            tabs: const [
+              FitTabSpec('ブックマーク'),
+              FitTabSpec('メモ'),
             ],
           ),
         ),

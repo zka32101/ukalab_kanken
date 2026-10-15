@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/index.dart';
 import '../services/index.dart';
 import '../viewmodels/index.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// コレクション・バッジ表示画面
 class CollectionBadgeScreen extends ConsumerWidget {
@@ -101,7 +102,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
 
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('コレクション')),
+        appBar: AppBar(title: const FitTitle('コレクション')),
         body: const Center(child: Text('ユーザーログインが必要です')),
       );
     }
@@ -116,7 +117,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('コレクション'),
+        title: const FitTitle('コレクション'),
         backgroundColor: Colors.deepPurple,
         elevation: 0,
       ),
@@ -141,7 +142,8 @@ class CollectionBadgeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Column(
+                        Expanded(
+                          child: Column(
                           children: [
                             Text(
                               '${badges.length}',
@@ -154,11 +156,14 @@ class CollectionBadgeScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             const Text(
                               '獲得済みバッジ',
+                              textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
                         ),
-                        Column(
+                        ),
+                        Expanded(
+                          child: Column(
                           children: [
                             Text(
                               '${6 - badges.length}',
@@ -171,9 +176,11 @@ class CollectionBadgeScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             const Text(
                               '残り',
+                              textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12, color: Colors.grey),
                             ),
                           ],
+                        ),
                         ),
                       ],
                     ),
@@ -193,9 +200,10 @@ class CollectionBadgeScreen extends ConsumerWidget {
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 3,
+                      crossAxisCount: gridColumns(context, 3),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
+                      childAspectRatio: gridColumnsAspect(context, 3, 1.0),
                       children: badges.map((badge) {
                         final badgeInfo =
                             badgeInfoMap[badge.level];
@@ -222,9 +230,10 @@ class CollectionBadgeScreen extends ConsumerWidget {
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 3,
+                      crossAxisCount: gridColumns(context, 3),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
+                      childAspectRatio: gridColumnsAspect(context, 3, 1.0),
                       children: badgeInfoMap.entries
                           .where((e) => !acquiredLevels.contains(e.key))
                           .map((entry) {
@@ -246,9 +255,10 @@ class CollectionBadgeScreen extends ConsumerWidget {
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 3,
+                    crossAxisCount: gridColumns(context, 3),
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
+                    childAspectRatio: gridColumnsAspect(context, 3, 1.0),
                     children: streakBadgeThresholds.entries.map((entry) {
                       final info = entry.value;
                       final acquired = badges.any((b) => b.badgeId == info.$1);
@@ -382,7 +392,8 @@ class CollectionBadgeScreen extends ConsumerWidget {
               width: 2,
             ),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // バッジアイコン
@@ -483,6 +494,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),

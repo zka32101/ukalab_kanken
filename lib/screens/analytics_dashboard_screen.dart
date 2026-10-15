@@ -4,6 +4,7 @@ import '../models/category_label.dart';
 import '../models/analytics.dart';
 import '../providers/analytics_provider.dart';
 import '../router/app_router.dart';
+import '../widgets/text_fit.dart';
 
 class AnalyticsDashboardScreen extends ConsumerStatefulWidget {
   const AnalyticsDashboardScreen({Key? key}) : super(key: key);
@@ -34,15 +35,16 @@ class _AnalyticsDashboardScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('学習分析'),
+        title: const FitTitle('学習分析'),
         centerTitle: true,
         elevation: 0,
-        bottom: TabBar(
+        bottom: fitTabBar(
+          context,
           controller: _tabController,
           tabs: const [
-            Tab(text: '成長'),
-            Tab(text: '効率'),
-            Tab(text: '目標'),
+            FitTabSpec('成長'),
+            FitTabSpec('効率'),
+            FitTabSpec('目標'),
           ],
         ),
       ),
@@ -109,11 +111,12 @@ class _AnalyticsDashboardScreenState
             ),
             const SizedBox(height: 16),
             GridView.count(
-              crossAxisCount: 2,
+              crossAxisCount: gridColumns(context, 2),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
+              childAspectRatio: gridColumnsAspect(context, 2, 1.0),
               children: [
                 _buildStatItem(
                   '正答率',
@@ -153,12 +156,15 @@ class _AnalyticsDashboardScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -210,30 +216,57 @@ class _AnalyticsDashboardScreenState
           children: [
             SizedBox(
               height: 200,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(
-                  normalizedData.length,
-                  (index) => Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 150 * (normalizedData[index] / 100),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade400,
-                          borderRadius: BorderRadius.circular(2),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // 日数が多い（最大 30 日）と、番号が横に並びきらないので、
+                  // 幅に収まる間隔で番号を間引く（棒は全部出す）。
+                  final scale = textScaleOf(context);
+                  final labelWidth = 14.0 * scale * 2;
+                  final labelHeight = 20.0 * scale;
+                  final barMax = (200.0 - 4 - labelHeight).clamp(20.0, 150.0);
+                  final perBar = constraints.maxWidth / normalizedData.length;
+                  final step = perBar >= labelWidth
+                      ? 1
+                      : (labelWidth / perBar).ceil();
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: List.generate(
+                      normalizedData.length,
+                      (index) => Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              width: 4,
+                              height: barMax * (normalizedData[index] / 100),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade400,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              height: labelHeight,
+                              child: OverflowBox(
+                                maxWidth: labelWidth,
+                                child: (index % step == 0)
+                                    ? Text(
+                                        '${index + 1}',
+                                        maxLines: 1,
+                                        softWrap: false,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelSmall,
+                                      )
+                                    : const SizedBox.shrink(),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${index + 1}',
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 12),
@@ -311,7 +344,8 @@ class _AnalyticsDashboardScreenState
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  Expanded(
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -321,14 +355,18 @@ class _AnalyticsDashboardScreenState
                             ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        data.efficiencyScore.toStringAsFixed(2),
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          data.efficiencyScore.toStringAsFixed(2),
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
                       ),
                     ],
+                  ),
                   ),
                   Icon(
                     Icons.trending_up,
@@ -368,8 +406,10 @@ class _AnalyticsDashboardScreenState
   Widget _buildMetricRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 8,
+        runSpacing: 2,
         children: [
           Text(label),
           Text(
@@ -410,10 +450,13 @@ class _AnalyticsDashboardScreenState
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      categoryLabel(trend.category),
-                      style: Theme.of(context).textTheme.titleSmall,
+                    Expanded(
+                      child: Text(
+                        categoryLabel(trend.category),
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -424,6 +467,7 @@ class _AnalyticsDashboardScreenState
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             _getTrendIcon(trend.trend),
@@ -516,9 +560,9 @@ class _AnalyticsDashboardScreenState
   // 一覧に出てこない・保存したはずが消えるという不具合の原因になっていたため、
   // 学習目標画面への案内のみに変更した。
   Widget _buildGoalsTab() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: MinHeightScroll(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -4,6 +4,7 @@ import '../models/category_label.dart';
 import '../models/parent_dashboard.dart';
 import '../providers/parent_dashboard_provider.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 class ParentDashboardScreen extends ConsumerStatefulWidget {
   const ParentDashboardScreen({Key? key}) : super(key: key);
@@ -37,7 +38,7 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('👨‍👩‍👧 保護者ダッシュボード'),
+        title: const FitTitle('👨‍👩‍👧 保護者ダッシュボード'),
         centerTitle: true,
         backgroundColor: Colors.blue.shade50,
         elevation: 0,
@@ -208,9 +209,10 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
+            crossAxisCount: gridColumns(context, 2),
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
+            childAspectRatio: gridColumnsAspect(context, 2, 1.0),
             children: [
               _buildStatCard(
                 icon: '✅',
@@ -319,17 +321,21 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
         children: [
           UkalabEmoji(icon, size: 28),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
               color: Colors.grey.shade600,
@@ -513,28 +519,34 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
                           mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              categoryLabel(area.categoryName),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Text(
+                                categoryLabel(area.categoryName),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.orange,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                area.getLevelLabel(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                            const SizedBox(width: 8),
+                            CapWidth(
+                              maxFraction: 0.3,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  area.getLevelLabel(),
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -582,12 +594,23 @@ class _ParentDashboardScreenState extends ConsumerState<ParentDashboardScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        scrollable: true,
         title: const Text('お子さんを追加'),
         content: TextField(
           controller: _emailController,
-          decoration: const InputDecoration(
-            labelText: 'お子さんのメールアドレス',
-            hintText: 'example@email.com',
+          decoration: InputDecoration(
+            label: const FitTitle('お子さんのメールアドレス'),
+            // 文字が大きい・画面が狭いときは、「…」で省略せず、収まるまで縮めて全体を見せる。
+            hint: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'example@email.com',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ),
           ),
         ),
         actions: [

@@ -5,6 +5,7 @@ import '../models/gamification_stats.dart';
 import '../providers/daily_challenge_provider.dart';
 import '../providers/gamification_provider.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
+import 'package:kanken/widgets/text_fit.dart';
 
 /// デイリーチャレンジ画面
 class DailyChallengeScreen extends ConsumerWidget {
@@ -17,7 +18,7 @@ class DailyChallengeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('デイリーチャレンジ'),
+        title: const FitTitle('デイリーチャレンジ'),
         elevation: 0,
         backgroundColor: Colors.blueAccent,
       ),
@@ -96,14 +97,19 @@ class DailyChallengeScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 4,
           children: [
             const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
             const SizedBox(width: 8),
-            Text(
-              challenge.date,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                challenge.date,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey,
+                ),
               ),
             ),
             const SizedBox(width: 24),
@@ -241,12 +247,17 @@ class DailyChallengeScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
               children: [
                 const Text('🎉 本日のボーナス', style: TextStyle(fontWeight: FontWeight.bold)),
-                const Spacer(),
                 Chip(
-                  label: Text('${stats.getRank()}'),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('${stats.getRank()}'),
+                  ),
                   backgroundColor: Colors.amber,
                 ),
               ],
@@ -321,16 +332,20 @@ class _StatTile extends StatelessWidget {
           children: [
             UkalabEmoji(icon, size: 28),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.grey,
               ),
@@ -360,15 +375,20 @@ class _ChallengeInfoRow extends StatelessWidget {
       children: [
         Icon(icon, size: 20, color: Colors.blueAccent),
         const SizedBox(width: 12),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium,
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        const SizedBox(width: 8),
+        FitWidth(
+          maxFraction: 0.45,
+          child: Text(
+            value,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
