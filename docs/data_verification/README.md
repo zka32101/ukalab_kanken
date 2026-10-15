@@ -87,3 +87,11 @@
 - **要確認**: 要確認396字は、公的な資料（漢検の漢字表・辞典など）で確認してから手で追加する。`test/kanji_stroke_count_data_test.dart` が「未設定の字 = 要確認一覧」を検査する
 - **ライセンスの影響（未確認）**: KANJIDIC2 は CC BY-SA 4.0（継承条件あり）。アプリ全体への影響は法的判断が未確認なので、ストア配布前に要確認
 - **範囲外**: 意味・用例（AI生成文を公的データ扱いにしない）
+
+## 常用漢字表との照合（読み・用例）
+
+- **出典**: 常用漢字表（平成22年内閣告示）本表の「漢字・音訓・例」。表のPDFの利用規約は未確認のため、表の全文はリポジトリに置いていない
+- **再現**: `scripts/extract_joyo_table.py`（PDF→抽出。冒頭に手順）と `scripts/check_joyo_official.py`（照合・追加）。抽出は2,136字・音訓4,388行で表の字種数と一致
+- **結果**: [official_check_report.md](official_check_report.md)（欠落・過剰・用例のない読み・要確認の一覧）。readings は変更せず報告のみ
+- **追加した用例**: `scripts/data/joyo_adopted_examples.tsv`（表の「例」から抽出できた語だけ。既存の用例は削除・置換していない）。`test/joyo_adopted_examples_test.dart` が検査する
+- **対象外**: 準1級・1級の表外漢字（公的な用例が無い）
