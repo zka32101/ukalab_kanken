@@ -142,7 +142,7 @@ const startIdx = (type) => {
 // ---- 書き取り ----
 {
   const elig = shuffled(
-    chars.filter((c) => !existing.writing.has(c)).map((c) => ({ c, u: usable(c) }))
+    chars.filter((c) => !existing.writing.has(c) && !'を表す漢字選びましょう'.includes(c)).map((c) => ({ c, u: usable(c) }))
       .map((x) => ({
         ...x,
         u: x.u.filter(({ p }) => [...p.word].length >= 2 && p.word.split(x.c).length === 2 && !/[ぁ-ゖ]/.test(p.word)),
