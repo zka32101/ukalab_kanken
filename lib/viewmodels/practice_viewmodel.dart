@@ -343,7 +343,9 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
           answeredAt: DateTime.now(),
           level: level,
         );
-        await firestoreService.addAnswerLog(log);
+        // 通信がないと Firestore の書き込みは完了しない。待つと機内モードで答えが進まなくなるので、
+        // 待たずに書く(オフラインの間は端末内に溜まり、通信が戻ったら送られる)。
+        unawaited(firestoreService.addAnswerLog(log).catchError((_) {}));
 
         // 推しの成長（網羅率）に使う、解いた問題IDの端末内記録。
         // 失敗しても学習フローは止めない。

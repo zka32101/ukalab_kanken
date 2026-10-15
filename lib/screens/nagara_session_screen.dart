@@ -110,7 +110,8 @@ Future<void> recordNagaraAnswer(
   try {
     final uid = ref.read(currentUserIdProvider);
     if (uid != null) {
-      await ref.read(firestoreServiceProvider).addAnswerLog(UserAnswerLog(
+      // 待つとオフラインで進まなくなるので、待たずに書く。
+      unawaited(ref.read(firestoreServiceProvider).addAnswerLog(UserAnswerLog(
             id: '',
             uid: uid,
             profileId: profileId,
@@ -119,7 +120,7 @@ Future<void> recordNagaraAnswer(
             mode: AnswerMode.normal,
             answeredAt: DateTime.now(),
             level: level,
-          ));
+          )).catchError((_) {}));
     }
   } catch (_) {}
   if (correct) return;
