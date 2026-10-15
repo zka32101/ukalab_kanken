@@ -11,6 +11,8 @@ import 'package:ukalab_core/daily_goal.dart' show DailyGoalSetting;
 import 'package:ukalab_core/reminder.dart' show ReminderSettingsSection;
 import 'package:ukalab_core/ui.dart';
 import '../data/kanken_data_parts.dart';
+import '../data/peer_stats_prep.dart';
+import '../widgets/peer_stats_settings_tile.dart';
 import '../models/user.dart';
 import '../services/firestore_service.dart';
 import '../services/handwriting_strictness.dart';
@@ -293,6 +295,10 @@ class SettingsScreen extends ConsumerWidget {
                   }
                 },
               ),
+              // 送信側が未実装の間は出さない（kPeerStatsSettingsVisible = false）。
+              if (kPeerStatsSettingsVisible)
+                PeerStatsSettingsTile(
+                    settings: ref.watch(peerStatsSettingsProvider)),
               const Divider(),
               const _SectionHeader('サポート'),
               ListTile(

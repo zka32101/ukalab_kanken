@@ -22,6 +22,7 @@ import '../screens/glossary_screen.dart' show kGlossaryMenuLabel;
 import '../screens/study_notes_screen.dart'
     show kStudyNotesMenuLabel, showQuestionMemoDialog;
 import '../widgets/oshi_card.dart';
+import '../widgets/cert_prop_badge.dart';
 import 'core_features_entry.dart';
 import 'core_v069_entry.dart';
 import 'exam_prep_entry.dart';
@@ -74,6 +75,12 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const FitTitle('うかラボ漢字検定'),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: CertPropBadge(),
+          ),
+        ],
       ),
       bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       body: SingleChildScrollView(
