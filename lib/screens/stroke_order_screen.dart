@@ -9,6 +9,7 @@ import '../data/stroke_order_sample_data.dart';
 import '../providers/writing_mastery_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../views/handwriting_practice_screen.dart';
+import '../widgets/kanji_meaning_draft_section.dart';
 import '../widgets/stroke_order_animation.dart';
 import '../theme/app_theme.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -191,6 +192,8 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                                 visualDensity: VisualDensity.compact,
                               ),
                             ],
+                            // 意味(AI下書き)。kKanjiMeaningVisible が false の間は何も出ない。
+                            KanjiMeaningDraftSection(kanji: selected),
                             const SizedBox(height: 10),
                             const Text(
                               '使い方の例',
