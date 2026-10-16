@@ -81,7 +81,7 @@ void main() {
         home: Scaffold(
           appBar: null,
           body: Row(children: [
-            Expanded(child: Text('うかラボ漢字検定 うかラボ漢字検定 うかラボ漢字検定')),
+            Expanded(child: Text('うかラボ 漢字検定 うかラボ 漢字検定 うかラボ 漢字検定')),
             Padding(padding: EdgeInsets.only(right: 12), child: CertPropBadge()),
           ]),
         ),
