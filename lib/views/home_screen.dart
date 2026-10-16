@@ -74,7 +74,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const FitTitle('うかラボ漢字検定'),
+        title: const FitTitle('うかラボ 漢字検定'),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),

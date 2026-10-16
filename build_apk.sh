@@ -1,5 +1,5 @@
 #!/bin/bash
-# 小学コレ！漢検 - APK ビルドスクリプト
+# うかラボ 漢字検定 - APK ビルドスクリプト
 # 使用方法: bash build_apk.sh [debug|release]
 
 set -e
@@ -16,7 +16,7 @@ BUILD_TYPE=${1:-release}
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo -e "${BLUE}======================================${NC}"
-echo -e "${BLUE}小学コレ！漢検 APK ビルドスクリプト${NC}"
+echo -e "${BLUE}うかラボ 漢字検定 APK ビルドスクリプト${NC}"
 echo -e "${BLUE}======================================${NC}"
 echo ""
 
