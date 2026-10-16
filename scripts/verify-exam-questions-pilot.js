@@ -13,7 +13,8 @@ const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const data = JSON.parse(read(`scripts/data/exam-questions-pilot-l${N}.json`));
 
-const levelChars = new Set([...new RegExp(`'LEVEL_${N}':\\s*'([^']+)'`).exec(read('lib/data/level_kanji_data.dart'))[1]]);
+const LEVEL_KEY = N === 25 ? 'LEVEL_2_PRE' : N === 15 ? 'LEVEL_1_PRE' : `LEVEL_${N}`;
+const levelChars = new Set([...new RegExp(`'${LEVEL_KEY}':\\s*'([^']+)'`).exec(read('lib/data/level_kanji_data.dart'))[1]]);
 const info = {};
 for (const m of read('lib/data/kanji_info_data.dart').matchAll(/'(.)': KanjiInfo\(readings: \[([^\]]*)\], examples: \[([^\]]*)\]\)/gu)) {
   const list = (s) => [...s.matchAll(/'([^']*)'/g)].map((x) => x[1]);
@@ -29,6 +30,12 @@ const rset = (c) => new Set(info[c].readings.map(norm));
 const existingSrc = read('scripts/seed-exam-questions-l9-l5.js');
 const existingIds = new Set([...existingSrc.matchAll(/id: '(l\d+-\w+-\d+)'/g)].map((m) => m[1]));
 const existingQ = new Set([...existingSrc.matchAll(new RegExp(`id: 'l${N}-(\\w+)-\\d+', kanji: '(.)'`, 'gu'))].map((m) => `${m[1]}:${m[2]}`));
+
+const upperSrc = JSON.parse(read('scripts/data/exam-questions-upper.json'));
+for (const q of upperSrc) {
+  existingIds.add(q.questionId);
+  if (q.level === N) existingQ.add(`${q.questionType}:${q.kanji}`);
+}
 
 const errors = [];
 const err = (q, msg) => errors.push(`${q.questionId}: ${msg}`);

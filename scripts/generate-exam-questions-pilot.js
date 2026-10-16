@@ -26,7 +26,8 @@ const LEVEL_KEY = process.argv[2] || 'LEVEL_5';
 const N_READING = Number(process.argv[3] || 40);
 const N_WRITING = Number(process.argv[4] || 30);
 const N_STROKE = Number(process.argv[5] || 20);
-const LEVEL_NUM = Number(LEVEL_KEY.replace('LEVEL_', ''));
+// examQuestions の level は int（準2級=25, 準1級=15。mock_exam_modes_screen.dart の変換に合わせる）
+const LEVEL_NUM = LEVEL_KEY === 'LEVEL_2_PRE' ? 25 : LEVEL_KEY === 'LEVEL_1_PRE' ? 15 : Number(LEVEL_KEY.replace('LEVEL_', ''));
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(__dirname, 'data', `exam-questions-pilot-l${LEVEL_NUM}.json`);
 
@@ -69,6 +70,12 @@ const existingSrc = read('scripts/seed-exam-questions-l9-l5.js');
 const existing = { reading: new Set(), writing: new Set(), stroke: new Set() };
 for (const m of existingSrc.matchAll(new RegExp(`id: 'l${LEVEL_NUM}-(\\w+)-\\d+', kanji: '(.)'`, 'gu'))) {
   if (existing[m[1]]) existing[m[1]].add(m[2]);
+}
+
+// 4〜2級・準2級の既存問題(exam-questions-upper.json)も重複判定・ID採番の対象にする
+const upperExisting = JSON.parse(read('scripts/data/exam-questions-upper.json')).filter((q) => q.level === LEVEL_NUM);
+for (const q of upperExisting) {
+  if (existing[q.questionType]) existing[q.questionType].add(q.kanji);
 }
 
 // ---- 読みの正規化 ----
@@ -116,7 +123,9 @@ const byLen = (target, cands) =>
 const idOf = (type, i) => `l${LEVEL_NUM}-${type}-${String(i).padStart(3, '0')}`;
 const startIdx = (type) => {
   const m = [...existingSrc.matchAll(new RegExp(`id: 'l${LEVEL_NUM}-${type}-(\\d+)'`, 'g'))].map((x) => Number(x[1]));
-  return (m.length ? Math.max(...m) : 0) + 1;
+  const mu = upperExisting.filter((q) => q.questionType === type)
+    .map((q) => Number(q.questionId.split('-').pop()));
+  return (m.length || mu.length ? Math.max(0, ...m, ...mu) : 0) + 1;
 };
 
 // ---- 読み ----
