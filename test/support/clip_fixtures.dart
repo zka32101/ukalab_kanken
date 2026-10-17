@@ -194,25 +194,15 @@ List<Override> fixtureOverrides() {
     hasPremiumProvider.overrideWith((ref) => Stream.value(false)),
     availableOffersProvider.overrideWith((ref) async => const [
           EntitlementOffer(
-              id: 'o1',
-              productId: 'premium-plus-monthly',
-              title: 'プレミアム月額',
-              priceString: '¥1,200 / 月（税込）'),
+              id: 'premium',
+              productId: 'kanken_premium',
+              title: 'プレミアム',
+              priceString: '¥1,500（税込・買い切り）'),
           EntitlementOffer(
-              id: 'o2',
-              productId: 'premium-plus-yearly',
-              title: 'プレミアム年額',
-              priceString: '¥12,000 / 年（税込）'),
-          EntitlementOffer(
-              id: 'o3',
-              productId: 'premium-monthly',
-              title: '広告なし月額',
-              priceString: '¥300 / 月（税込）'),
-          EntitlementOffer(
-              id: 'o4',
-              productId: 'premium-yearly',
-              title: '広告なし年額',
-              priceString: '¥3,000 / 年（税込）'),
+              id: 'noads',
+              productId: 'kanken_noads',
+              title: '広告なし',
+              priceString: '¥480（税込・買い切り）'),
         ]),
     handsFreeStoreProvider.overrideWithValue(SharedPreferencesHandsFreeStore('kanken')),
     fb.currentUserProvider.overrideWith((ref) => Stream.value(null)),

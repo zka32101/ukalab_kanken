@@ -1,39 +1,19 @@
 import 'package:app_common_kit/app_common_kit.dart';
 
-/// RevenueCat経由のサブスクリプション管理（二段階: 広告なし／プレミアム）。
+/// RevenueCat経由の購入管理（買い切り2種: 広告なし／プレミアム。他のうかラボと同じ。方針 D3）。
 ///
-/// 参考実装: H:\マイドライブ\apps\card_rivals\lib\services\purchases_service.dart
+/// 商品・権利の設定（RevenueCat「うかラボ」プロジェクト。2026-10-17 登録済み）:
+///   - Play の1回限りのアイテム `kanken_noads`（¥480）/ `kanken_premium`（¥1,500）
+///   - 権利 `noads` に kanken_noads、権利 `premium` に kanken_premium を紐付け
+///   - Offering「default」のパッケージ `noads` / `premium` に、それぞれの商品を追加
+/// 公開SDKキー（Google）は、ビルド時に `--dart-define=RC_GOOGLE_KEY=goog_...` で渡す
+/// （コミットしない。CIは GitHub Actions の Secrets `RC_GOOGLE_KEY`）。
 ///
-/// 【要ユーザー対応】
-/// RevenueCatダッシュボードで kanken 用のAppを作成し、以下を設定した上で、
-/// 公開SDKキー(Google)を、ビルド時に `--dart-define=RC_GOOGLE_KEY=goog_...` で渡すこと
-/// (コミットしない。CIは GitHub Actions の Secrets `RC_GOOGLE_KEY`):
-///   - Google Play Console側でサブスクリプション商品を作成
-///     (premium-monthly: 月額¥300 / premium-yearly: 年額¥2,400)
-///   - RevenueCatのEntitlement「ad_free」(Display Name: noads)に上記2商品を紐付け
-///   - Offering「default」にpremium-monthly/premium-yearlyのPackageを追加
-///
-/// 【プレミアム（準1級・1級＋広告なし）の追加設定】
-///   - 商品を作成（premium-plus-monthly / premium-plus-yearly。価格は仮に月額¥480）
-///   - RevenueCatのEntitlement「premium」に上記の商品を紐付け
-///   - Offering「default」にpremium-plus-monthly/premium-plus-yearlyのPackageを追加
-///   - 既存の2商品の表示名は「広告なし」にする（商品IDは変更不可）
+/// 旧設定（定期購入 `premium-monthly` / `premium-yearly`、権利 `ad_free`）は使わない。
 class PurchasesService {
   /// RevenueCat の公開SDKキー(Google Play 用)。ビルド時に `--dart-define=RC_GOOGLE_KEY=...` で渡す。
   /// 未指定(空)のときは RevenueCat へ接続せず、購入なし・広告は常に表示のまま動く。
   static const String _apiKey = String.fromEnvironment('RC_GOOGLE_KEY');
-
-  /// 広告非表示エンタイトルメント。RevenueCat側のIdentifierは作成後
-  /// 変更不可のため'ad_free'のまま。Display Nameのみ'noads'に変更済み
-  /// (うかラボ共通方針の意図はDisplay Nameレベルで反映)。
-  /// コードが実際に参照するのはIdentifierなので、ここは'ad_free'のまま
-  /// にする必要がある(2026-10-01、Identifier変更不可と判明し決定)。
-  static const String entitlementNoAds = 'ad_free';
-  static const String premiumMonthly = 'premium-monthly';
-  static const String premiumYearly = 'premium-yearly';
-
-  /// プレミアム（準1級・1級＋広告なし）のエンタイトルメント。
-  static const String entitlementPremium = 'premium';
 
   static bool _initialized = false;
   static RevenueCatEntitlementService? _entitlement;
@@ -49,12 +29,8 @@ class PurchasesService {
       return;
     }
     try {
-      // 権利IDはRevenueCat側で変更不可の'ad_free'のため、キット既定のnoadsを上書きする。
-      // 購入前の保護者ゲートはペイウォール画面側で実施済み。
-      _entitlement = await RevenueCatEntitlementService.init(
-        publicSdkKey: _apiKey,
-        ids: const EntitlementIds(noAds: entitlementNoAds, premium: entitlementPremium),
-      );
+      // 権利IDは kit の既定（noads / premium）。購入前の保護者ゲートはペイウォール画面側で実施済み。
+      _entitlement = await RevenueCatEntitlementService.init(publicSdkKey: _apiKey);
       _initialized = true;
     } catch (_) {
       _initialized = false;
@@ -63,7 +39,7 @@ class PurchasesService {
 
   static bool get isConfigured => _initialized;
 
-  /// 購入可能な商品（月額・年額）を取得
+  /// 購入可能な商品（広告なし・プレミアム）を取得
   static Future<List<EntitlementOffer>> getOffers() async =>
       _entitlement?.offers() ?? Future.value(const []);
 

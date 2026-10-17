@@ -2,35 +2,25 @@ import 'package:app_common_kit/app_common_kit.dart' show EntitlementOffer;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/services/purchase_tiers.dart';
 
-EntitlementOffer _o(String productId) =>
-    EntitlementOffer(id: productId, productId: productId, title: productId, priceString: '¥0');
+EntitlementOffer _o(String id, String productId) =>
+    EntitlementOffer(id: id, productId: productId, title: id, priceString: '¥0');
 
 void main() {
-  test('商品IDから段階を決める（広告なしの既存商品は premium を含んでもプレミアムではない）', () {
-    expect(tierOfProduct('premium-monthly'), PlanTier.noAds);
-    expect(tierOfProduct('premium-yearly'), PlanTier.noAds);
-    expect(tierOfProduct('premium-plus-monthly'), PlanTier.premium);
-    expect(tierOfProduct('premium-plus-yearly'), PlanTier.premium);
+  test('パッケージIDから段階を決める(premium=プレミアム、それ以外=広告なし)', () {
+    expect(tierOfOffer(_o('premium', 'kanken_premium')), PlanTier.premium);
+    expect(tierOfOffer(_o('noads', 'kanken_noads')), PlanTier.noAds);
   });
 
-  test('年額かどうかは yearly で決める', () {
-    expect(isYearlyProduct('premium-yearly'), isTrue);
-    expect(isYearlyProduct('premium-plus-yearly'), isTrue);
-    expect(isYearlyProduct('premium-plus-monthly'), isFalse);
-  });
-
-  test('商品を段階ごとに分け、段階の中の並びは保つ', () {
+  test('段階ごとに分け、各段階の中は元の並びのまま', () {
     final split = splitOffersByTier([
-      _o('premium-plus-monthly'),
-      _o('premium-monthly'),
-      _o('premium-plus-yearly'),
-      _o('premium-yearly'),
+      _o('noads', 'kanken_noads'),
+      _o('premium', 'kanken_premium'),
     ]);
-    expect([for (final o in split[PlanTier.premium]!) o.productId], ['premium-plus-monthly', 'premium-plus-yearly']);
-    expect([for (final o in split[PlanTier.noAds]!) o.productId], ['premium-monthly', 'premium-yearly']);
+    expect([for (final o in split[PlanTier.premium]!) o.productId], ['kanken_premium']);
+    expect([for (final o in split[PlanTier.noAds]!) o.productId], ['kanken_noads']);
   });
 
-  test('商品が無ければどちらも空', () {
+  test('空なら両方とも空', () {
     final split = splitOffersByTier(const []);
     expect(split[PlanTier.premium], isEmpty);
     expect(split[PlanTier.noAds], isEmpty);

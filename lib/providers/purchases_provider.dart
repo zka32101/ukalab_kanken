@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
 import '../services/purchases_service.dart';
 
-/// 広告非表示（サブスク加入中）かどうか。
+/// 広告非表示（広告なし、またはプレミアムを購入済み）かどうか。
 /// RevenueCat未設定（APIキー未差し替え）の間は常にfalse＝広告表示。
 /// 購入・復元・期限切れに追従する（app_common_kit の権利状態）。
 final hasAdsRemovedProvider = StreamProvider<bool>((ref) async* {
@@ -23,7 +23,7 @@ final hasPremiumProvider = StreamProvider<bool>((ref) async* {
   }
 });
 
-/// 購入可能な商品一覧（広告なし・プレミアム、それぞれ月額・年額プラン）
+/// 購入可能な商品一覧（広告なし・プレミアム。買い切り）
 final availableOffersProvider = FutureProvider<List<EntitlementOffer>>((ref) async {
   return PurchasesService.getOffers();
 });
