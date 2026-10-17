@@ -140,19 +140,31 @@ jobs:
 
       - name: Build Android App Bundle
         if: success()
+        env:
+          DART_DEFINES: >-
+            --dart-define=RC_GOOGLE_KEY=${{ secrets.RC_GOOGLE_KEY }}
+            --dart-define=AD_BANNER_ID=${{ secrets.AD_BANNER_ID }}
+            --dart-define=AD_INTERSTITIAL_ID=${{ secrets.AD_INTERSTITIAL_ID }}
+            --dart-define=AD_REWARDED_ID=${{ secrets.AD_REWARDED_ID }}
         run: |
           set -o pipefail
           echo "=== Building Android App Bundle (AAB) ==="
-          flutter build appbundle --release 2>&1 | tee aab-build.log
+          flutter build appbundle --release $DART_DEFINES 2>&1 | tee aab-build.log
           ls -lah build/app/outputs/bundle/release/app-release.aab
           echo "✅ AAB build succeeded"
 
       - name: Build Android APK
         if: success()
+        env:
+          DART_DEFINES: >-
+            --dart-define=RC_GOOGLE_KEY=${{ secrets.RC_GOOGLE_KEY }}
+            --dart-define=AD_BANNER_ID=${{ secrets.AD_BANNER_ID }}
+            --dart-define=AD_INTERSTITIAL_ID=${{ secrets.AD_INTERSTITIAL_ID }}
+            --dart-define=AD_REWARDED_ID=${{ secrets.AD_REWARDED_ID }}
         run: |
           set -o pipefail
           echo "=== Building Android APK (release) ==="
-          flutter build apk --release 2>&1 | tee release-apk.log
+          flutter build apk --release $DART_DEFINES 2>&1 | tee release-apk.log
           ls -lah build/app/outputs/apk/release/app-release.apk
           echo "✅ APK build succeeded"
 

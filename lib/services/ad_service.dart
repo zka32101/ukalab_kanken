@@ -1,6 +1,7 @@
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/foundation.dart';
 
+import 'no_ads_backend.dart';
 import 'purchases_service.dart';
 
 /// 広告まわりの初期化とAdGate(app_common_kit)の保持。
@@ -17,16 +18,17 @@ class AdService {
   /// 初期化に失敗した場合はnull（広告なしで動作を続ける）。
   static AdGate? get gate => _gate;
 
-  /// 広告ユニットID（デバッグ時はGoogle公式テストID、リリースビルドは本番ID）
+  /// 本番の広告ユニットID。ビルド時に `--dart-define` で渡す(コミットしない)。
+  /// `AD_BANNER_ID` / `AD_INTERSTITIAL_ID` / `AD_REWARDED_ID`(形式 `ca-app-pub-.../...`)。
+  /// リワード広告は使っていないので、未指定でよい。
+  static const _bannerId = String.fromEnvironment('AD_BANNER_ID');
+  static const _interstitialId = String.fromEnvironment('AD_INTERSTITIAL_ID');
+  static const _rewardedId = String.fromEnvironment('AD_REWARDED_ID');
+
+  /// 広告ユニットID（デバッグ・profile時はGoogle公式テストID、リリースビルドは渡された本番ID）。
+  /// リリースで未指定なら空のIDになり、広告なしで起動する(テストIDのまま出すと AdGate が例外にするため)。
   static AdUnitIds get unitIds => kReleaseMode
-      ? const AdUnitIds(
-          banner: 'ca-app-pub-5058227312086483/5220932812',
-          // 2026-10-01 AdMob Consoleで作成(広告ユニット名 interstitial_practice_session)。
-          // 新規作成した広告ユニットは配信開始まで最大1時間程度かかる場合がある。
-          interstitial: 'ca-app-pub-5058227312086483/4433430916',
-          // リワード広告は未使用。テストIDを避けるためダミーの本番形式IDを置く。
-          rewarded: 'ca-app-pub-5058227312086483/0000000000',
-        )
+      ? const AdUnitIds(banner: _bannerId, interstitial: _interstitialId, rewarded: _rewardedId)
       : const AdUnitIds(
           banner: 'ca-app-pub-3940256099942544/6300978111',
           interstitial: 'ca-app-pub-3940256099942544/1033173712',
@@ -36,9 +38,12 @@ class AdService {
   /// アプリ起動時に一度だけ呼ぶ。[PurchasesService.initialize] の後に呼ぶこと。
   static Future<void> initialize() async {
     try {
+      final ids = unitIds;
       _gate = await AdGate.init(
+        // 本番IDが未指定(空)のリリースでは、広告SDKを使わない実装にして、広告を出さない。
+        backend: ids.banner.isEmpty && ids.interstitial.isEmpty ? NoAdsBackend() : null,
         config: AdConfig(
-          unitIds: unitIds,
+          unitIds: ids,
           childDirected: true,
           maxAdContentRating: AdContentRating.g,
           nonPersonalizedAds: true,

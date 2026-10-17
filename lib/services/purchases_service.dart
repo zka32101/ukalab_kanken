@@ -5,8 +5,9 @@ import 'package:app_common_kit/app_common_kit.dart';
 /// 参考実装: H:\マイドライブ\apps\card_rivals\lib\services\purchases_service.dart
 ///
 /// 【要ユーザー対応】
-/// RevenueCatダッシュボードで kanken 用の新規Appを作成し、
-/// 以下を設定した上で `_apiKey` を実際のPublic SDK Keyに差し替えること:
+/// RevenueCatダッシュボードで kanken 用のAppを作成し、以下を設定した上で、
+/// 公開SDKキー(Google)を、ビルド時に `--dart-define=RC_GOOGLE_KEY=goog_...` で渡すこと
+/// (コミットしない。CIは GitHub Actions の Secrets `RC_GOOGLE_KEY`):
 ///   - Google Play Console側でサブスクリプション商品を作成
 ///     (premium-monthly: 月額¥300 / premium-yearly: 年額¥2,400)
 ///   - RevenueCatのEntitlement「ad_free」(Display Name: noads)に上記2商品を紐付け
@@ -18,7 +19,9 @@ import 'package:app_common_kit/app_common_kit.dart';
 ///   - Offering「default」にpremium-plus-monthly/premium-plus-yearlyのPackageを追加
 ///   - 既存の2商品の表示名は「広告なし」にする（商品IDは変更不可）
 class PurchasesService {
-  static const String _apiKey = 'goog_PkCbEBxntkZNsLxCbKeSkHnoWEi';
+  /// RevenueCat の公開SDKキー(Google Play 用)。ビルド時に `--dart-define=RC_GOOGLE_KEY=...` で渡す。
+  /// 未指定(空)のときは RevenueCat へ接続せず、購入なし・広告は常に表示のまま動く。
+  static const String _apiKey = String.fromEnvironment('RC_GOOGLE_KEY');
 
   /// 広告非表示エンタイトルメント。RevenueCat側のIdentifierは作成後
   /// 変更不可のため'ad_free'のまま。Display Nameのみ'noads'に変更済み
@@ -40,8 +43,8 @@ class PurchasesService {
 
   /// RevenueCat 初期化（main.dartから起動時に一度だけ呼ぶ）
   static Future<void> initialize() async {
-    if (_apiKey.startsWith('REPLACE_WITH_')) {
-      // APIキー未設定の間はRevenueCatへ接続しない（クラッシュ防止）。
+    if (_apiKey.isEmpty) {
+      // APIキー未指定の間はRevenueCatへ接続しない（クラッシュ防止）。
       // 広告非表示チェックは常にfalse（＝広告表示）として扱われる。
       return;
     }
