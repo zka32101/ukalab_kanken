@@ -49,7 +49,7 @@ void main() async {
   // 失敗しても例外を投げないので、起動をブロックせず unawaited で呼ぶ。
   unawaited(UkalabCrossPromo.init());
 
-  // サブスクリプション（広告非表示プラン）初期化
+  // 購入（広告なし・プレミアム。買い切り）初期化
   await PurchasesService.initialize();
 
   // 広告初期化（児童向け設定を含む。権利状態に依存するため購入初期化の後）
