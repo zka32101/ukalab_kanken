@@ -4,6 +4,8 @@ import '../models/category_label.dart';
 import '../models/mock_exam_modes.dart';
 import '../providers/mock_exam_enhanced_provider.dart';
 import '../providers/exam_session_provider.dart';
+import '../providers/purchases_provider.dart' show hasPremiumProvider;
+import '../data/free_tier_quota.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'mock_exam_enhanced_screen.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -305,18 +307,40 @@ class MockExamModesScreen extends ConsumerWidget {
     );
   }
 
-  void _startExam(
+  Future<void> _startExam(
     BuildContext context,
     WidgetRef ref,
     ExamConfig config,
     String? userId,
-  ) {
+  ) async {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ログインが必要です')),
       );
       return;
     }
+
+    // 無料版は月の回数に上限がある。使える回数が残っていれば1回分を使って始める。
+    final isPremium = ref.read(hasPremiumProvider).valueOrNull ?? false;
+    final quota = await mockExamQuota(isPremium: isPremium);
+    if (!await quota.tryConsume()) {
+      if (!context.mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('今月の模擬試験は使い切りました'),
+          content: const Text(
+            '無料版の模擬試験は、月に1回までです。来月になると、また受けられます。\n'
+            'プレミアムなら、回数の制限なく受けられます。',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('閉じる')),
+          ],
+        ),
+      );
+      return;
+    }
+    if (!context.mounted) return;
 
     // 試験モード設定を更新
     ref.read(currentExamConfigProvider.notifier).state = config;

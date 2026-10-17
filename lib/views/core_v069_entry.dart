@@ -5,12 +5,15 @@ import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
 import '../data/exam_prep_data.dart' show historyProvider;
+import '../data/free_tier_quota.dart';
+import '../providers/purchases_provider.dart' show hasPremiumProvider;
 import 'core_features_entry.dart' show mistakeNotesProvider, openMistakeNote;
 
 /// ukalab_core v0.67〜v0.69 の「模擬試験の結果分析」「今日の復習」「推しの成長演出」を
 /// このアプリのデータにつなぐ部分。画面・文言は core 側。ここは入力の組み立て・保存・遷移だけ。
 /// 子ども向けのため、外部共有・外部リンクは付けない。
 /// premium 制限: core の PremiumFeature にこの3機能は無いため、すべて無料で表示する。
+/// ただし、無料版の「今日の復習」は1日10問まで(方針 D6。案内の件数だけにかける)。
 
 // ---------------------------------------------------------------------------
 // 今日の復習（ReviewSchedulerEngine / TodayReviewCard）
@@ -53,8 +56,21 @@ Future<void> recordKankenReviewResult(
     if (target == null || !kankenReviewEngine.isDue(target, at)) return;
     await s.write(
         kankenReviewEngine.applyResult(items, qid, correct: correct, now: at));
+    // 期限が来ていた復習に答えた回数を1日ごとに数える(復習の案内の無料枠用)。
+    await (await todayReviewQuota(isPremium: false)).tryConsume();
   } catch (_) {}
 }
+
+/// 無料版の今日の復習の残り回数。プレミアムは null(制限しない)。解答のたびに数え直す。
+final freeReviewRemainingProvider = FutureProvider.autoDispose<int?>((ref) async {
+  ref.watch(reviewScheduleProvider);
+  final isPremium = ref.watch(hasPremiumProvider).valueOrNull ?? false;
+  if (isPremium) return null;
+  return (await todayReviewQuota(isPremium: false)).remaining;
+});
+
+/// 無料版の「今日の復習」の1日の件数(方針 D6)。
+const _freeReviewPerDay = 10;
 
 /// ホーム「今日やること」の今日の復習カード。
 /// 件数は間違いノート由来の期限分。「やってみる」は既存の間違いノート（解き直しつき）を開く。
@@ -70,8 +86,38 @@ class TodayReviewEntry extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(reviewScheduleProvider).valueOrNull ?? const [];
+    var due = kankenReviewEngine.dueCount(items, clock());
+    // 無料版は1日の復習が決まった数まで(プレミアムは無制限)。
+    final remaining = ref.watch(freeReviewRemainingProvider).valueOrNull;
+    if (remaining != null) {
+      if (remaining <= 0 && due > 0) {
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('今日の復習', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
+                const Text(
+                  '無料版の今日の復習($_freeReviewPerDay問)は終わりました。\n'
+                  '続きは明日。プレミアムなら、続けて復習できます(間違いノートは、いつでも開けます)。',
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => (onStart ?? openMistakeNote)(context),
+                  child: const Text('間違いノートを開く'),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+      if (due > remaining) due = remaining;
+    }
     return TodayReviewCard(
-      dueCount: kankenReviewEngine.dueCount(items, clock()),
+      dueCount: due,
       onStart: () => (onStart ?? openMistakeNote)(context),
     );
   }
