@@ -7,7 +7,7 @@ import '../theme/app_theme.dart';
 import 'package:app_common_kit/parental_gate.dart';
 import 'package:kanken/widgets/text_fit.dart';
 
-/// サブスクリプションの購入画面。二段階で、広告なしと、準1級・1級も学べるプレミアム。
+/// 購入画面。買い切りの2種で、広告なしと、準1級・1級も学べるプレミアム。
 /// 価格はストア（RevenueCat）の商品から表示する。
 class PaywallScreen extends ConsumerWidget {
   const PaywallScreen({Key? key}) : super(key: key);
@@ -54,7 +54,7 @@ class PaywallScreen extends ConsumerWidget {
             const Icon(Icons.verified, size: 72, color: Colors.green),
             const SizedBox(height: 16),
             const Text(
-              'ご加入ありがとうございます！',
+              'ご購入ありがとうございます！',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -101,7 +101,7 @@ class PaywallScreen extends ConsumerWidget {
                     ref,
                     icon: Icons.workspace_premium,
                     title: 'プレミアム',
-                    description: '準1級・1級の問題が学べます。広告も表示されません。',
+                    description: '準1級・1級の問題が学べます。広告も表示されません。1回の購入でずっと使えます。',
                     offers: premium,
                   ),
                 if (noAds.isNotEmpty && !hasAdsRemoved)
@@ -110,14 +110,14 @@ class PaywallScreen extends ConsumerWidget {
                     ref,
                     icon: Icons.block,
                     title: '広告なし',
-                    description: '演習中のバナー広告・インタースティシャル広告が表示されなくなります。',
+                    description: '演習中のバナー広告・インタースティシャル広告が表示されなくなります。1回の購入でずっと使えます。',
                     offers: noAds,
                   ),
                 if (hasAdsRemoved)
                   const Padding(
                     padding: EdgeInsets.only(bottom: 8),
                     child: Text(
-                      '広告なしに加入中です。プレミアムにすると準1級・1級も学べます。',
+                      '広告なしを購入済みです。プレミアムにすると準1級・1級も学べます。',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.black54, fontSize: 13),
                     ),
@@ -205,13 +205,13 @@ class PaywallScreen extends ConsumerWidget {
   }
 
   Widget _buildPlanCard(BuildContext context, WidgetRef ref, EntitlementOffer offer) {
-    final isYearly = isYearlyProduct(offer.productId);
+    final isPremium = tierOfOffer(offer) == PlanTier.premium;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isYearly ? const BorderSide(color: AppColors.primary, width: 2) : BorderSide.none,
+        side: isPremium ? const BorderSide(color: AppColors.primary, width: 2) : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -221,28 +221,9 @@ class PaywallScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        isYearly ? '年額プラン' : '月額プラン',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      if (isYearly) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'おすすめ',
-                            style: TextStyle(color: Colors.white, fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    ],
+                  Text(
+                    isPremium ? 'プレミアム（買い切り）' : '広告なし（買い切り）',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -266,7 +247,7 @@ class PaywallScreen extends ConsumerWidget {
                         );
                       }
                     },
-              child: const Text('選択'),
+              child: const Text('購入'),
             ),
           ],
         ),

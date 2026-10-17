@@ -265,7 +265,7 @@ final appRouter = GoRouter(
           builder: (context, state) => const SettingsScreen(),
         ),
 
-        // 広告非表示プラン（サブスクリプション）
+        // 購入（広告なし・プレミアム。買い切り）
         GoRoute(
           path: 'paywall',
           name: 'paywall',
