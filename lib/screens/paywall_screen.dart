@@ -211,7 +211,7 @@ class PaywallScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isPremium ? const BorderSide(color: AppColors.primary, width: 2) : BorderSide.none,
+        side: isPremium ? BorderSide(color: AppColors.primary, width: 2) : BorderSide.none,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),

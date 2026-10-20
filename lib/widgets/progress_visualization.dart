@@ -348,7 +348,7 @@ class StreakWidget extends StatelessWidget {
         DateTime.now().month == lastActiveDate.month &&
         DateTime.now().year == lastActiveDate.year;
 
-    // 漢検のブランド色（オレンジ）に合わせ、ライト/ダークとも配色はテーマから取る。
+    // 共通テーマ（漢字検定）の配色で、ライト/ダークとも配色はテーマから取る。
     final scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
