@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../models/multiplayer.dart';
 import '../providers/battle_provider.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -373,6 +373,6 @@ class BattleRoomListScreen extends ConsumerWidget {
       const SnackBar(content: Text('ルームに参加しました')),
     );
     // ルーム詳細画面に遷移
-    context.push('/battle-room/$roomId');
+    context.goBattle(roomId);
   }
 }

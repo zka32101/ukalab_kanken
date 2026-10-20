@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/firebase_provider.dart' as fb;
 import '../viewmodels/user_viewmodel.dart' as vm;
-import '../views/home_screen.dart';
+import '../views/kanken_shell.dart';
 import 'login_choice_screen.dart';
 import 'nickname_setup_screen.dart';
 
 /// アプリ起動時の認証ゲート
 ///
 /// 未ログインならログイン方法選択画面（ゲスト or Google）を表示し、
-/// サインイン済みで初回ならニックネーム設定画面を、設定済みならホーム画面を表示する。
+/// サインイン済みで初回ならニックネーム設定画面を、設定済みなら下部5タブの Shell（ホーム／学ぶ／模擬／記録／設定）を表示する。
 class AuthGateScreen extends ConsumerWidget {
   const AuthGateScreen({Key? key}) : super(key: key);
 
@@ -29,7 +29,7 @@ class AuthGateScreen extends ConsumerWidget {
             if (user == null) {
               return NicknameSetupScreen(onComplete: () {});
             }
-            return const HomeScreen();
+            return const KankenShell();
           },
           loading: () => const _LoadingScaffold(),
           error: (_, __) => const _ErrorScaffold(),

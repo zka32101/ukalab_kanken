@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../models/multiplayer.dart';
 import '../providers/battle_provider.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -285,7 +285,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen>
         );
 
     if (result != null && mounted) {
-      context.push('/battle-result', extra: result);
+      context.goBattleResult(result);
     }
   }
 

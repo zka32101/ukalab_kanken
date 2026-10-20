@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kanken/providers/achievement_provider.dart';
 import 'package:kanken/providers/oshi_provider.dart';
 import 'package:kanken/providers/ranking_provider.dart';
 import 'package:kanken/providers/spaced_repetition_provider.dart';
+import 'package:kanken/router/app_router.dart';
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
 import 'package:kanken/viewmodels/user_viewmodel.dart';
 import 'package:kanken/views/home_screen.dart';
@@ -13,28 +13,10 @@ import 'package:kanken/widgets/home_group.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_core/ui.dart';
 
-const _routes = [
-  '/stroke-order',
-  '/readings',
-  '/glossary',
-  '/study-notes',
-  '/weak-areas',
-  '/learning-plan',
-  '/learning-goals',
-  '/spaced-repetition-review',
-  '/mock-exam-modes',
-  '/friends',
-  '/settings',
-  '/paywall',
-];
-
-Widget _app({GoRouter? router}) {
-  final r = router ??
-      GoRouter(routes: [
-        GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
-        for (final p in _routes)
-          GoRoute(path: p, builder: (_, __) => Scaffold(body: Text('page:$p'))),
-      ]);
+/// 遷移先は Navigator.push（goX() 拡張）。画面の中身は作らず、遷移先のルート名だけ表示する。
+Widget _app() {
+  kankenPageOverride =
+      (route, extra) => Scaffold(body: Text('page:$route'));
   return ProviderScope(
     overrides: [
       coinServiceProvider
@@ -49,7 +31,7 @@ Widget _app({GoRouter? router}) {
       rankingProvider.overrideWith((ref, filter) async => []),
       practiceQuestionsProvider.overrideWith((ref, level) async => []),
     ],
-    child: MaterialApp.router(routerConfig: r),
+    child: const MaterialApp(home: HomeScreen()),
   );
 }
 
@@ -83,6 +65,7 @@ Future<void> _open(WidgetTester t, String title) async {
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  tearDown(() => kankenPageOverride = null);
 
   testWidgets('各グループの見出しが表示される', (t) async {
     await _pump(t, _app());

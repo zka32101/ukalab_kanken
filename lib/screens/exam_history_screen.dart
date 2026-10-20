@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../models/mock_exam.dart';
 import '../providers/mock_exam_enhanced_provider.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -131,7 +131,7 @@ class _ExamHistoryTile extends StatelessWidget {
           ),
         ),
         onTap: () {
-          context.push('/exam-result', extra: result);
+          context.goExamResult(result);
         },
       ),
     );

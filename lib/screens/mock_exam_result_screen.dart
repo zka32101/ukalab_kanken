@@ -8,7 +8,7 @@ import 'package:ukalab_core/ui.dart'
         outfitProvider,
         showMockRecordDialog;
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/category_label.dart';
 import '../models/mock_exam_modes.dart';
@@ -944,8 +944,9 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
-            context.pop();
-            context.pop();
+            final nav = Navigator.of(context);
+            nav.pop();
+            nav.pop();
           },
         ),
         const SizedBox(height: 12),
@@ -956,7 +957,7 @@ class _MockExamResultScreenState extends ConsumerState<MockExamResultScreen> {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () {
-            context.go('/');
+            context.goHome();
           },
         ),
       ],

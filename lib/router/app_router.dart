@@ -294,102 +294,171 @@ final appRouter = GoRouter(
   ),
 );
 
+/// テスト用: 画面遷移先を差し替える。null なら本物の画面を開く。
+/// 引数は（ルート名, 渡した値）。画面の中身を作らずに「どこへ遷移したか」だけを確かめるために使う。
+Widget Function(String route, Object? extra)? kankenPageOverride;
+
+/// 画面を Navigator.push で開く。ルート名は従来の go_router のパスと同じ。
+/// （UkalabShell を MaterialApp.home に置くため、画面は Navigator で積む。）
+void _open(
+  BuildContext context,
+  String route,
+  Widget Function() page, {
+  Object? extra,
+}) {
+  Navigator.of(context).push(_pageRoute(route, page, extra));
+}
+
+Route<void> _pageRoute(String route, Widget Function() page, Object? extra) =>
+    MaterialPageRoute<void>(
+      settings: RouteSettings(name: route),
+      builder: (_) => kankenPageOverride?.call(route, extra) ?? page(),
+    );
+
 /// ナビゲーション ヘルパー
+///
+/// 段階2: 中身はすべて Navigator.push。呼び出し側は変更しない。
+/// `appRouter`（上の定義）はテストが参照するため、全画面の確認が済むまで残す。
 extension NavigationExtension on BuildContext {
-  /// ホームに戻る
-  void goHome() => go('/');
+  /// ホーム（最初の画面＝下部タブ）まで戻る
+  void goHome() =>
+      Navigator.of(this).popUntil((route) => route.isFirst);
 
   /// デイリーチャレンジに遷移
-  void goDailyChallenge() => push('/daily-challenge');
+  void goDailyChallenge() =>
+      _open(this, '/daily-challenge', () => const DailyChallengeScreen());
 
   /// 学習進捗に遷移
-  void goProgress() => push('/progress');
+  void goProgress() =>
+      _open(this, '/progress', () => const ProgressDashboardScreen());
 
   /// ランキングに遷移
-  void goRanking() => push('/ranking');
+  void goRanking() => _open(this, '/ranking', () => const RankingScreen());
 
   /// フレンドリストに遷移
-  void goFriends() => push('/friends');
+  void goFriends() => _open(this, '/friends', () => const FriendListScreen());
 
   /// 苦手分野分析に遷移
-  void goWeakAreas() => push('/weak-areas');
+  void goWeakAreas() =>
+      _open(this, '/weak-areas', () => const WeakAreaScreen());
 
   /// 学習推奨プランに遷移
-  void goLearningPlan() => push('/learning-plan');
+  void goLearningPlan() =>
+      _open(this, '/learning-plan', () => const LearningPlanScreen());
 
   /// イベントに遷移
-  void goEvents() => push('/events');
+  void goEvents() => _open(this, '/events', () => const EventScreen());
 
   /// グローバルランキングに遷移
-  void goGlobalRanking() => push('/global-ranking');
+  void goGlobalRanking() =>
+      _open(this, '/global-ranking', () => const GlobalRankingScreen());
 
   /// コレクションバッジに遷移
-  void goCollectionBadge() => push('/collection-badge');
+  void goCollectionBadge() =>
+      _open(this, '/collection-badge', () => const CollectionBadgeScreen());
 
   /// 弱点漢字に遷移
-  void goWeakKanji() => push('/weak-kanji');
+  void goWeakKanji() =>
+      _open(this, '/weak-kanji', () => const WeakKanjiModeScreen());
 
   /// 手書き練習に遷移
-  void goHandwriting(String kanji) => push('/handwriting', extra: kanji);
+  void goHandwriting(String kanji) => _open(
+        this,
+        '/handwriting',
+        () => HandwritingPracticeScreen(kanji: kanji),
+        extra: kanji,
+      );
 
   /// 模擬試験モード選択に遷移
-  void goMockExamModes() => push('/mock-exam-modes');
+  void goMockExamModes() =>
+      _open(this, '/mock-exam-modes', () => const MockExamModesScreen());
 
   /// 保護者ダッシュボードに遷移
-  void goParentDashboard() => push('/parent-dashboard');
+  void goParentDashboard() =>
+      _open(this, '/parent-dashboard', () => const ParentDashboardScreen());
 
   /// 試験結果画面に遷移
-  void goExamResult(ExamResult result) =>
-      push('/exam-result', extra: result);
+  void goExamResult(ExamResult result) => _open(
+        this,
+        '/exam-result',
+        () => ExamResultScreen(result: result),
+        extra: result,
+      );
 
   /// 試験履歴画面に遷移
-  void goExamHistory() => push('/exam-history');
+  void goExamHistory() =>
+      _open(this, '/exam-history', () => const ExamHistoryScreen());
 
   /// バトルルーム一覧に遷移
-  void goBattleRooms() => push('/battle-rooms');
+  void goBattleRooms() =>
+      _open(this, '/battle-rooms', () => const BattleRoomListScreen());
+
+  /// 積んだ画面をホームまで戻してから、バトルルーム一覧を開く（バトル結果からの「もう一度対戦」）。
+  void restartAtBattleRooms() {
+    final nav = Navigator.of(this);
+    nav.popUntil((route) => route.isFirst);
+    nav.push(_pageRoute(
+        '/battle-rooms', () => const BattleRoomListScreen(), null));
+  }
 
   /// バトル画面に遷移
-  void goBattle(String roomId) => push('/battle/$roomId');
+  void goBattle(String roomId) => _open(
+        this,
+        '/battle/$roomId',
+        () => BattleScreen(roomId: roomId),
+        extra: roomId,
+      );
 
   /// バトル結果画面に遷移
-  void goBattleResult(BattleResult result) =>
-      push('/battle-result', extra: result);
+  void goBattleResult(BattleResult result) => _open(
+        this,
+        '/battle-result',
+        () => BattleResultScreen(result: result),
+        extra: result,
+      );
 
   /// 学習分析ダッシュボードに遷移
-  void goAnalytics() => push('/analytics');
+  void goAnalytics() =>
+      _open(this, '/analytics', () => const AnalyticsDashboardScreen());
 
   /// 通知センターに遷移
-  void goNotifications() => push('/notifications');
-
-  /// ショップに遷移
+  void goNotifications() =>
+      _open(this, '/notifications', () => const NotificationCenterScreen());
 
   /// リーダーボードに遷移
-  void goLeaderboard() => push('/leaderboard');
+  void goLeaderboard() =>
+      _open(this, '/leaderboard', () => const LeaderboardScreen());
 
   /// フレンドチャレンジに遷移
-  void goFriendChallenges() => push('/friend-challenges');
+  void goFriendChallenges() =>
+      _open(this, '/friend-challenges', () => const FriendChallengesScreen());
 
   /// 間隔反復復習に遷移
-  void goSpacedRepetitionReview() => push('/spaced-repetition-review');
+  void goSpacedRepetitionReview() => _open(this, '/spaced-repetition-review',
+      () => const SpacedRepetitionReviewScreen());
 
   /// 学習目標管理に遷移
-  void goLearningGoals() => push('/learning-goals');
+  void goLearningGoals() =>
+      _open(this, '/learning-goals', () => const LearningGoalsScreen());
 
   /// 漢字の学習画面に遷移
-  void goStrokeOrder() => push('/stroke-order');
+  void goStrokeOrder() =>
+      _open(this, '/stroke-order', () => const StrokeOrderScreen());
 
   /// 章ごとの解説読み物の一覧に遷移
-  void goReadings() => push('/readings');
+  void goReadings() =>
+      _open(this, '/readings', () => const ReadingListScreen());
 
   /// 用語集に遷移
-  void goGlossary() => push('/glossary');
+  void goGlossary() => _open(this, '/glossary', () => const GlossaryScreen());
 
   /// ブックマーク・メモ一覧に遷移
-  void goStudyNotes() => push('/study-notes');
+  void goStudyNotes() =>
+      _open(this, '/study-notes', () => const StudyNotesScreen());
 
   /// 設定画面に遷移
-  void goSettings() => push('/settings');
+  void goSettings() => _open(this, '/settings', () => const SettingsScreen());
 
   /// 広告非表示プラン購入画面に遷移
-  void goPaywall() => push('/paywall');
+  void goPaywall() => _open(this, '/paywall', () => const PaywallScreen());
 }

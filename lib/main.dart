@@ -15,7 +15,7 @@ import 'package:ukalab_core/reminder_notification.dart'
     show ReminderNotificationWatcher, reminderNotifierProvider;
 import 'package:ukalab_core/ui.dart';
 import 'firebase_options.dart';
-import 'router/app_router.dart';
+import 'screens/auth_gate_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/startup_splash.dart';
 import 'services/ad_service.dart';
@@ -128,12 +128,14 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp.router(
+    return MaterialApp(
       title: 'うかラボ 漢字検定',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
-      routerConfig: appRouter,
+      // 下部5タブの Shell は AuthGateScreen（ログイン・ニックネーム設定の後）が返す。
+      // 個別画面は Navigator.push で開く（段階2。appRouter は移行確認まで残す）。
+      home: const AuthGateScreen(),
       // 文字の大きさ（設定画面で選ぶ）を端末の文字サイズに掛け合わせる。
       builder: (context, child) => applyAppTextScale(
         context,

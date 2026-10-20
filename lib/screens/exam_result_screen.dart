@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../models/category_label.dart';
 import '../models/mock_exam.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -300,7 +300,7 @@ class ExamResultScreen extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
-            context.pop();
+            Navigator.of(context).pop();
           },
         ),
         const SizedBox(height: 12),
@@ -311,7 +311,7 @@ class ExamResultScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () {
-            context.push('/exam-history');
+            context.goExamHistory();
           },
         ),
         const SizedBox(height: 12),
@@ -322,7 +322,7 @@ class ExamResultScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () {
-            context.go('/');
+            context.goHome();
           },
         ),
       ],
