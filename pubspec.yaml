@@ -2,7 +2,7 @@ name: kanken
 description: "うかラボ 漢字検定 - 漢字検定学習アプリ"
 publish_to: 'none'
 
-version: 1.0.4+8
+version: 1.0.5+9
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.10.0'
@@ -58,12 +58,12 @@ dependencies:
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.11.0
+      ref: v3.12.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.78.0
+      ref: v0.78.1
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）
