@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, LicenseRegistry, LicenseEntryWithLineBreaks;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_common_kit/app_common_kit.dart';
 import 'package:ukalab_core/daily_goal.dart' show dailyGoalOverrides;
@@ -25,6 +26,14 @@ import 'services/purchases_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 同梱フォントのライセンス（SIL OFL 1.1）を、設定のライセンス表示へ載せる。
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(
+      ['BIZ UDPGothic'],
+      await rootBundle.loadString('assets/fonts/OFL.txt'),
+    );
+  });
 
   // 初期化（Firebase・課金・広告・保存データの読み込み）には時間がかかる。その間、
   // 下部に組織ロゴを出した起動画面を先に出す。初期化が終わったら本来の画面に差し替える。

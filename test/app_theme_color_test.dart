@@ -3,6 +3,7 @@ import 'dart:math' show pow;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/theme/app_theme.dart';
+import 'package:ukalab_core/ui.dart';
 
 double _contrast(Color a, Color b) {
   double lum(Color c) {
@@ -16,19 +17,37 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
-  test('漢検のテーマ色は国語オレンジ系（設計書どおり）', () {
-    final light = AppTheme.light(googleFont: false).colorScheme;
-    final dark = AppTheme.dark(googleFont: false).colorScheme;
-    expect(light.primary, const Color(0xFFB45F06));
-    expect(dark.primary, const Color(0xFFF5B461));
+  test('ライト/ダークとも共通テーマの漢字検定の配色で構築できる', () {
+    final light = AppTheme.light().colorScheme;
+    final dark = AppTheme.dark().colorScheme;
+    expect(light.primary, UkalabCert.kanjiKentei.light);
+    expect(dark.primary, UkalabCert.kanjiKentei.dark);
   });
 
-  test('塗り色と文字色のコントラストは AA（4.5:1）以上', () {
-    final light = AppTheme.light(googleFont: false).colorScheme;
-    final dark = AppTheme.dark(googleFont: false).colorScheme;
-    expect(_contrast(light.primary, light.onPrimary), greaterThanOrEqualTo(4.5));
-    expect(_contrast(dark.primary, dark.onPrimary), greaterThanOrEqualTo(4.5));
-    expect(_contrast(light.primaryContainer, light.onPrimaryContainer), greaterThanOrEqualTo(4.5));
-    expect(_contrast(dark.primaryContainer, dark.onPrimaryContainer), greaterThanOrEqualTo(4.5));
+  test('主要な塗り色と文字色のコントラストは AA（4.5:1）以上', () {
+    for (final t in [AppTheme.light(), AppTheme.dark()]) {
+      final s = t.colorScheme;
+      expect(_contrast(s.primary, s.onPrimary), greaterThanOrEqualTo(4.5));
+      expect(_contrast(s.primaryContainer, s.onPrimaryContainer), greaterThanOrEqualTo(4.5));
+      expect(_contrast(s.secondary, s.onSecondary), greaterThanOrEqualTo(4.5));
+      expect(_contrast(s.surface, s.onSurface), greaterThanOrEqualTo(4.5));
+      expect(_contrast(s.error, s.onError), greaterThanOrEqualTo(4.5));
+    }
+  });
+
+  test('本文・見出しの文字色が背景に対して AA 以上', () {
+    for (final t in [AppTheme.light(), AppTheme.dark()]) {
+      final bg = t.scaffoldBackgroundColor;
+      final body = t.textTheme.bodyMedium?.color ?? t.colorScheme.onSurface;
+      expect(_contrast(body, bg), greaterThanOrEqualTo(4.5));
+      final title = t.textTheme.titleLarge?.color ?? t.colorScheme.onSurface;
+      expect(_contrast(title, bg), greaterThanOrEqualTo(4.5));
+    }
+  });
+
+  test('画面に直接使う機能色（白文字を載せる塗り）も AA 以上', () {
+    expect(_contrast(AppColors.primary, Colors.white), greaterThanOrEqualTo(4.5));
+    expect(_contrast(AppColors.primaryDark, Colors.white), greaterThanOrEqualTo(4.5));
+    expect(_contrast(AppColors.primaryDark, AppColors.primarySoft), greaterThanOrEqualTo(4.5));
   });
 }

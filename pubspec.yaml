@@ -33,9 +33,6 @@ dependencies:
   lottie: ^2.4.0
   path_drawing: ^1.0.1
 
-  # Fonts
-  google_fonts: ^6.1.0
-
   # Audio & Haptics
   audioplayers: ^5.0.0
 
@@ -98,3 +95,12 @@ flutter:
     - assets/icons_common/
     - assets/readings/
     - assets/features/
+    - assets/fonts/OFL.txt
+
+  fonts:
+    # BIZ UDPGothic（SIL OFL 1.1・モリサワ）。端末のフォント差で漢字の字形が変わらないよう同梱。
+    - family: BIZUDPGothic
+      fonts:
+        - asset: assets/fonts/BIZUDPGothic-Regular.ttf
+        - asset: assets/fonts/BIZUDPGothic-Bold.ttf
+          weight: 700

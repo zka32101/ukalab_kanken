@@ -5,10 +5,10 @@ import 'package:kanken/widgets/progress_visualization.dart';
 
 void main() {
   for (final dark in [false, true]) {
-    testWidgets('連続学習カードは漢検のオレンジ系で、赤系の固定色を使わない（dark=$dark）', (tester) async {
+    testWidgets('連続学習カードは漢検の共通テーマ配色で、赤系の固定色を使わない（dark=$dark）', (tester) async {
       final theme = dark
-          ? AppTheme.dark(googleFont: false)
-          : AppTheme.light(googleFont: false);
+          ? AppTheme.dark()
+          : AppTheme.light();
       await tester.pumpWidget(MaterialApp(
         theme: theme,
         home: Scaffold(
