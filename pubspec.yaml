@@ -2,7 +2,7 @@ name: kanken
 description: "うかラボ 漢字検定 - 漢字検定学習アプリ"
 publish_to: 'none'
 
-version: 1.0.2+4
+version: 1.0.4+8
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.10.0'
