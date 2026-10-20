@@ -17,7 +17,9 @@ import 'package:ukalab_core/ui.dart';
 Widget _app() {
   kankenPageOverride =
       (route, extra) => Scaffold(body: Text('page:$route'));
+  // 同じテスト内で何度も開き直すため、毎回新しい木にする（前回積んだ画面を持ち越さない）。
   return ProviderScope(
+    key: UniqueKey(),
     overrides: [
       coinServiceProvider
           .overrideWithValue(CoinService(store: InMemoryCoinStore())),

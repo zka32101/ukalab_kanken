@@ -15,7 +15,7 @@ Future<void> _pump(WidgetTester t, Widget home) async {
     kankenPageOverride = null;
   });
   kankenPageOverride = (route, extra) => Scaffold(body: Text('page:$route'));
-  await t.pumpWidget(MaterialApp(home: home));
+  await t.pumpWidget(MaterialApp(key: UniqueKey(), home: home));
 }
 
 void main() {
