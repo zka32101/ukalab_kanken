@@ -71,9 +71,10 @@ android {
             // key.propertiesを用意したローカル環境でビルドすること。
             signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
 
-            // ネイティブコードのデバッグシンボルをAABに含める（Play Consoleの警告対応）
+            // ネイティブコードのデバッグシンボルをAABに含める（Play Consoleの警告対応）。
+            // FULL は 約105MB 増えるため、関数名が読める SYMBOL_TABLE にする（利用者には届かない部分）。
             ndk {
-                debugSymbolLevel 'FULL'
+                debugSymbolLevel 'SYMBOL_TABLE'
             }
         }
     }

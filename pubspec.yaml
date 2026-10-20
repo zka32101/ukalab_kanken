@@ -2,7 +2,7 @@ name: kanken
 description: "うかラボ 漢字検定 - 漢字検定学習アプリ"
 publish_to: 'none'
 
-version: 1.0.5+9
+version: 1.0.6+10
 environment:
   sdk: '>=3.0.0 <4.0.0'
   flutter: '>=3.10.0'
@@ -97,10 +97,3 @@ flutter:
     - assets/features/
     - assets/fonts/OFL.txt
 
-  fonts:
-    # BIZ UDPGothic（SIL OFL 1.1・モリサワ）。端末のフォント差で漢字の字形が変わらないよう同梱。
-    - family: BIZUDPGothic
-      fonts:
-        - asset: assets/fonts/BIZUDPGothic-Regular.ttf
-        - asset: assets/fonts/BIZUDPGothic-Bold.ttf
-          weight: 700
