@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
@@ -91,7 +91,7 @@ class ExamCountdownEntry extends ConsumerWidget {
 
   final DateTime Function() clock;
 
-  /// テスト用。省略時は go_router で /learning-goals を開く。
+  /// テスト用。省略時は Navigator で学習目標画面（/learning-goals） を開く。
   final void Function(BuildContext context)? onOpenSettings;
 
   @override
@@ -107,7 +107,7 @@ class ExamCountdownEntry extends ConsumerWidget {
           examDate: date,
           clock: clock,
           onTap: () => (onOpenSettings ??
-              (c) => c.push('/learning-goals'))(context),
+              (c) => c.goLearningGoals())(context),
         ),
       ),
     );

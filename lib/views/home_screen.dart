@@ -27,7 +27,6 @@ import 'core_features_entry.dart';
 import 'core_v069_entry.dart';
 import 'exam_prep_entry.dart';
 import '../widgets/oshi_readiness_card.dart';
-import '../widgets/banner_ad_widget.dart';
 import '../widgets/hands_free_practice_body.dart';
 import '../screens/nagara_session_screen.dart' show nagaraMenuItem;
 import 'package:kanken/widgets/text_fit.dart';
@@ -75,14 +74,19 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const FitTitle('うかラボ 漢字検定'),
-        actions: const [
-          Padding(
+        actions: [
+          // 通知センターの入口（タブは増やさない）。
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            tooltip: '通知',
+            onPressed: () => context.goNotifications(),
+          ),
+          const Padding(
             padding: EdgeInsets.only(right: 12),
             child: CertPropBadge(),
           ),
         ],
       ),
-      bottomNavigationBar: const SafeArea(child: BannerAdWidget()),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),

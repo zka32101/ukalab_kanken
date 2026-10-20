@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:kanken/providers/achievement_provider.dart';
 import 'package:kanken/providers/oshi_provider.dart';
 import 'package:kanken/providers/ranking_provider.dart';
 import 'package:kanken/providers/spaced_repetition_provider.dart';
+import 'package:kanken/router/app_router.dart';
 import 'package:kanken/viewmodels/practice_viewmodel.dart';
 import 'package:kanken/viewmodels/user_viewmodel.dart';
 import 'package:kanken/views/home_screen.dart';
@@ -13,29 +13,13 @@ import 'package:kanken/widgets/home_group.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ukalab_core/ui.dart';
 
-const _routes = [
-  '/stroke-order',
-  '/readings',
-  '/glossary',
-  '/study-notes',
-  '/weak-areas',
-  '/learning-plan',
-  '/learning-goals',
-  '/spaced-repetition-review',
-  '/mock-exam-modes',
-  '/friends',
-  '/settings',
-  '/paywall',
-];
-
-Widget _app({GoRouter? router}) {
-  final r = router ??
-      GoRouter(routes: [
-        GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
-        for (final p in _routes)
-          GoRoute(path: p, builder: (_, __) => Scaffold(body: Text('page:$p'))),
-      ]);
+/// 遷移先は Navigator.push（goX() 拡張）。画面の中身は作らず、遷移先のルート名だけ表示する。
+Widget _app() {
+  kankenPageOverride =
+      (route, extra) => Scaffold(body: Text('page:$route'));
+  // 同じテスト内で何度も開き直すため、毎回新しい木にする（前回積んだ画面を持ち越さない）。
   return ProviderScope(
+    key: UniqueKey(),
     overrides: [
       coinServiceProvider
           .overrideWithValue(CoinService(store: InMemoryCoinStore())),
@@ -49,7 +33,7 @@ Widget _app({GoRouter? router}) {
       rankingProvider.overrideWith((ref, filter) async => []),
       practiceQuestionsProvider.overrideWith((ref, level) async => []),
     ],
-    child: MaterialApp.router(routerConfig: r),
+    child: const MaterialApp(home: HomeScreen()),
   );
 }
 
@@ -75,14 +59,17 @@ Future<void> _settle(WidgetTester t) async {
 }
 
 Future<void> _open(WidgetTester t, String title) async {
+  await _settle(t); // 開閉のアニメーションが終わってから位置を決める
   final f = find.text(title).first;
   await t.scrollUntilVisible(f, 200,
       scrollable: find.byType(Scrollable).first);
+  await t.ensureVisible(f);
   await t.pump();
 }
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  tearDown(() => kankenPageOverride = null);
 
   testWidgets('各グループの見出しが表示される', (t) async {
     await _pump(t, _app());
@@ -116,6 +103,7 @@ void main() {
       '模擬試験モード': '/mock-exam-modes',
     };
     for (final e in entries.entries) {
+      SharedPreferences.setMockInitialValues({}); // 毎回、初期状態から
       await _pump(t, _app());
       await _open(t, e.key);
       await t.tap(find.text(e.key));

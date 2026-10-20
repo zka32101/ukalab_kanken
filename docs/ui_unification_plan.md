@@ -235,3 +235,11 @@
 - 「準備中」項目の整備（決定 D）
 - 問題データ・出題ロジック・Firestore スキーマの変更
 - 実キー、個人名、外部ストレージの URL を本書や PR に含めること（含めない）
+
+## 9. 段階2 実装状況（Shell 導入）
+
+- `MaterialApp.home` に `AuthGateScreen` を置き、認証・ニックネーム設定の後に `KankenShell`（`UkalabShell` の5タブ: ホーム／学ぶ／模擬／記録／設定）を返す。`MaterialApp.router` は使わない。
+- タブの中身（段階2）: ホーム＝既存 `HomeScreen`（そのまま）、学ぶ＝`LearnTabScreen`（学習系の入口一覧）、模擬＝既存 `MockExamModesScreen`、記録＝`RecordTabScreen`（進捗・分析・計画・目標・履歴・バッジ）、設定＝既存 `SettingsScreen`。
+- バナー広告はタブ共通の下部1枠（`KankenShell`）。ホーム単独の枠は外した。通知センターの入口はホーム右上のアイコン。
+- `NavigationExtension` の `goX()` はすべて `Navigator.push`（`MaterialPageRoute`、ルート名は従来のパス）に置き換え済み。`go_router` の直接呼び出し（`context.go/push/pop`）は画面側からなくした。
+- `appRouter` の定義は、全画面の確認が済むまで残す（実行時には使われない。`reading_screens_test`・`glossary_test` が参照）。削除は最終段階。

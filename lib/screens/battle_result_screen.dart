@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../models/multiplayer.dart';
 import 'package:kanken/widgets/text_fit.dart';
 
@@ -244,7 +244,7 @@ class BattleResultScreen extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
           onPressed: () {
-            context.go('/battle-rooms');
+            context.restartAtBattleRooms();
           },
         ),
         const SizedBox(height: 12),
@@ -255,7 +255,7 @@ class BattleResultScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 12),
           ),
           onPressed: () {
-            context.go('/');
+            context.goHome();
           },
         ),
       ],
