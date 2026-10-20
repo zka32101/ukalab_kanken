@@ -59,9 +59,11 @@ Future<void> _settle(WidgetTester t) async {
 }
 
 Future<void> _open(WidgetTester t, String title) async {
+  await _settle(t); // 開閉のアニメーションが終わってから位置を決める
   final f = find.text(title).first;
   await t.scrollUntilVisible(f, 200,
       scrollable: find.byType(Scrollable).first);
+  await t.ensureVisible(f);
   await t.pump();
 }
 
@@ -101,6 +103,7 @@ void main() {
       '模擬試験モード': '/mock-exam-modes',
     };
     for (final e in entries.entries) {
+      SharedPreferences.setMockInitialValues({}); // 毎回、初期状態から
       await _pump(t, _app());
       await _open(t, e.key);
       await t.tap(find.text(e.key));
