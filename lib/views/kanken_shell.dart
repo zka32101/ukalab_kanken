@@ -25,8 +25,8 @@ class KankenShell extends StatelessWidget {
             child: MediaQuery.removePadding(
               context: context,
               removeBottom: true,
-              child: const UkalabShell(
-                pages: [
+              child: UkalabShell(
+                pages: const [
                   HomeScreen(),
                   LearnTabScreen(),
                   MockExamModesScreen(),
