@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ukalab_core/ui.dart';
 
-/// 同梱フォント（BIZ UDPゴシック。SIL OFL 1.1）。pubspec.yaml の fonts の family と一致させる。
+/// 同梱フォント（BIZ UDPゴシック。SIL OFL 1.1）。共通基盤（ukalab_core）が同梱しているものを使う。
 /// 端末のフォントで漢字の字形が変わるのを防ぐ（他のうかラボアプリと同じ）。
-const kAppFontFamily = 'BIZUDPGothic';
+const kAppFontFamily = UkalabTheme.fontFamily;
 
 /// 機能カテゴリ色など、共通テーマに無い用途の色定義。
 ///

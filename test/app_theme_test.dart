@@ -27,7 +27,7 @@ void main() {
       expect(t.textTheme.labelLarge?.fontFamily, kAppFontFamily);
       expect(t.primaryTextTheme.titleLarge?.fontFamily, kAppFontFamily);
     }
-    expect(kAppFontFamily, 'BIZUDPGothic');
+    expect(kAppFontFamily, UkalabTheme.fontFamily);
   });
 
   test('ボタンのタップ領域は 44pt 以上', () {
