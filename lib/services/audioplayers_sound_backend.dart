@@ -1,5 +1,5 @@
-import 'package:app_common_kit/app_common_kit.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:ukalab_core/learning.dart';
 
 /// 効果音の再生（audioplayers）。`assets/sounds/` の音源を鳴らす。
 /// キット（[AnswerFeedback]）の [SoundBackend] を、このアプリの音源で実装したもの。

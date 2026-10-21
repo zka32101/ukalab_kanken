@@ -30,6 +30,7 @@ import '../widgets/oshi_readiness_card.dart';
 import '../widgets/hands_free_practice_body.dart';
 import '../screens/nagara_session_screen.dart' show nagaraMenuItem;
 import 'package:kanken/widgets/text_fit.dart';
+import 'package:ukalab_core/learning.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({Key? key}) : super(key: key);

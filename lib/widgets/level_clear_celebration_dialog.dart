@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:app_common_kit/app_common_kit.dart';
+import 'package:ukalab_core/learning.dart';
 
 /// 級クリア（演習での正答率達成）を祝う証書風ダイアログ。
 /// confetti.json（Lottie）とバッジ獲得SEを使う。

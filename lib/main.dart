@@ -14,6 +14,7 @@ import 'package:ukalab_core/reminder.dart' show reminderOverrides;
 import 'package:ukalab_core/reminder_notification.dart'
     show ReminderNotificationWatcher, reminderNotifierProvider;
 import 'package:ukalab_core/ui.dart';
+import 'package:ukalab_core/learning.dart';
 import 'firebase_options.dart';
 import 'screens/auth_gate_screen.dart';
 import 'theme/app_theme.dart';

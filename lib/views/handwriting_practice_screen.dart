@@ -1,4 +1,3 @@
-import 'package:app_common_kit/app_common_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/index.dart';
@@ -9,6 +8,7 @@ import '../viewmodels/services_provider.dart';
 import '../viewmodels/user_viewmodel.dart';
 import '../providers/writing_mastery_provider.dart';
 import 'package:kanken/widgets/text_fit.dart';
+import 'package:ukalab_core/learning.dart';
 
 /// 手書き練習画面
 /// 「漢字の学習」画面で選択中の1文字を対象に、手書き→判定を行う。
