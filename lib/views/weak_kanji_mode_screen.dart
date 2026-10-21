@@ -6,6 +6,7 @@ import '../services/index.dart';
 import '../viewmodels/index.dart';
 import '../widgets/correct_feedback_widget.dart';
 import 'package:kanken/widgets/text_fit.dart';
+import 'package:ukalab_core/learning.dart';
 
 /// 苦手集中モード画面
 class WeakKanjiModeScreen extends ConsumerWidget {

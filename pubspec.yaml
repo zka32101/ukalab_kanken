@@ -58,12 +58,12 @@ dependencies:
   app_common_kit:
     git:
       url: https://github.com/zka32101/app_common_kit.git
-      ref: v3.12.0
+      ref: v4.0.0
   # うかラボ専用のUI（推し・コイン・着せ替え・テーマ）。app_common_kit v1.0.0 から移った
   ukalab_core:
     git:
       url: https://github.com/zka32101/ukalab_core.git
-      ref: v0.78.1
+      ref: v0.82.0
   share_plus: ^13.3.1
 
   # 学習リマインダーの端末通知（Android・iOS のみ。Web は何もしない）

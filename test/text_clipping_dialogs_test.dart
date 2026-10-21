@@ -1,4 +1,3 @@
-import 'package:app_common_kit/app_common_kit.dart' show AnswerFeedback, FakeSoundBackend;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +17,7 @@ import 'package:kanken/views/home_screen.dart';
 import 'package:kanken/widgets/achievement_unlock_dialog.dart';
 import 'package:kanken/widgets/correct_feedback_widget.dart';
 import 'package:kanken/widgets/level_clear_celebration_dialog.dart';
+import 'package:ukalab_core/learning.dart';
 
 import 'support/clip_fixtures.dart';
 import 'support/overflow_harness.dart';
