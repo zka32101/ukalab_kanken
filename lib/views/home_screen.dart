@@ -6,7 +6,6 @@ import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import '../models/index.dart';
 import '../viewmodels/index.dart';
 import '../services/index.dart';
-import '../widgets/level_progress_card.dart';
 import '../widgets/index.dart';
 import '../router/app_router.dart';
 import '../providers/purchases_provider.dart';
