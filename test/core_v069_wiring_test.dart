@@ -99,9 +99,9 @@ void main() {
       await _show(t, title);
       expect(find.byType(TodayReviewCard), findsOneWidget);
       expect(find.text(ReviewSchedulerStrings.ja.emptyTitle), findsOneWidget);
-      // 既存の入口はそのまま残る
-      expect(find.text('復習（間隔反復）'), findsOneWidget);
-      expect(find.text('演習を始める'), findsOneWidget);
+      // 級の一覧が、復習カードのすぐ下に出る（演習などは、級を選んでから）
+      expect(find.text('級を選ぶ'), findsOneWidget);
+      expect(find.byKey(const ValueKey('levelCard_LEVEL_10')), findsOneWidget);
     });
 
     testWidgets('期限の来た復習があれば件数とボタンが出る', (t) async {

@@ -56,6 +56,32 @@ class RecordTabScreen extends StatelessWidget {
             title: 'バッジ',
             onTap: () => context.goCollectionBadge(),
           ),
+          const SizedBox(height: 16),
+          Text('ソーシャル', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          HomeMenuTile(
+            icon: Icons.people,
+            title: 'フレンド',
+            onTap: () => context.goFriends(),
+          ),
+          const SizedBox(height: 8),
+          HomeMenuTile(
+            icon: Icons.sports_kabaddi,
+            title: 'チャレンジ',
+            onTap: () => context.goFriendChallenges(),
+          ),
+          const SizedBox(height: 8),
+          HomeMenuTile(
+            icon: Icons.leaderboard,
+            title: 'ランキング',
+            onTap: () => context.goGlobalRanking(),
+          ),
+          const SizedBox(height: 8),
+          HomeMenuTile(
+            icon: Icons.emoji_events,
+            title: 'スコアボード',
+            onTap: () => context.goLeaderboard(),
+          ),
         ],
       ),
     );
