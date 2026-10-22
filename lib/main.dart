@@ -15,6 +15,7 @@ import 'package:ukalab_core/reminder_notification.dart'
     show ReminderNotificationWatcher, reminderNotifierProvider;
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/learning.dart';
+import 'data/character_wiring.dart';
 import 'firebase_options.dart';
 import 'screens/auth_gate_screen.dart';
 import 'theme/app_theme.dart';
@@ -96,6 +97,7 @@ void main() async {
       ...studyNotes,
       ...dailyGoal,
       ...reminder,
+      ...characterOverrides,
       // 端末の通知は Android・iOS だけ。Web は何もしない既定のまま。
       if (!kIsWeb) reminderNotifierProvider.overrideWithValue(LocalReminderNotifier()),
     ],

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../providers/oshi_provider.dart';
+import '../router/app_router.dart';
 import '../screens/oshi_room_screen.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'oshi_medal_button.dart';
@@ -59,6 +60,7 @@ class OshiCard extends ConsumerWidget {
           cert: UkalabCert.kanjiKentei,
           stage: stage,
           appId: 'kanken',
+          onLockedTap: () => context.goPaywall(),
           examDate: user?.examDate,
           streakDays: user?.streakCount ?? 0,
           onShare: (png) => shareCardImageWithGate(context, png, gate: gate, share: shareImage),
