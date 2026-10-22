@@ -5,7 +5,22 @@ import '../providers/purchases_provider.dart';
 import '../services/purchase_tiers.dart';
 import '../theme/app_theme.dart';
 import 'package:app_common_kit/parental_gate.dart';
+import 'package:ukalab_core/ui.dart' show PremiumBenefitsCard;
+import 'package:ukalab_core/ukalab_core.dart' show PremiumFeature;
 import 'package:kanken/widgets/text_fit.dart';
+
+/// このアプリで実際にプレミアム限定になっている機能(core の [PremiumFeature] のうち)。
+/// 弱点ドリルなどは未提供のため載せない。
+const List<PremiumFeature> kKankenPremiumFeatures = [
+  PremiumFeature.examEveMode,
+  PremiumFeature.tenMinutePlan,
+  PremiumFeature.historyExport,
+  PremiumFeature.qualificationCharacter,
+];
+
+/// 一覧の下の補足(準1級・1級、広告の非表示、無料版の回数制限の解除)。
+const String kKankenPremiumNote = 'プレミアムには、準1級・1級の問題と、広告の非表示、'
+    '模擬試験・今日の復習の回数制限の解除も含まれます。';
 
 /// 購入画面。買い切りの2種で、広告なしと、準1級・1級も学べるプレミアム。
 /// 価格はストア（RevenueCat）の商品から表示する。
@@ -132,6 +147,17 @@ class PaywallScreen extends ConsumerWidget {
           error: (err, stack) => _buildUnavailableNotice(),
         ),
         const SizedBox(height: 12),
+        // このアプリで実際にプレミアム限定の機能だけを載せる(準1級・1級は上のプレミアムの説明と補足に書く)。
+        const PremiumBenefitsCard(
+          key: ValueKey('premiumBenefitsCard'),
+          features: kKankenPremiumFeatures,
+          showFreeNote: false,
+        ),
+        const Padding(
+          key: ValueKey('premiumBenefitsNote'),
+          padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
+          child: Text(kKankenPremiumNote, style: TextStyle(fontSize: 12, height: 1.6)),
+        ),
         Center(
           child: TextButton(
             onPressed: purchaseState.isLoading
