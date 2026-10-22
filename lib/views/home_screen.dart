@@ -6,12 +6,14 @@ import 'package:ukalab_core/daily_goal.dart' show recordDailyAnswer;
 import '../models/index.dart';
 import '../viewmodels/index.dart';
 import '../services/index.dart';
-import '../widgets/level_progress_card.dart';
 import '../widgets/index.dart';
 import '../router/app_router.dart';
 import '../providers/purchases_provider.dart';
 import '../providers/spaced_repetition_provider.dart';
+import '../providers/level_achievement_provider.dart';
 import '../providers/level_progress_provider.dart';
+import '../models/level_achievement.dart';
+import '../widgets/level_achievement_chips.dart';
 import '../theme/app_theme.dart';
 import '../widgets/home_group.dart';
 import '../screens/study_notes_screen.dart' show showQuestionMemoDialog;
@@ -145,8 +147,6 @@ class HomeScreen extends ConsumerWidget {
                       error: (_, __) => const SizedBox.shrink(),
                     ),
                     _padded(const WeeklyRecapEntry()),
-                    const SizedBox(height: 12),
-                    _padded(_buildLevelProgressSection(context, ref)),
                     const SizedBox(height: 12),
                     HomeMenuGrid(items: [
                       HomeMenuItem(
@@ -323,6 +323,8 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildLevelList(BuildContext context, WidgetRef ref, String currentLevel) {
     final isPremium = ref.watch(hasPremiumProvider).valueOrNull ?? false;
+    final achievements = ref.watch(levelAchievementProvider);
+    final progress = ref.watch(levelProgressProvider).valueOrNull ?? const <String, LevelProgress>{};
     final cs = Theme.of(context).colorScheme;
     return Column(
       children: [
@@ -335,6 +337,8 @@ class HomeScreen extends ConsumerWidget {
               name: levelNames[level] ?? level,
               selected: level == currentLevel,
               locked: premiumOnlyLevels.contains(level) && !isPremium,
+              cleared: levelProgressFor(progress, level).isCleared,
+              achievement: achievements[level] ?? LevelAchievement.empty(level),
               colorScheme: cs,
               onTap: () {
                 final short = levelNames[level]?.split('（').first ?? level;
@@ -371,30 +375,6 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
-
-  /// 級ごとの正答率進捗バー（現在選択中の級だけ表示）＋次の級までのカウントダウン
-  Widget _buildLevelProgressSection(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(levelProgressProvider);
-    final currentLevel = ref.watch(currentLevelProvider);
-
-    return statsAsync.when(
-      data: (stats) {
-        final progress = levelProgressFor(stats, currentLevel);
-        final levelLabel = levelNames[currentLevel] ?? currentLevel;
-
-        // 演習画面と同じ判定（その級の問題が1問も無い）。読み込み中は通常の表示にする。
-        final noQuestions =
-            ref.watch(practiceQuestionsProvider(currentLevel)).valueOrNull?.isEmpty ?? false;
-        return LevelProgressCard(
-          levelLabel: levelLabel,
-          progress: progress,
-          noQuestions: noQuestions,
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -930,7 +910,8 @@ class PracticeScreen extends ConsumerWidget {
   }
 }
 
-/// 級の一覧の1行。名前と、選択中・ロック（プレミアム限定）の印だけを出す。
+/// 級の一覧の1行。名前・選択中・ロック（プレミアム限定）・クリア済みの印と、
+/// 達成度の2つの印（漢字・問題。色の濃さと数字）を出す。
 class _LevelCard extends StatelessWidget {
   const _LevelCard({
     Key? key,
@@ -938,6 +919,8 @@ class _LevelCard extends StatelessWidget {
     required this.name,
     required this.selected,
     required this.locked,
+    required this.cleared,
+    required this.achievement,
     required this.colorScheme,
     required this.onTap,
   }) : super(key: key);
@@ -946,6 +929,10 @@ class _LevelCard extends StatelessWidget {
   final String name;
   final bool selected;
   final bool locked;
+
+  /// その級をクリアした（20問以上・正答率80%以上）。
+  final bool cleared;
+  final LevelAchievement achievement;
   final ColorScheme colorScheme;
   final VoidCallback onTap;
 
@@ -954,7 +941,9 @@ class _LevelCard extends StatelessWidget {
     final cs = colorScheme;
     return Semantics(
       button: true,
-      label: locked ? '$name（プレミアム限定）' : name,
+      label: '${locked ? '$name（プレミアム限定）' : name}。'
+          '${cleared ? 'クリア済み。' : ''}${LevelAchievementChips.semanticsLabel(achievement)}',
+      excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
@@ -971,19 +960,37 @@ class _LevelCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              if (locked)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(Icons.lock, size: 18, color: cs.onSurfaceVariant),
-                ),
               Expanded(
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: cs.onSurface,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (locked)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Icon(Icons.lock, size: 18, color: cs.onSurfaceVariant),
+                          ),
+                        Flexible(
+                          child: Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                        ),
+                        if (cleared)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(Icons.verified, size: 18, color: cs.primary),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    LevelAchievementChips(achievement: achievement),
+                  ],
                 ),
               ),
               Icon(Icons.chevron_right, color: cs.onSurfaceVariant),

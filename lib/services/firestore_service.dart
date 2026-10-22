@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/index.dart';
+import '../models/level_achievement.dart' show questionStatCountsAsCorrect;
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
@@ -262,6 +263,8 @@ class FirestoreService {
       {
         'correctStreak': log.isCorrect ? FieldValue.increment(1) : 0,
         'lastAnsweredAt': log.answeredAt.toIso8601String(),
+        // 一度でも正解した印。不正解では下ろさない（級ごとの達成度の「問題」に使う）。
+        if (log.isCorrect) 'everCorrect': true,
       },
       SetOptions(merge: true),
     );
@@ -292,6 +295,20 @@ class FirestoreService {
     return {
       for (final doc in snapshot.docs)
         doc.id: LevelProgress.fromJson(doc.id, doc.data()),
+    };
+  }
+
+  /// 一度でも正解した問題のID（例: `LEVEL_9-毎`）。級ごとの達成度の「問題」に使う。
+  /// `everCorrect` を持つ記録と、それ以前の記録（連続正解数が1以上）を数える。
+  Future<Set<String>> getCorrectQuestionIds(
+    String uid, {
+    String profileId = 'default',
+  }) async {
+    final snapshot = await _getWithCacheFallback(
+        _profileDoc(uid, profileId).collection('questionStats'));
+    return {
+      for (final doc in snapshot.docs)
+        if (questionStatCountsAsCorrect(doc.data())) doc.id,
     };
   }
 
