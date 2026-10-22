@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ukalab_core/ui.dart';
 
 import '../data/level_kanji_data.dart';
+import '../models/level_achievement.dart';
+import '../providers/level_achievement_provider.dart';
+import '../widgets/level_achievement_chips.dart';
 import '../router/app_router.dart';
 import '../screens/nagara_session_screen.dart' show NagaraMenuCard;
 import '../viewmodels/user_viewmodel.dart' show currentLevelProvider;
@@ -41,6 +44,8 @@ class _LevelHubScreenState extends ConsumerState<LevelHubScreen> {
   Widget build(BuildContext context) {
     final level = widget.level;
     final kanjiCount = LevelKanjiData.forLevel(level).length;
+    final achievement = ref.watch(levelAchievementProvider)[level] ??
+        LevelAchievement.empty(level);
     return Scaffold(
       appBar: AppBar(title: FitTitle(HomeScreen.levelNames[level] ?? level)),
       // 項目が少ないので、全部を作っておく（大きい文字でも、画面外の項目が消えない）。
@@ -56,6 +61,10 @@ class _LevelHubScreenState extends ConsumerState<LevelHubScreen> {
                 key: const ValueKey('levelHubKanjiCount'),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: LevelAchievementChips(achievement: achievement),
             ),
             HomeMenuTile(
               icon: Icons.edit_note,

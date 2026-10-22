@@ -11,6 +11,7 @@ import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
 import '../providers/spaced_repetition_provider.dart';
 import '../providers/level_progress_provider.dart';
+import '../providers/level_achievement_provider.dart' show correctQuestionIdsProvider;
 import '../services/oshi_progress_store.dart';
 import 'services_provider.dart';
 import 'user_viewmodel.dart';
@@ -414,6 +415,7 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
         // 級ごとの正答率集計を更新したので再取得させる
         // （次の級までのカウントダウン・クリア判定に使う）
         ref.invalidate(levelProgressProvider);
+        ref.invalidate(correctQuestionIdsProvider);
 
         // 演習で1問以上回答した = 「今日学習した」とみなしストリークを更新
         // （完了を待たずバックグラウンドで実行）。
