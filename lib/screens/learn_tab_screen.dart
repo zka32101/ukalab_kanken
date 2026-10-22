@@ -4,6 +4,7 @@ import '../router/app_router.dart';
 import 'glossary_screen.dart' show kGlossaryMenuLabel;
 import 'reading_list_screen.dart' show kReadingsMenuLabel;
 import 'study_notes_screen.dart' show kStudyNotesMenuLabel;
+import '../views/core_features_entry.dart' show openMistakeNote;
 
 /// 「学ぶ」タブ。学習系の画面への入口を並べる（各画面は Navigator.push で開く）。
 /// ホームの作り直し（道具などの移設）は段階3。ここは既存画面への入口のみ。
@@ -54,6 +55,13 @@ class LearnTabScreen extends StatelessWidget {
             icon: Icons.bookmarks,
             title: kStudyNotesMenuLabel.replaceAll('\n', ''),
             onTap: () => context.goStudyNotes(),
+          ),
+          const SizedBox(height: 8),
+          HomeMenuTile(
+            icon: Icons.fact_check,
+            title: '間違いノート',
+            subtitle: '間違えた問題を見返して、解き直せます。',
+            onTap: () => openMistakeNote(context),
           ),
         ],
       ),

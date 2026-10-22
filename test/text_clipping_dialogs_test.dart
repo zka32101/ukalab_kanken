@@ -5,10 +5,13 @@ import 'package:kanken/models/achievement.dart';
 import 'package:kanken/screens/battle_room_list_screen.dart';
 import 'package:kanken/screens/event_screen.dart';
 import 'package:kanken/screens/friend_list_screen.dart';
+import 'package:kanken/screens/learn_tab_screen.dart';
 import 'package:kanken/screens/learning_goals_screen.dart';
+import 'package:kanken/screens/level_hub_screen.dart';
 import 'package:kanken/screens/mock_exam_modes_screen.dart';
 import 'package:kanken/screens/notification_center_screen.dart';
 import 'package:kanken/screens/parent_dashboard_screen.dart';
+import 'package:kanken/screens/record_tab_screen.dart';
 import 'package:kanken/screens/settings_screen.dart';
 import 'package:kanken/screens/spaced_repetition_review_screen.dart';
 import 'package:kanken/screens/stroke_order_screen.dart';
@@ -74,14 +77,12 @@ class _DialogHost extends StatelessWidget {
 }
 
 final flows = <ClipFlow>[
-  ClipFlow('ホーム 出題形式の選択', () => const HomeScreen(),
-      (t) => tapText(t, '演習を始める')),
+  ClipFlow('級の画面 出題形式の選択', () => const LevelHubScreen(level: 'LEVEL_10'),
+      (t) => tapText(t, '演習')),
   ClipFlow('ホーム プレミアム限定の案内', () => const HomeScreen(),
-      (t) => tapText(t, '準1級')),
-  ClipFlow('ホーム 全グループ展開', () => const HomeScreen(), (t) async {
-    await tapText(t, 'ソーシャル');
-    await tapText(t, '道具');
-  }),
+      (t) => tapText(t, '準1級（大学・一般程度）')),
+  ClipFlow('学ぶタブ', () => const LearnTabScreen(), (t) async {}),
+  ClipFlow('記録タブ', () => const RecordTabScreen(), (t) async {}),
   ClipFlow('設定 プロフィール追加', () => const SettingsScreen(),
       (t) => tapText(t, 'プロフィールを追加')),
   ClipFlow('設定 フレンドID', () => const SettingsScreen(),
