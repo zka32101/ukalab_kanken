@@ -19,7 +19,8 @@ jobs:
       - run: flutter test
 
   web-e2e:
-    runs-on: ubuntu-latest
+    # Playwright 1.56 は ubuntu 26.04(ubuntu-latest)に未対応のため、24.04 に固定する。
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
