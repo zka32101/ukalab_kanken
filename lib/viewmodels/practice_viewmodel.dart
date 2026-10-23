@@ -7,6 +7,7 @@ import '../data/exam_prep_data.dart' show historyProvider;
 import '../views/core_v069_entry.dart' show recordKankenReviewResult;
 import '../data/level_kanji_data.dart';
 import '../data/kanji_radical_data.dart';
+import '../data/kanji_stroke_count_data.dart';
 import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
 import '../providers/spaced_repetition_provider.dart';
@@ -24,19 +25,36 @@ const int practiceSessionSize = 10;
 /// - writing: 読み方を見て漢字を答える（書き取り）
 /// - radical: 漢字を見て部首を答える（9級以上で出題）
 /// - compoundStructure: 二字熟語の構成（似た意味／対の意味／修飾／目的語）を答える（8級以下で出題）
+/// - strokeCount: 漢字の画数を答える（漢検の「筆順・画数」。10級〜5級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
-enum PracticeMode { reading, writing, radical, compoundStructure, mixed }
+enum PracticeMode { reading, writing, radical, compoundStructure, strokeCount, mixed }
 
 /// 級ごとに実際の漢検で出題される形式に合わせた、選択可能な出題形式一覧
-/// （mixedを除く）。10級は読み/書き取りのみ、9級から部首が加わり、
-/// 8級以下では熟語の構成も加わる。
+/// （mixedを除く）。10級は読み/書き取り/画数、9級から部首が加わり、
+/// 8級以下では熟語の構成も加わる。画数は漢検で出題される10級〜5級のみ。
 List<PracticeMode> availableModesForLevel(String level) {
   switch (level) {
     case 'LEVEL_10':
-      return const [PracticeMode.reading, PracticeMode.writing];
+      return const [PracticeMode.reading, PracticeMode.writing, PracticeMode.strokeCount];
     case 'LEVEL_9':
-      return const [PracticeMode.reading, PracticeMode.writing, PracticeMode.radical];
-    default: // LEVEL_8, LEVEL_7, LEVEL_6, LEVEL_5
+      return const [
+        PracticeMode.reading,
+        PracticeMode.writing,
+        PracticeMode.radical,
+        PracticeMode.strokeCount,
+      ];
+    case 'LEVEL_8':
+    case 'LEVEL_7':
+    case 'LEVEL_6':
+    case 'LEVEL_5':
+      return const [
+        PracticeMode.reading,
+        PracticeMode.writing,
+        PracticeMode.radical,
+        PracticeMode.compoundStructure,
+        PracticeMode.strokeCount,
+      ];
+    default: // 4級以上
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
@@ -68,6 +86,16 @@ class PracticeQuestion {
     required this.choices,
     required this.correctAnswer,
   });
+}
+
+/// 画数の問題の選択肢（画数）。正解の前後の画数から、紛らわしい候補を3つ足して4つにする（1画以上）。
+/// 小さい順に並べる。
+List<int> strokeCountChoices(int count) {
+  final near = <int>[
+    for (final d in [1, -1, 2, -2, 3, -3])
+      if (count + d >= 1) count + d,
+  ];
+  return [count, ...near.take(3)]..sort();
 }
 
 /// KanjiQuestionの一覧から、指定モードに沿ったPracticeQuestionを組み立てる。
@@ -147,6 +175,23 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: 'この漢字の部首はどれ？',
           choices: choices,
           correctAnswer: info.radical,
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.strokeCount) {
+      final count = kanjiStrokeCount(question.kanji);
+      if (count == null) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final counts = strokeCountChoices(count);
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: question.kanji,
+          instruction: 'この漢字の画数はどれ？',
+          choices: [for (final c in counts) '$c画'],
+          correctAnswer: '$count画',
         );
       }
     }

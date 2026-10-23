@@ -73,9 +73,11 @@ final NagaraStrings kNagaraKidsStrings = NagaraStrings(
 /// 演習の1問を、ながらセッションの1問にする。
 NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
   final example = q.source.example;
-  final head = q.actualMode == PracticeMode.reading
-      ? '「${q.source.kanji}」は「${q.correctAnswer}」と読みます。'
-      : '「${q.correctAnswer}」と書きます。';
+  final head = switch (q.actualMode) {
+    PracticeMode.reading => '「${q.source.kanji}」は「${q.correctAnswer}」と読みます。',
+    PracticeMode.strokeCount => '「${q.source.kanji}」の画数は${q.correctAnswer}です。',
+    _ => '「${q.correctAnswer}」と書きます。',
+  };
   return NagaraQuestion(
     id: q.source.id,
     prompt: '${q.instruction} ${q.prompt}',
