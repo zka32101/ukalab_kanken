@@ -76,6 +76,10 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
   final head = switch (q.actualMode) {
     PracticeMode.reading => '「${q.source.kanji}」は「${q.correctAnswer}」と読みます。',
     PracticeMode.strokeCount => '「${q.source.kanji}」の画数は${q.correctAnswer}です。',
+    PracticeMode.yoji => '空欄には「${q.correctAnswer}」が入ります。',
+    PracticeMode.antonym => '「${q.prompt}」の対義語は「${q.correctAnswer}」です。',
+    PracticeMode.synonym => '「${q.prompt}」の類義語は「${q.correctAnswer}」です。',
+    PracticeMode.homophone => '正しくは「${q.correctAnswer}」です。',
     _ => '「${q.correctAnswer}」と書きます。',
   };
   return NagaraQuestion(
