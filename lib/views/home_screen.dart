@@ -14,6 +14,8 @@ import '../providers/level_achievement_provider.dart';
 import '../providers/level_progress_provider.dart';
 import '../models/level_achievement.dart';
 import '../widgets/level_achievement_chips.dart';
+import '../widgets/stroke_highlight_view.dart';
+import '../data/stroke_order_sample_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/home_group.dart';
 import '../screens/study_notes_screen.dart' show showQuestionMemoDialog;
@@ -429,6 +431,7 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.radical:
     case PracticeMode.radicalName:
     case PracticeMode.strokeCount:
+    case PracticeMode.strokeOrder:
       return 80;
     case PracticeMode.compoundStructure:
     case PracticeMode.yoji:
@@ -456,6 +459,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.account_tree;
     case PracticeMode.strokeCount:
       return Icons.format_list_numbered;
+    case PracticeMode.strokeOrder:
+      return Icons.gesture;
     case PracticeMode.yoji:
       return Icons.menu_book;
     case PracticeMode.antonym:
@@ -485,6 +490,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '熟語の構成';
     case PracticeMode.strokeCount:
       return '画数';
+    case PracticeMode.strokeOrder:
+      return '筆順';
     case PracticeMode.yoji:
       return '四字熟語';
     case PracticeMode.antonym:
@@ -514,6 +521,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '二字熟語の成り立ちを答える';
     case PracticeMode.strokeCount:
       return '漢字の画数を答える';
+    case PracticeMode.strokeOrder:
+      return '赤い画が何画目かを答える';
     case PracticeMode.yoji:
       return '四字熟語の空欄に入る漢字を答える';
     case PracticeMode.antonym:
@@ -739,15 +748,23 @@ class PracticeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 問題表示（漢字 or 読み方 or 熟語など、大きく）
-          Text(
-            question.prompt,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: _promptFontSize(question.actualMode),
-              fontWeight: FontWeight.bold,
+          // 問題表示（漢字 or 読み方 or 熟語など、大きく）。筆順の問題は、赤い画を示した図
+          if (question.highlightStroke != null &&
+              StrokeOrderSampleData.getStrokeOrder(question.prompt) != null)
+            StrokeHighlightView(
+              data: StrokeOrderSampleData.getStrokeOrder(question.prompt)!,
+              highlightIndex: question.highlightStroke!,
+              size: 180,
+            )
+          else
+            Text(
+              question.prompt,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: _promptFontSize(question.actualMode),
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
           const SizedBox(height: 4),
           Wrap(
             alignment: WrapAlignment.center,
