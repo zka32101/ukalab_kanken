@@ -71,6 +71,14 @@ void main() {
     expect(find.text('獲得済みバッジ'), findsOneWidget);
   });
 
+  testWidgets('上のバーは濃い紫の背景に白い文字（実機で読みにくかった）', (tester) async {
+    await pumpScreen(tester, const []);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    final bar = tester.widget<AppBar>(find.byType(AppBar));
+    expect(bar.backgroundColor, Colors.deepPurple);
+    expect(bar.foregroundColor, Colors.white);
+  });
+
   testWidgets('再描画しても、読み込みに戻らない', (tester) async {
     final fs = await pumpScreen(tester, [_badge('LEVEL_8')]);
     await tester.pumpAndSettle(const Duration(milliseconds: 100));
