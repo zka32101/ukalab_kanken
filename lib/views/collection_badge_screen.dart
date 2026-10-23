@@ -5,6 +5,17 @@ import '../services/index.dart';
 import '../viewmodels/index.dart';
 import 'package:kanken/widgets/text_fit.dart';
 
+/// 獲得したコレクション・バッジ（ユーザーごと）。画面を閉じたら捨てて、開き直すたびに読み直す。
+///
+/// 以前は build() の中で `FutureProvider(...)` をその場で作って watch していた。build のたびに
+/// 別のプロバイダーが新しく作られるので、読み込みが終わって再描画されるたびに「読み込み中」に戻り、
+/// 画面がずっとぐるぐるのまま（コレクションが出てこない）になっていた。
+final userBadgesProvider =
+    FutureProvider.autoDispose.family<List<CollectionBadge>, String>((ref, uid) async {
+  final firestoreService = ref.watch(firestoreServiceProvider);
+  return firestoreService.getUserBadges(uid);
+});
+
 /// コレクション・バッジ表示画面
 class CollectionBadgeScreen extends ConsumerWidget {
   const CollectionBadgeScreen({Key? key}) : super(key: key);
@@ -108,12 +119,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
     }
 
     // ユーザーの獲得バッジを取得
-    final collectionBadgesAsync = ref.watch(
-      FutureProvider((async) async {
-        final firestoreService = ref.watch(firestoreServiceProvider);
-        return await firestoreService.getUserBadges(uid);
-      }),
-    );
+    final collectionBadgesAsync = ref.watch(userBadgesProvider(uid));
 
     return Scaffold(
       appBar: AppBar(
@@ -166,7 +172,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
                           child: Column(
                           children: [
                             Text(
-                              '${6 - badges.length}',
+                              '${badgeInfoMap.length - acquiredLevels.length}',
                               style: const TextStyle(
                                 fontSize: 32,
                                 fontWeight: FontWeight.bold,
@@ -218,7 +224,7 @@ class CollectionBadgeScreen extends ConsumerWidget {
                   ],
 
                   // 未獲得バッジセクション
-                  if (acquiredLevels.length < 6) ...[
+                  if (acquiredLevels.length < badgeInfoMap.length) ...[
                     const Text(
                       '未獲得',
                       style: TextStyle(

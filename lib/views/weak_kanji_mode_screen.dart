@@ -8,6 +8,22 @@ import '../widgets/correct_feedback_widget.dart';
 import 'package:kanken/widgets/text_fit.dart';
 import 'package:ukalab_core/learning.dart';
 
+/// 苦手集中モードの問題セット（ユーザーごと）。画面を閉じたら捨てて、開き直すたびに作り直す。
+///
+/// 以前は build() の中で `FutureProvider(...)` をその場で作って watch していた。build のたびに
+/// 別のプロバイダーが新しく作られるので、読み込み中のまま止まる（画面を再描画するたびに
+/// 問題の取得がやり直される）状態になっていた。
+final weakKanjiFocusQuestionsProvider =
+    FutureProvider.autoDispose.family<List<KanjiQuestion>, String>((ref, uid) async {
+  final aiWeakService = ref.watch(aiWeakAnalysisServiceProvider);
+  final user = await ref.watch(currentUserProvider.future);
+  return aiWeakService.getWeakKanjiFocusQuestions(
+    uid,
+    limit: 20,
+    profileId: user?.profileId ?? 'default',
+  );
+});
+
 /// 苦手集中モード画面
 class WeakKanjiModeScreen extends ConsumerWidget {
   const WeakKanjiModeScreen({Key? key}) : super(key: key);
@@ -15,7 +31,6 @@ class WeakKanjiModeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final uid = ref.watch(currentUserIdProvider);
-    final aiWeakService = ref.watch(aiWeakAnalysisServiceProvider);
 
     if (uid == null) {
       return Scaffold(
@@ -25,16 +40,7 @@ class WeakKanjiModeScreen extends ConsumerWidget {
     }
 
     // 苦手漢字の問題セットを取得
-    final weakQuestionsAsync = ref.watch(
-      FutureProvider((async) async {
-        final user = await async.watch(currentUserProvider.future);
-        return aiWeakService.getWeakKanjiFocusQuestions(
-          uid,
-          limit: 20,
-          profileId: user?.profileId ?? 'default',
-        );
-      }),
-    );
+    final weakQuestionsAsync = ref.watch(weakKanjiFocusQuestionsProvider(uid));
 
     return WillPopScope(
       onWillPop: () async {
