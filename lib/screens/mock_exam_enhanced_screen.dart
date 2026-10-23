@@ -6,6 +6,7 @@ import '../providers/exam_session_provider.dart';
 import 'mock_exam_result_screen.dart';
 import 'package:kanken/utils/option_shuffle.dart';
 import 'package:kanken/widgets/text_fit.dart';
+import 'package:kanken/widgets/choice_text.dart';
 
 class MockExamEnhancedScreen extends ConsumerStatefulWidget {
   final ExamConfig config;
@@ -298,7 +299,7 @@ class _MockExamEnhancedScreenState extends ConsumerState<MockExamEnhancedScreen>
                                   );
                                 }
                               },
-                              child: Text(option),
+                              child: ChoiceText(option),
                             ),
                           ),
                         );
