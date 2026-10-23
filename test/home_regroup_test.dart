@@ -106,7 +106,7 @@ void main() {
             of: find.byKey(const ValueKey('achievementQuestion_LEVEL_10')),
             matching: find.text('問題 0%')),
         findsOneWidget);
-    final pre = find.byKey(const ValueKey('achievementQuestion_LEVEL_2'));
+    final pre = find.byKey(const ValueKey('achievementQuestion_LEVEL_1'));
     await t.scrollUntilVisible(pre, 200,
         scrollable: find.byType(Scrollable).first);
     expect(find.descendant(of: pre, matching: find.text('問題 準備中')),
