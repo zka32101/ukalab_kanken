@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kanken/data/kanji_info_data.dart';
 import 'package:kanken/data/kanji_making_data.dart';
 import 'package:kanken/data/level_kanji_data.dart';
 import 'package:kanken/data/local_exam_questions.dart';
@@ -56,6 +57,35 @@ void main() {
       final seen = <String>{};
       for (final k in kKanjiMaking) {
         expect(seen.add(k.prompt), isTrue, reason: k.prompt);
+      }
+    });
+
+    test('誤答の組み合わせを入れても、アプリの用例データにある実在の二字熟語にならない（公式の例題の「景色」を除く）', () {
+      // 「A景・景B」の誤答に「色」を入れると「景色」になる、という公式の例題と同じ組だけは、そのまま残す。
+      const allowed = {'景色'};
+      final words = <String>{};
+      for (final l in levels) {
+        for (final k in LevelKanjiData.forLevel(l)) {
+          final info = KanjiInfoData.get(k);
+          if (info == null) continue;
+          for (final e in info.examples) {
+            final m = RegExp(r'^([^（）]{2})（').firstMatch(e);
+            if (m != null) words.add(m.group(1)!);
+          }
+        }
+      }
+      for (final k in kKanjiMaking) {
+        // 「A景・景B」型: 誤答 (x, y) → x景 と 景y
+        final shared = RegExp(r'^A(.)・(.)B$').firstMatch(k.prompt);
+        if (shared != null && shared.group(1) == shared.group(2)) {
+          final s = shared.group(1)!;
+          for (final w in k.wrong) {
+            for (final cand in ['${w[0]}$s', '$s${w[1]}']) {
+              if (allowed.contains(cand)) continue;
+              expect(words.contains(cand), isFalse, reason: '${k.prompt} の誤答 ${w.join()} から実在語 $cand');
+            }
+          }
+        }
       }
     });
 
