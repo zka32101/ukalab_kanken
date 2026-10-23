@@ -157,6 +157,22 @@ List<EnhancedExamQuestion> _buildAll(
       final out = <EnhancedExamQuestion>[];
       for (final r in wordRelationsForLevel(l, kind)) {
         final reversed = rnd.nextBool();
+        final blank = wordRelationBlank(r, reversed, l, rnd);
+        if (blank != null) {
+          final isAntonymBlank = kind == WordRelationKind.antonym;
+          out.add(_make(
+            level: level,
+            category: c,
+            id: '${r.word}-${r.partner}',
+            kanji: blank.askWord,
+            question: '${blank.askWord}―${blank.partnerWithBlank}\n'
+                '「${blank.askWord}（${blank.askReading}）」の${isAntonymBlank ? '対義語' : '類義語'}になるように、□に入る漢字はどれ？',
+            options: blank.choices,
+            answer: blank.answerChar,
+            explanation: '${blank.askWord} と ${blank.partner} は、${isAntonymBlank ? '反対の意味' : 'ほぼ同じ意味'}の言葉です。',
+          ));
+          continue;
+        }
         final choices = wordRelationChoices(r, reversed, l, rnd);
         if (choices == null) continue;
         final ask = reversed ? r.partner : r.word;

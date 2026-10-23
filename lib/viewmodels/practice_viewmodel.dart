@@ -306,17 +306,35 @@ List<String>? wordRelationChoices(
 /// その級以下の配当漢字から選んだ字を足す。語の字のどれかを入れると別の語の字になる
 /// （＝正解以外でも通る）字は、選択肢から除く。
 List<String> yojiBlankChoices(String word, int index, String level, Random random) {
-  final answer = word[index];
+  final choices = kanjiBlankChoices(
+    word[index],
+    level,
+    random,
+    isUsable: (c) {
+      if (word.contains(c)) return false;
+      final candidate = word.replaceRange(index, index + 1, c);
+      return !kYojiJukugo.any((y) => y.word == candidate);
+    },
+  );
+  // 四字熟語の語数・字数なら、候補は十分にある（足りない場合は、あるだけで返す）。
+  return choices ?? [word[index]];
+}
+
+/// 空欄に入る漢字の選択肢（漢字4つ。正解を含む）。正解の字に、同じ読みの字（あれば最大2つ）と、
+/// その級以下の配当漢字から選んだ字を足す。[isUsable] が false の字（入れると別の語として成り立つ
+/// 字など）は選択肢から除く。誤答が3つ作れなければ null。
+List<String>? kanjiBlankChoices(
+  String answer,
+  String level,
+  Random random, {
+  required bool Function(String c) isUsable,
+}) {
   final rank = _levelRank[level] ?? 10;
   final pool = <String>[
     for (final e in _levelRank.entries)
       if (e.value >= rank) ...LevelKanjiData.forLevel(e.key),
   ];
-  bool valid(String c) {
-    if (c == answer || word.contains(c)) return false;
-    final candidate = word.replaceRange(index, index + 1, c);
-    return !kYojiJukugo.any((y) => y.word == candidate);
-  }
+  bool valid(String c) => c != answer && isUsable(c);
 
   List<String> readingOf(String k) =>
       (KanjiInfoData.get(k)?.readings ?? const <String>[]).map(_stemReading).toList();
@@ -330,7 +348,71 @@ List<String> yojiBlankChoices(String word, int index, String level, Random rando
       if (valid(c) && !homophones.contains(c)) c,
   ]..shuffle(random);
   final picked = [...homophones.take(2), ...others].take(3).toList();
+  if (picked.length < 3) return null;
   return [answer, ...picked]..shuffle(random);
+}
+
+/// 対義語・類義語の「集合−□散」の形の問題（漢検の例題と同じ）。
+class WordRelationBlank {
+  /// 問いの語（例: 集合）とその読み。
+  final String askWord;
+  final String askReading;
+
+  /// 相手の語の1字を□にした形（例: □散）。
+  final String partnerWithBlank;
+
+  /// □に入る漢字（例: 解）と、その選択肢。
+  final String answerChar;
+  final List<String> choices;
+
+  /// 相手の語（例: 解散）。
+  final String partner;
+
+  const WordRelationBlank({
+    required this.askWord,
+    required this.askReading,
+    required this.partnerWithBlank,
+    required this.answerChar,
+    required this.choices,
+    required this.partner,
+  });
+}
+
+/// 対義語・類義語を、漢検の例題（「集合−□散」）と同じ形にする。相手の語が漢字2字のとき、そのうち
+/// 1字を□にして、□に入る漢字を選ばせる。入れると別の対義語・類義語（データにある語）になる字は、
+/// 選択肢に入れない。選択肢が作れなければ null（語を選ぶ形に回す）。
+WordRelationBlank? wordRelationBlank(
+  WordRelation relation,
+  bool reversed,
+  String level,
+  Random random,
+) {
+  final askWord = reversed ? relation.partner : relation.word;
+  final askReading = reversed ? relation.partnerReading : relation.reading;
+  final partner = reversed ? relation.word : relation.partner;
+  if (partner.runes.length != 2) return null;
+  final index = random.nextInt(2);
+  final knownWords = <String>{
+    for (final r in kWordRelations) ...[r.word, r.partner],
+  };
+  final choices = kanjiBlankChoices(
+    partner[index],
+    level,
+    random,
+    isUsable: (c) {
+      final candidate = partner.replaceRange(index, index + 1, c);
+      return candidate != askWord && !knownWords.contains(candidate);
+    },
+  );
+  if (choices == null) return null;
+  return WordRelationBlank(
+    askWord: askWord,
+    askReading: askReading,
+    partnerWithBlank: partner.replaceRange(index, index + 1, '□'),
+    answerChar: partner[index],
+    choices: choices,
+    partner: partner,
+  );
 }
 
 /// 読み（カタカナの音読み・括弧付きの訓読み）から、比べるための形（ひらがな・送り仮名なし）にする。
@@ -583,6 +665,19 @@ List<PracticeQuestion> _buildPracticeQuestions(
       if (relations.isNotEmpty) {
         final relation = relations[random.nextInt(relations.length)];
         final reversed = random.nextBool();
+        final blank = wordRelationBlank(relation, reversed, level, random);
+        if (blank != null) {
+          return PracticeQuestion(
+            source: question,
+            actualMode: actualMode,
+            prompt: '${blank.askWord}―${blank.partnerWithBlank}',
+            instruction: kind == WordRelationKind.antonym
+                ? '「${blank.askWord}（${blank.askReading}）」の対義語になるように、□に入る漢字はどれ？'
+                : '「${blank.askWord}（${blank.askReading}）」の類義語になるように、□に入る漢字はどれ？',
+            choices: blank.choices,
+            correctAnswer: blank.answerChar,
+          );
+        }
         final choices = wordRelationChoices(relation, reversed, level, random);
         if (choices != null) {
           final askWord = reversed ? relation.partner : relation.word;
