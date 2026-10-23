@@ -247,7 +247,7 @@ List<EnhancedExamQuestion> _buildAll(
           level: level,
           category: c,
           id: s.word,
-          kanji: s.word,
+          kanji: blank.prompt, // 答えの漢字を、カタカナで伏せた形
           question: '${blank.prompt}\n「${blank.prompt}」のカタカナを、漢字に直すと？',
           options: blank.choices,
           answer: blank.answer,

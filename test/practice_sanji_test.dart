@@ -107,6 +107,8 @@ void main() {
       for (final q in qs) {
         expect(q.options.length, 4, reason: q.questionId);
         expect(q.options, contains(q.correctAnswer), reason: q.questionId);
+        // 問題の上の大きい枠に、完成した語（答え）を出さない。
+        expect(kSanjiJukugo.any((s) => s.word == q.kanji), isFalse, reason: '${q.kanji} は完成した語');
       }
     }
     expect(localExamCategoriesForLevel(5), isNot(contains(ExamCategory.sanji)));
