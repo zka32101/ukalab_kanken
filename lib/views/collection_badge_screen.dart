@@ -125,6 +125,8 @@ class CollectionBadgeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const FitTitle('コレクション'),
         backgroundColor: Colors.deepPurple,
+        // 濃い紫の背景なので、文字と戻る矢印は白にする（既定の濃い色だと読めなかった）
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: collectionBadgesAsync.when(
