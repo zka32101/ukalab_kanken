@@ -10,6 +10,7 @@ import '../data/word_relation_data.dart';
 import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
+import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
 import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
@@ -32,6 +33,7 @@ const int practiceSessionSize = 10;
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
+/// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。7級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
 enum PracticeMode {
   reading,
@@ -42,6 +44,7 @@ enum PracticeMode {
   yoji,
   antonym,
   synonym,
+  homophone,
   mixed,
 }
 
@@ -60,6 +63,14 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.strokeCount,
       ];
     case 'LEVEL_8':
+      return const [
+        PracticeMode.reading,
+        PracticeMode.writing,
+        PracticeMode.radical,
+        PracticeMode.compoundStructure,
+        PracticeMode.strokeCount,
+        PracticeMode.antonym,
+      ];
     case 'LEVEL_7':
       return const [
         PracticeMode.reading,
@@ -68,6 +79,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.antonym,
+        PracticeMode.homophone,
       ];
     case 'LEVEL_6':
       return const [
@@ -78,6 +90,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.strokeCount,
         PracticeMode.antonym,
         PracticeMode.synonym,
+        PracticeMode.homophone,
       ];
     case 'LEVEL_5':
       return const [
@@ -89,6 +102,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.yoji,
         PracticeMode.antonym,
         PracticeMode.synonym,
+        PracticeMode.homophone,
       ];
     case 'LEVEL_4':
     case 'LEVEL_3':
@@ -102,6 +116,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.yoji,
         PracticeMode.antonym,
         PracticeMode.synonym,
+        PracticeMode.homophone,
       ];
     default: // 準1級・1級
       return const [
@@ -151,6 +166,19 @@ List<YojiJukugo> yojiForLevel(String level) {
   return [
     for (final y in kYojiJukugo)
       if ((_levelRank[y.level] ?? 0) >= rank) y,
+  ];
+}
+
+/// 指定の級の演習で出す、同音・同訓異字の問題。文と選択肢の字がすべて、その級以下の配当漢字に
+/// あるものだけ。同音異字は7級〜2級、同訓異字は6級〜2級で出題する（それ以外は空）。
+List<HomophoneQuestion> homophonesForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 7) return const [];
+  return [
+    for (final q in kHomophoneQuestions)
+      if ((_levelRank[q.level] ?? 0) >= rank &&
+          (rank <= 6 || q.kind == HomophoneKind.homophone))
+        q,
   ];
 }
 
@@ -351,6 +379,27 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${yoji.meaning}（${yoji.reading}）\n□に入る漢字はどれ？',
           choices: yojiBlankChoices(yoji.word, index, level, random),
           correctAnswer: yoji.word[index],
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.homophone) {
+      final pool = homophonesForLevel(level);
+      if (pool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final h = pool[random.nextInt(pool.length)];
+        final choices = [h.answer, ...(List<String>.from(h.wrong)..shuffle(random)).take(3)]
+          ..shuffle(random);
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: h.sentence,
+          instruction: h.kind == HomophoneKind.homophone
+              ? '【 】のひらがなを漢字で書くと？'
+              : '【 】のひらがなを、漢字と送りがなで書くと？',
+          choices: choices,
+          correctAnswer: h.answer,
         );
       }
     }

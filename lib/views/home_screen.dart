@@ -434,6 +434,8 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.antonym:
     case PracticeMode.synonym:
       return 48;
+    case PracticeMode.homophone:
+      return 30;
     case PracticeMode.writing:
     case PracticeMode.mixed:
       return 40;
@@ -458,6 +460,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.swap_horiz;
     case PracticeMode.synonym:
       return Icons.drag_handle;
+    case PracticeMode.homophone:
+      return Icons.spellcheck;
     case PracticeMode.mixed:
       return Icons.shuffle;
   }
@@ -481,6 +485,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '対義語';
     case PracticeMode.synonym:
       return '類義語';
+    case PracticeMode.homophone:
+      return '同音・同訓異字';
     case PracticeMode.mixed:
       return 'まぜて出題';
   }
@@ -504,6 +510,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '反対の意味の言葉を答える';
     case PracticeMode.synonym:
       return 'ほぼ同じ意味の言葉を答える';
+    case PracticeMode.homophone:
+      return '文に合う漢字を、同じ読みの中から選ぶ';
     case PracticeMode.mixed:
       return 'この級の出題形式をランダムに出題';
   }
