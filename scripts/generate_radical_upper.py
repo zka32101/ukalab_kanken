@@ -8,6 +8,7 @@
   2. KanjiVGの部首の形・位置を、scripts/data/radical_upper_rules.tsv で 部首・部首名 にする
   3. 既存データ（lib/data/kanji_radical_data.dart。10級〜5級・確認済み）の、同じ形・同じ位置の多数派
   どれでも決まらない字は、結果に入れずにレポートに出す（出題には使わない）。
+  scripts/data/radical_upper_excluded.tsv に書いた字は、確信が持てないので結果から除く。
 KanjiVG (https://kanjivg.tagaini.net) (c) Ulrich Apel and contributors, CC BY-SA 3.0。
 """
 import collections
@@ -63,6 +64,17 @@ try:
 except FileNotFoundError:
     pass
 
+# 除く字（確信が持てない字。出題しない）
+excluded = {}
+try:
+    for line in open('scripts/data/radical_upper_excluded.tsv', encoding='utf-8'):
+        if line.startswith('#') or not line.strip():
+            continue
+        k, reason = line.rstrip(chr(10)).split(chr(9))[:2]
+        excluded[k] = reason
+except FileNotFoundError:
+    pass
+
 # 既存データの多数派
 exist = {}
 for m in re.finditer(r"'(.)': KanjiRadicalInfo\(radical: '(.)', radicalName: '([^']*)'\)",
@@ -75,6 +87,9 @@ for k, rn in exist.items():
 
 result, how, undecided = {}, collections.Counter(), []
 for k in UP:
+    if k in excluded:
+        how['除外'] += 1
+        continue
     if k in overrides:
         result[k] = overrides[k]; how['字ごと指定'] += 1; continue
     key = vg.get(k)
@@ -89,7 +104,7 @@ for k in UP:
             result[k] = rn; how['既存の多数派'] += 1; continue
     undecided.append((k, key, dict(c) if c else None))
 
-print('決まった', len(result), how, ' 決まらない', len(undecided))
+print('決まった', len(result), how, ' 決まらない', len(undecided), ' 除外', len(excluded))
 if '--report' in sys.argv:
     g = collections.defaultdict(list)
     for k, key, c in undecided:

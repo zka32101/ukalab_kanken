@@ -49,10 +49,15 @@ void main() {
     final random = Random(8);
     for (final l in ['LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
       for (final k in LevelKanjiData.forLevel(l)) {
+        final info = KanjiRadicalData.get(k);
         final ch = radicalNameChoices(k, random);
+        if (info == null) {
+          expect(ch, isNull, reason: '$l $k（確信が持てず除外した字は、部首名の問題を作らない）');
+          continue;
+        }
         expect(ch, isNotNull, reason: '$l $k');
         expect(ch!.length, 4, reason: '$l $k');
-        expect(ch, contains(KanjiRadicalData.get(k)!.radicalName), reason: '$l $k');
+        expect(ch, contains(info.radicalName), reason: '$l $k');
       }
     }
   });
