@@ -10,6 +10,7 @@ import '../data/word_relation_data.dart';
 import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
+import '../data/kanji_making_data.dart';
 import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
 import '../data/okurigana_data.dart';
@@ -34,6 +35,7 @@ const int practiceSessionSize = 10;
 /// - strokeCount: 漢字の画数を答える（漢検の「筆順・画数」。10級〜5級で出題）
 /// - strokeOrder: 赤で示した画が何画目かを答える（漢検の「筆順」。10級〜5級で出題）
 /// - okurigana: 正しい送りがなを選ぶ（漢検の「送りがな」。8級〜2級で出題）
+/// - kanjiMaking: 同じ読みの漢字を熟語の空欄に入れて、組み合わせを選ぶ（漢検の「漢字作り」。7級〜2級で出題）
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
@@ -49,6 +51,7 @@ enum PracticeMode {
   strokeCount,
   strokeOrder,
   okurigana,
+  kanjiMaking,
   yoji,
   antonym,
   synonym,
@@ -101,6 +104,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.okurigana,
         PracticeMode.antonym,
         PracticeMode.homophone,
+        PracticeMode.kanjiMaking,
         PracticeMode.radicalName,
       ];
     case 'LEVEL_6':
@@ -115,6 +119,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.kanjiMaking,
         PracticeMode.radicalName,
       ];
     case 'LEVEL_5':
@@ -130,6 +135,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.kanjiMaking,
         PracticeMode.errorCorrection,
         PracticeMode.radicalName,
       ];
@@ -147,6 +153,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.kanjiMaking,
         PracticeMode.errorCorrection,
       ];
     default: // 準1級・1級
@@ -241,6 +248,22 @@ List<String>? radicalNameChoices(String kanji, Random random) {
   if (candidates.length < 3) return null;
   return [answer, ...candidates.take(3)]..shuffle(random);
 }
+
+/// 指定の級の演習で出す、漢字作りの問題。使う字がすべて、その級以下の配当漢字にあるものだけ。
+/// 漢字作りは7級〜2級で出題する（それ以外は空）。
+List<KanjiMakingItem> kanjiMakingForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 7) return const [];
+  return [
+    for (final k in kKanjiMaking)
+      if ((_levelRank[k.level] ?? 0) >= rank) k,
+  ];
+}
+
+/// 漢字作りの選択肢の文字列（例: 「A件　B建　C検」）。
+String kanjiMakingChoiceText(List<String> kanji) => [
+      for (var i = 0; i < kanji.length; i++) '${'ABC'[i]}${kanji[i]}',
+    ].join('　');
 
 /// 指定の級の演習で出す、送りがなの問題。その級以下の字の語だけ。送りがなは8級〜2級で出題する
 /// （それ以外は空）。
@@ -595,6 +618,26 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: 'この漢字の部首名はどれ？',
           choices: choices,
           correctAnswer: KanjiRadicalData.get(question.kanji)!.radicalName,
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.kanjiMaking) {
+      final pool = kanjiMakingForLevel(level);
+      if (pool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final k = pool[random.nextInt(pool.length)];
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: k.prompt,
+          instruction: k.instruction,
+          choices: [
+            kanjiMakingChoiceText(k.answer),
+            for (final w in k.wrong) kanjiMakingChoiceText(w),
+          ]..shuffle(random),
+          correctAnswer: kanjiMakingChoiceText(k.answer),
         );
       }
     }

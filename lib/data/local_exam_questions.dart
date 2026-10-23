@@ -26,6 +26,7 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.errorCorrection,
   ExamCategory.radicalName,
   ExamCategory.okurigana,
+  ExamCategory.kanjiMaking,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -52,6 +53,8 @@ int _poolSize(ExamCategory c, String level) {
       return errorCorrectionForLevel(level).length;
     case ExamCategory.okurigana:
       return okuriganaForLevel(level).length;
+    case ExamCategory.kanjiMaking:
+      return kanjiMakingForLevel(level).length;
     case ExamCategory.radicalName:
       return availableModesForLevel(level).contains(PracticeMode.radicalName)
           ? LevelKanjiData.forLevel(level)
@@ -232,6 +235,23 @@ List<EnhancedExamQuestion> _buildAll(
         ));
       }
       return out;
+    case ExamCategory.kanjiMaking:
+      return [
+        for (final k in kanjiMakingForLevel(l))
+          _make(
+            level: level,
+            category: c,
+            id: k.prompt,
+            kanji: k.prompt,
+            question: '${k.prompt}\n${k.instruction}',
+            options: [
+              kanjiMakingChoiceText(k.answer),
+              for (final w in k.wrong) kanjiMakingChoiceText(w),
+            ]..shuffle(rnd),
+            answer: kanjiMakingChoiceText(k.answer),
+            explanation: '正しい組み合わせは「${kanjiMakingChoiceText(k.answer)}」です。',
+          ),
+      ];
     case ExamCategory.okurigana:
       final items = okuriganaForLevel(l).toList()..shuffle(rnd);
       return [

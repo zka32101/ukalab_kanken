@@ -442,7 +442,8 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.errorCorrection:
       return 30;
     case PracticeMode.okurigana:
-      return 48;
+    case PracticeMode.kanjiMaking:
+      return 40;
     case PracticeMode.writing:
     case PracticeMode.mixed:
       return 40;
@@ -465,6 +466,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.gesture;
     case PracticeMode.okurigana:
       return Icons.text_fields;
+    case PracticeMode.kanjiMaking:
+      return Icons.extension;
     case PracticeMode.yoji:
       return Icons.menu_book;
     case PracticeMode.antonym:
@@ -498,6 +501,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '筆順';
     case PracticeMode.okurigana:
       return '送りがな';
+    case PracticeMode.kanjiMaking:
+      return '漢字作り';
     case PracticeMode.yoji:
       return '四字熟語';
     case PracticeMode.antonym:
@@ -531,6 +536,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '赤い画が何画目かを答える';
     case PracticeMode.okurigana:
       return '正しい送りがなを選ぶ';
+    case PracticeMode.kanjiMaking:
+      return '同じ読みの漢字を、熟語に入れる';
     case PracticeMode.yoji:
       return '四字熟語の空欄に入る漢字を答える';
     case PracticeMode.antonym:
