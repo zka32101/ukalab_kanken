@@ -70,6 +70,23 @@ void main() {
       expect(a.correctRate, 1.0);
     });
 
+    test('合計は、漢字と問題の平均。問題が無い級は、漢字だけ', () {
+      const withQ = LevelAchievement(
+          level: 'LEVEL_10',
+          totalKanji: 100,
+          learnedKanji: 60,
+          correctKanji: 20,
+          hasQuestions: true);
+      expect(withQ.totalRate, closeTo(0.4, 1e-9));
+      const noQ = LevelAchievement(
+          level: 'LEVEL_2',
+          totalKanji: 100,
+          learnedKanji: 60,
+          correctKanji: 0,
+          hasQuestions: false);
+      expect(noQ.totalRate, closeTo(0.6, 1e-9));
+    });
+
     test('問題が用意されている級は 10級〜3級だけ', () {
       final a = LevelAchievement.compute(
           levels: kKankenLevels, learnedIds: const {}, correctIds: const {});
@@ -82,28 +99,42 @@ void main() {
     });
   });
 
-  group('LevelColors（割合を彩度で表す）', () {
-    test('0%は灰色（彩度0）、100%は鮮やか（彩度1）', () {
-      expect(HSVColor.fromColor(LevelColors.of('LEVEL_10', 0)).saturation,
-          closeTo(0, 0.01));
-      expect(HSVColor.fromColor(LevelColors.of('LEVEL_10', 1)).saturation,
-          closeTo(1, 0.01));
+  group('LevelColors（割合を彩度で表す。全部の級で同じ1色）', () {
+    test('0%は灰色（彩度0）、100%は上限の彩度（派手すぎない）', () {
+      expect(
+          HSVColor.fromColor(LevelColors.of(0)).saturation, closeTo(0, 0.01));
+      expect(HSVColor.fromColor(LevelColors.of(1)).saturation,
+          closeTo(LevelColors.maxSaturation, 0.01));
+      expect(LevelColors.maxSaturation, lessThanOrEqualTo(0.6));
     });
     test('割合が上がるほど、彩度が上がる', () {
       var prev = -1.0;
       for (final r in [0.0, 0.25, 0.5, 0.75, 1.0]) {
-        final s = HSVColor.fromColor(LevelColors.of('LEVEL_7', r)).saturation;
+        final s = HSVColor.fromColor(LevelColors.of(r)).saturation;
         expect(s, greaterThanOrEqualTo(prev));
         prev = s;
       }
     });
-    test('級ごとに色相が違う（12級ぶん）', () {
-      final hues = {for (final l in kKankenLevels) LevelColors.hueOf(l)};
-      expect(hues.length, kKankenLevels.length);
+    test('割合が小さくても、灰色と見分けがつく（10%で上限の3割以上、25%で5割以上）', () {
+      expect(LevelColors.saturationOf(0.10),
+          greaterThanOrEqualTo(LevelColors.maxSaturation * 0.3));
+      expect(LevelColors.saturationOf(0.25),
+          greaterThanOrEqualTo(LevelColors.maxSaturation * 0.5));
+    });
+    test('色相は1つだけ（アプリの色の桃）。原色の赤にはならない', () {
+      final h = HSVColor.fromColor(LevelColors.of(1)).hue;
+      expect(h, closeTo(LevelColors.hue, 1));
+      expect(LevelColors.hue, inInclusiveRange(300, 350));
+    });
+    test('100%に近いほど、明るさを少し落として、深みを出す（落としすぎない）', () {
+      expect(LevelColors.valueOf(0), closeTo(0.92, 1e-9));
+      expect(LevelColors.valueOf(1), closeTo(0.80, 1e-9));
+      expect(LevelColors.valueOf(0.5), greaterThan(LevelColors.valueOf(1)));
+      expect(LevelColors.valueOf(1), greaterThanOrEqualTo(0.75));
     });
     test('範囲外の割合は、0〜1に収める', () {
-      expect(LevelColors.of('LEVEL_10', -1), LevelColors.of('LEVEL_10', 0));
-      expect(LevelColors.of('LEVEL_10', 2), LevelColors.of('LEVEL_10', 1));
+      expect(LevelColors.of(-1), LevelColors.of(0));
+      expect(LevelColors.of(2), LevelColors.of(1));
     });
   });
 
@@ -133,6 +164,7 @@ void main() {
       await tester.pumpWidget(app(a));
       expect(find.text('漢字 0%'), findsOneWidget);
       expect(find.text('問題 準備中'), findsOneWidget);
+      expect(find.text('合計 0%'), findsOneWidget);
     });
 
     testWidgets('読み上げ用の文言に、割合が入る', (tester) async {
@@ -142,7 +174,8 @@ void main() {
           learnedKanji: 36,
           correctKanji: 24,
           hasQuestions: true);
-      expect(LevelAchievementChips.semanticsLabel(a), '漢字 45パーセント、問題 30パーセント');
+      expect(LevelAchievementChips.semanticsLabel(a),
+          '漢字 45パーセント、問題 30パーセント、合計 38パーセント');
     });
   });
 
