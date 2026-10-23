@@ -97,6 +97,12 @@ void main() {
         prev = s;
       }
     });
+    test('割合が小さくても、灰色と見分けがつく（10%で彩度0.3以上、25%で0.5以上）', () {
+      expect(LevelColors.saturationOf(0.10), greaterThanOrEqualTo(0.3));
+      expect(LevelColors.saturationOf(0.25), greaterThanOrEqualTo(0.5));
+      expect(LevelColors.saturationOf(0), 0);
+      expect(LevelColors.saturationOf(1), 1);
+    });
     test('級ごとに色相が違う（12級ぶん）', () {
       final hues = {for (final l in kKankenLevels) LevelColors.hueOf(l)};
       expect(hues.length, kKankenLevels.length);

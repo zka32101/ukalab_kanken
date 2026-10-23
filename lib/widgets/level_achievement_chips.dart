@@ -1,10 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/level_achievement.dart';
 
 /// 級ごとの色の濃さ（彩度）の決め方。
 ///
-/// 級ごとに色相（色合い）を変え、達成の割合を彩度にする。0% は灰色、100% は鮮やかな色。
+/// 級ごとに色相（色合い）を変え、達成の割合を彩度にする（[saturationOf]）。0% は灰色、100% は鮮やかな色。
 /// 明るさは一定にして、彩度だけで違いが分かるようにする。色だけに頼らないよう、
 /// 画面には割合の数字も添える。
 class LevelColors {
@@ -16,10 +18,14 @@ class LevelColors {
     return ((i < 0 ? 0 : i) * 30.0) % 360;
   }
 
+  /// 割合を、彩度に変える。平方根にして、割合が小さいうちも色の違いが分かるようにする
+  /// （そのままだと、10%以下は灰色とほとんど見分けがつかない）。0 は灰色、1 は最も鮮やか。
+  static double saturationOf(double rate) => math.sqrt(rate.clamp(0.0, 1.0));
+
   /// [rate]（0.0〜1.0）に応じた色。
   static Color of(String level, double rate) {
-    final r = rate.clamp(0.0, 1.0);
-    return HSVColor.fromAHSV(1, hueOf(level), r, 0.86).toColor();
+    return HSVColor.fromAHSV(1, hueOf(level), saturationOf(rate), 0.86)
+        .toColor();
   }
 
   /// [background] の上に置く文字の色（読みやすい方を選ぶ）。
