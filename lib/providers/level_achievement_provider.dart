@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/level_achievement.dart';
+import 'writing_mastery_provider.dart';
 import '../viewmodels/index.dart';
 
 /// 一度でも正解した問題のID（例: `LEVEL_9-毎`）。回答のたびに作り直す。
@@ -17,15 +18,19 @@ final correctQuestionIdsProvider = FutureProvider<Set<String>>((ref) async {
 });
 
 /// 級ごとの達成度（漢字＝覚えた漢字、問題＝正解した漢字。どちらも配当漢字に対する割合）。
+/// 漢字は、演習の「覚えた」と、書く練習の「覚えた」の両方を合わせて数える。
 /// 読み込み中・未ログインのときは、すべて 0 の達成度を返す。
 final levelAchievementProvider = Provider<Map<String, LevelAchievement>>((ref) {
   final learned =
       ref.watch(learnedKanjiIdsProvider).valueOrNull ?? const <String>{};
   final correct =
       ref.watch(correctQuestionIdsProvider).valueOrNull ?? const <String>{};
+  final mastered =
+      ref.watch(masteredWritingKanjisProvider).valueOrNull ?? const <String>{};
   return LevelAchievement.compute(
     levels: kKankenLevels,
     learnedIds: learned,
     correctIds: correct,
+    masteredKanji: mastered,
   );
 });
