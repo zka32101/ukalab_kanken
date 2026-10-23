@@ -427,6 +427,7 @@ double _promptFontSize(PracticeMode mode) {
   switch (mode) {
     case PracticeMode.reading:
     case PracticeMode.radical:
+    case PracticeMode.radicalName:
     case PracticeMode.strokeCount:
       return 80;
     case PracticeMode.compoundStructure:
@@ -465,6 +466,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.spellcheck;
     case PracticeMode.errorCorrection:
       return Icons.rule;
+    case PracticeMode.radicalName:
+      return Icons.label;
     case PracticeMode.mixed:
       return Icons.shuffle;
   }
@@ -492,6 +495,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '同音・同訓異字';
     case PracticeMode.errorCorrection:
       return '誤字訂正';
+    case PracticeMode.radicalName:
+      return '部首名';
     case PracticeMode.mixed:
       return 'まぜて出題';
   }
@@ -519,6 +524,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '文に合う漢字を、同じ読みの中から選ぶ';
     case PracticeMode.errorCorrection:
       return '文の中のまちがった漢字を直す';
+    case PracticeMode.radicalName:
+      return '漢字の部首の名前（きへん など）を答える';
     case PracticeMode.mixed:
       return 'この級の出題形式をランダムに出題';
   }

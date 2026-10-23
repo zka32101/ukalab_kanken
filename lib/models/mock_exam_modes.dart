@@ -21,6 +21,14 @@ enum ExamCategory {
   stroke, // 画数
   writing, // 書き
   usage, // 使い方
+  // 以下は、アプリの中で作る出題分野（lib/data/local_exam_questions.dart）。mixed は必ず最後に置く
+  // （カテゴリ選択の一覧は「最後の mixed を除く」と決めている）。
+  yoji, // 四字熟語
+  antonym, // 対義語
+  synonym, // 類義語
+  homophone, // 同音・同訓異字
+  errorCorrection, // 誤字訂正
+  radicalName, // 部首名
   mixed, // 混合
 }
 
