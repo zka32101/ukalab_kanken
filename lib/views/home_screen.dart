@@ -15,6 +15,7 @@ import '../providers/level_progress_provider.dart';
 import '../models/level_achievement.dart';
 import '../widgets/level_achievement_chips.dart';
 import '../widgets/stroke_highlight_view.dart';
+import '../widgets/choice_text.dart';
 import '../data/stroke_order_sample_data.dart';
 import '../theme/app_theme.dart';
 import '../widgets/home_group.dart';
@@ -838,7 +839,7 @@ class PracticeScreen extends ConsumerWidget {
                         onPressed: () {
                           _handleAnswer(context, ref, isCorrect);
                         },
-                        child: Text(choice),
+                        child: ChoiceText(choice),
                       ),
                     ),
                   );
