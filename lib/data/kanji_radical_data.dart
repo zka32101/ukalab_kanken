@@ -1,3 +1,5 @@
+import 'kanji_radical_upper_data.dart' show kKanjiRadicalUpper;
+
 /// 各漢字の部首・部首名データ（部首の出題・「漢字の学習」画面用）。
 /// 部首名は「きへん」「さんずい」のように、その部首が実際にどう呼ばれるかを表す。
 class KanjiRadicalInfo {
@@ -1039,13 +1041,18 @@ class KanjiRadicalData {
     '簡': KanjiRadicalInfo(radical: '⺮', radicalName: 'たけかんむり'),
   };
 
-  static KanjiRadicalInfo? get(String kanji) => _data[kanji];
+  static KanjiRadicalInfo? get(String kanji) => _data[kanji] ?? kKanjiRadicalUpper[kanji];
 
   /// 全データ（漢字 → 部首）。登録順。用語集の生成用。
   static Iterable<MapEntry<String, KanjiRadicalInfo>> get entries =>
       _data.entries;
 
+  /// 4級〜2級を含む全データ（漢字 → 部首）。出題の選択肢づくり用。
+  /// 用語集は、確認済みの [entries]（10級〜5級）だけを使う。
+  static Iterable<MapEntry<String, KanjiRadicalInfo>> get allEntries =>
+      [..._data.entries, ...kKanjiRadicalUpper.entries];
+
   /// 指定した部首群の中から、正解以外の部首をランダムに選ぶ際の候補一覧
   static List<String> get allRadicals =>
-      _data.values.map((e) => e.radical).toSet().toList();
+      allEntries.map((e) => e.value.radical).toSet().toList();
 }

@@ -160,6 +160,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.homophone,
         PracticeMode.kanjiMaking,
         PracticeMode.errorCorrection,
+        PracticeMode.radicalName,
       ];
     default: // 準1級・1級
       return const [
@@ -238,11 +239,11 @@ List<String>? radicalNameChoices(String kanji, Random random) {
   final answer = info.radicalName;
   // 同じ部首の呼び方（言 = ごんべん／げん など）は、正解と同じ部首を指すので候補にしない。
   final sameRadicalNames = <String>{
-    for (final e in KanjiRadicalData.entries)
+    for (final e in KanjiRadicalData.allEntries)
       if (e.value.radical == info.radical) e.value.radicalName,
   };
   final candidates = <String>{
-    for (final e in KanjiRadicalData.entries)
+    for (final e in KanjiRadicalData.allEntries)
       if (e.value.radical != info.radical &&
           !sameRadicalNames.contains(e.value.radicalName) &&
           !e.value.radicalName.startsWith(answer) &&

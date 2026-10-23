@@ -31,7 +31,8 @@ void main() {
         containsAll([ExamCategory.yoji, ExamCategory.errorCorrection, ExamCategory.synonym]));
     for (final l in [4, 3, 25, 2]) {
       expect(localExamCategoriesForLevel(l), contains(ExamCategory.yoji), reason: '$l');
-      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.radicalName)), reason: '$l');
+      // 部首名は、公式の出題内容どおり8級〜2級に出る（4級〜2級の部首データができたため）。
+      expect(localExamCategoriesForLevel(l), contains(ExamCategory.radicalName), reason: '$l');
     }
     expect(localExamCategoriesForLevel(15), isEmpty);
     expect(localExamCategoriesForLevel(1), isEmpty);
