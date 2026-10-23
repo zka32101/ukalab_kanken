@@ -430,6 +430,7 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.strokeCount:
       return 80;
     case PracticeMode.compoundStructure:
+    case PracticeMode.yoji:
       return 48;
     case PracticeMode.writing:
     case PracticeMode.mixed:
@@ -449,6 +450,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.account_tree;
     case PracticeMode.strokeCount:
       return Icons.format_list_numbered;
+    case PracticeMode.yoji:
+      return Icons.menu_book;
     case PracticeMode.mixed:
       return Icons.shuffle;
   }
@@ -466,6 +469,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '熟語の構成';
     case PracticeMode.strokeCount:
       return '画数';
+    case PracticeMode.yoji:
+      return '四字熟語';
     case PracticeMode.mixed:
       return 'まぜて出題';
   }
@@ -483,6 +488,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '二字熟語の成り立ちを答える';
     case PracticeMode.strokeCount:
       return '漢字の画数を答える';
+    case PracticeMode.yoji:
+      return '四字熟語の空欄に入る漢字を答える';
     case PracticeMode.mixed:
       return 'この級の出題形式をランダムに出題';
   }

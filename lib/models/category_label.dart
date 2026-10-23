@@ -11,6 +11,7 @@ const Map<String, String> categoryLabels = {
   'radical': '部首',
   'compoundStructure': '熟語の構成',
   'strokeCount': '画数',
+  'yoji': '四字熟語',
 };
 
 /// 知らない値は、そのまま出す（落とさない）。
