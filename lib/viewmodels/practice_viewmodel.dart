@@ -12,6 +12,7 @@ import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
 import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
+import '../data/okurigana_data.dart';
 import '../data/stroke_order_sample_data.dart';
 import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
@@ -32,6 +33,7 @@ const int practiceSessionSize = 10;
 /// - compoundStructure: 二字熟語の構成（似た意味／対の意味／修飾／目的語）を答える（8級以下で出題）
 /// - strokeCount: 漢字の画数を答える（漢検の「筆順・画数」。10級〜5級で出題）
 /// - strokeOrder: 赤で示した画が何画目かを答える（漢検の「筆順」。10級〜5級で出題）
+/// - okurigana: 正しい送りがなを選ぶ（漢検の「送りがな」。8級〜2級で出題）
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
@@ -46,6 +48,7 @@ enum PracticeMode {
   compoundStructure,
   strokeCount,
   strokeOrder,
+  okurigana,
   yoji,
   antonym,
   synonym,
@@ -83,6 +86,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
+        PracticeMode.okurigana,
         PracticeMode.antonym,
         PracticeMode.radicalName,
       ];
@@ -94,6 +98,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
+        PracticeMode.okurigana,
         PracticeMode.antonym,
         PracticeMode.homophone,
         PracticeMode.radicalName,
@@ -106,6 +111,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
+        PracticeMode.okurigana,
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
@@ -119,6 +125,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
+        PracticeMode.okurigana,
         PracticeMode.yoji,
         PracticeMode.antonym,
         PracticeMode.synonym,
@@ -135,6 +142,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.writing,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
+        PracticeMode.okurigana,
         PracticeMode.yoji,
         PracticeMode.antonym,
         PracticeMode.synonym,
@@ -232,6 +240,17 @@ List<String>? radicalNameChoices(String kanji, Random random) {
     ..shuffle(random);
   if (candidates.length < 3) return null;
   return [answer, ...candidates.take(3)]..shuffle(random);
+}
+
+/// 指定の級の演習で出す、送りがなの問題。その級以下の字の語だけ。送りがなは8級〜2級で出題する
+/// （それ以外は空）。
+List<OkuriganaItem> okuriganaForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 8) return const [];
+  return [
+    for (final o in kOkurigana)
+      if ((_levelRank[o.level] ?? 0) >= rank) o,
+  ];
 }
 
 /// 指定の級の演習で出す、誤字訂正の問題。同音・同訓異字の問題のうち、誤答が3つ以上あるもの
@@ -494,6 +513,23 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: 'この漢字の部首名はどれ？',
           choices: choices,
           correctAnswer: KanjiRadicalData.get(question.kanji)!.radicalName,
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.okurigana) {
+      final pool = okuriganaForLevel(level);
+      if (pool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final o = pool[random.nextInt(pool.length)];
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: o.reading,
+          instruction: '「${o.reading}」を、漢字と送りがなで正しく書くと？',
+          choices: [o.word, ...o.wrong]..shuffle(random),
+          correctAnswer: o.word,
         );
       }
     }

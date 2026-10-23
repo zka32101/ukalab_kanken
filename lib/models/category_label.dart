@@ -12,6 +12,7 @@ const Map<String, String> categoryLabels = {
   'compoundStructure': '熟語の構成',
   'strokeCount': '画数',
   'strokeOrder': '筆順',
+  'okurigana': '送りがな',
   'yoji': '四字熟語',
   'antonym': '対義語',
   'synonym': '類義語',

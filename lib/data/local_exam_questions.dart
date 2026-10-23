@@ -25,6 +25,7 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.homophone,
   ExamCategory.errorCorrection,
   ExamCategory.radicalName,
+  ExamCategory.okurigana,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -49,6 +50,8 @@ int _poolSize(ExamCategory c, String level) {
       return homophonesForLevel(level).where((h) => h.wrong.length >= 2).length;
     case ExamCategory.errorCorrection:
       return errorCorrectionForLevel(level).length;
+    case ExamCategory.okurigana:
+      return okuriganaForLevel(level).length;
     case ExamCategory.radicalName:
       return availableModesForLevel(level).contains(PracticeMode.radicalName)
           ? LevelKanjiData.forLevel(level)
@@ -213,6 +216,21 @@ List<EnhancedExamQuestion> _buildAll(
         ));
       }
       return out;
+    case ExamCategory.okurigana:
+      final items = okuriganaForLevel(l).toList()..shuffle(rnd);
+      return [
+        for (final o in items.take(40))
+          _make(
+            level: level,
+            category: c,
+            id: o.word,
+            kanji: o.kanji,
+            question: '「${o.reading}」を、漢字と送りがなで正しく書くと？',
+            options: [o.word, ...o.wrong]..shuffle(rnd),
+            answer: o.word,
+            explanation: '正しくは「${o.word}」です（読みは「${o.reading}」）。',
+          ),
+      ];
     case ExamCategory.radicalName:
       final out = <EnhancedExamQuestion>[];
       final kanji = LevelKanjiData.forLevel(l)
