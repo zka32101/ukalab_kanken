@@ -36,16 +36,21 @@
 
 const admin = require('firebase-admin');
 
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+const dryRun = !!process.env.SEED_DRY_RUN;
+
+if (!dryRun && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   console.error('エラー: 環境変数 GOOGLE_APPLICATION_CREDENTIALS が設定されていません。');
   process.exit(1);
 }
 
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-});
-
-const db = admin.firestore();
+// 試走（SEED_DRY_RUN）は書き込まないので、認証もFirestoreへの接続も使わない。
+let db = null;
+if (!dryRun) {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+  db = admin.firestore();
+}
 
 const questions = [
   {
@@ -67033,7 +67038,6 @@ const questions = [
   }
 ];
 async function main() {
-  const collection = db.collection('questions');
   const only = (process.env.SEED_LEVELS || '')
     .split(',')
     .map((s) => s.trim())
@@ -67042,10 +67046,11 @@ async function main() {
   const perLevel = {};
   for (const q of targets) perLevel[q.level] = (perLevel[q.level] || 0) + 1;
   console.log(`投入予定: ${targets.length}件`, perLevel);
-  if (process.env.SEED_DRY_RUN) {
+  if (dryRun) {
     console.log('SEED_DRY_RUN のため書き込みません。');
     return;
   }
+  const collection = db.collection('questions');
   // Firestoreのbatchは1回500件までのため分割してコミットする
   const chunkSize = 400;
   for (let i = 0; i < targets.length; i += chunkSize) {
