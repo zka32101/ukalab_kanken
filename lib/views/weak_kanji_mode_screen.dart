@@ -24,6 +24,18 @@ final weakKanjiFocusQuestionsProvider =
   );
 });
 
+/// 苦手集中トレーニングの問題に出す文字。選択肢は漢字なので、答えの漢字そのものではなく、
+/// 読み方（あれば）を出す。読み方が無い問題は、漢字を出すしかない。
+String weakKanjiPrompt(KanjiQuestion q) =>
+    weakKanjiPromptIsReading(q) ? q.reading! : q.kanji;
+
+/// [weakKanjiPrompt] が読み方か（読み方が無ければ漢字そのもの）。
+bool weakKanjiPromptIsReading(KanjiQuestion q) => (q.reading ?? '').isNotEmpty;
+
+/// 苦手集中トレーニングの問題の、指示文。
+String weakKanjiInstruction(KanjiQuestion q) =>
+    weakKanjiPromptIsReading(q) ? 'この読み方の漢字はどれ？' : 'この漢字と同じものはどれ？';
+
 /// 苦手集中モード画面
 class WeakKanjiModeScreen extends ConsumerWidget {
   const WeakKanjiModeScreen({Key? key}) : super(key: key);
@@ -213,10 +225,19 @@ class WeakKanjiModeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // 漢字表示
+          // 問題表示: 読み方を見て、正しい漢字を選ぶ（漢字そのものを出すと答えが見えてしまう）
           Text(
-            question.kanji,
-            style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+            weakKanjiInstruction(question),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            weakKanjiPrompt(question),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: weakKanjiPromptIsReading(question) ? 48 : 80,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 24),
 
