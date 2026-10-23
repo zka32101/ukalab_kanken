@@ -80,6 +80,7 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
     PracticeMode.antonym => '「${q.prompt}」の対義語は「${q.correctAnswer}」です。',
     PracticeMode.synonym => '「${q.prompt}」の類義語は「${q.correctAnswer}」です。',
     PracticeMode.homophone => '正しくは「${q.correctAnswer}」です。',
+    PracticeMode.errorCorrection => '正しくは「${q.correctAnswer}」です。',
     _ => '「${q.correctAnswer}」と書きます。',
   };
   return NagaraQuestion(

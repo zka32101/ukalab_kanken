@@ -34,6 +34,7 @@ const int practiceSessionSize = 10;
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
 /// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。7級〜2級で出題）
+/// - errorCorrection: 文の中の誤った漢字（同じ読みの別の字）を、正しい漢字に直す（漢検の「誤字訂正」。5級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
 enum PracticeMode {
   reading,
@@ -45,6 +46,7 @@ enum PracticeMode {
   antonym,
   synonym,
   homophone,
+  errorCorrection,
   mixed,
 }
 
@@ -103,6 +105,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.errorCorrection,
       ];
     case 'LEVEL_4':
     case 'LEVEL_3':
@@ -117,6 +120,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.errorCorrection,
       ];
     default: // 準1級・1級
       return const [
@@ -179,6 +183,17 @@ List<HomophoneQuestion> homophonesForLevel(String level) {
       if ((_levelRank[q.level] ?? 0) >= rank &&
           (rank <= 6 || q.kind == HomophoneKind.homophone))
         q,
+  ];
+}
+
+/// 指定の級の演習で出す、誤字訂正の問題。同音・同訓異字の問題のうち、誤答が3つ以上あるもの
+/// （誤答の1つを文に入れても、選択肢が3つ以上残る）。誤字訂正は5級〜2級で出題する（それ以外は空）。
+List<HomophoneQuestion> errorCorrectionForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 5) return const [];
+  return [
+    for (final q in homophonesForLevel(level))
+      if (q.wrong.length >= 3) q,
   ];
 }
 
@@ -379,6 +394,26 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${yoji.meaning}（${yoji.reading}）\n□に入る漢字はどれ？',
           choices: yojiBlankChoices(yoji.word, index, level, random),
           correctAnswer: yoji.word[index],
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.errorCorrection) {
+      final pool = errorCorrectionForLevel(level);
+      if (pool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final h = pool[random.nextInt(pool.length)];
+        // 文には、正解ではない同じ読みの語を1つ入れる（＝誤字）。選択肢は、正解と、残りの誤答。
+        final shown = h.wrong[random.nextInt(h.wrong.length)];
+        final others = h.wrong.where((w) => w != shown).toList()..shuffle(random);
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: h.sentence.replaceFirst('【${h.reading}】', '【$shown】'),
+          instruction: '【 】の漢字は誤りです。正しい漢字は？',
+          choices: [h.answer, ...others.take(3)]..shuffle(random),
+          correctAnswer: h.answer,
         );
       }
     }

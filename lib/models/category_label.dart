@@ -15,6 +15,7 @@ const Map<String, String> categoryLabels = {
   'antonym': '対義語',
   'synonym': '類義語',
   'homophone': '同音・同訓異字',
+  'errorCorrection': '誤字訂正',
 };
 
 /// 知らない値は、そのまま出す（落とさない）。
