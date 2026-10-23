@@ -71,6 +71,10 @@ class LevelAchievement {
   /// 問題（正解した）の割合。0.0〜1.0。
   double get correctRate => _rate(correctKanji);
 
+  /// 合計の割合。漢字と問題の平均。問題が用意されていない級は、漢字の割合だけ。
+  double get totalRate =>
+      hasQuestions ? (learnedRate + correctRate) / 2 : learnedRate;
+
   double _rate(int n) =>
       totalKanji <= 0 ? 0.0 : (n / totalKanji).clamp(0.0, 1.0);
 
