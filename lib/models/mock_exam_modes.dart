@@ -31,6 +31,7 @@ enum ExamCategory {
   radicalName, // 部首名
   okurigana, // 送りがな
   kanjiMaking, // 漢字作り
+  sanji, // 三字熟語
   mixed, // 混合
 }
 

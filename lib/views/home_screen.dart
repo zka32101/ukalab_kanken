@@ -434,6 +434,7 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.strokeOrder:
       return 80;
     case PracticeMode.compoundStructure:
+    case PracticeMode.sanji:
     case PracticeMode.yoji:
     case PracticeMode.antonym:
     case PracticeMode.synonym:
@@ -468,6 +469,8 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.text_fields;
     case PracticeMode.kanjiMaking:
       return Icons.extension;
+    case PracticeMode.sanji:
+      return Icons.view_week;
     case PracticeMode.yoji:
       return Icons.menu_book;
     case PracticeMode.antonym:
@@ -503,6 +506,8 @@ String _practiceModeLabel(PracticeMode mode) {
       return '送りがな';
     case PracticeMode.kanjiMaking:
       return '漢字作り';
+    case PracticeMode.sanji:
+      return '三字熟語';
     case PracticeMode.yoji:
       return '四字熟語';
     case PracticeMode.antonym:
@@ -538,6 +543,8 @@ String _practiceModeDescription(PracticeMode mode) {
       return '正しい送りがなを選ぶ';
     case PracticeMode.kanjiMaking:
       return '同じ読みの漢字を、熟語に入れる';
+    case PracticeMode.sanji:
+      return '三字熟語のカタカナを漢字に直す';
     case PracticeMode.yoji:
       return '四字熟語の空欄に入る漢字を答える';
     case PracticeMode.antonym:

@@ -27,6 +27,7 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.radicalName,
   ExamCategory.okurigana,
   ExamCategory.kanjiMaking,
+  ExamCategory.sanji,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -55,6 +56,8 @@ int _poolSize(ExamCategory c, String level) {
       return okuriganaForLevel(level).length;
     case ExamCategory.kanjiMaking:
       return kanjiMakingForLevel(level).length;
+    case ExamCategory.sanji:
+      return sanjiForLevel(level).length;
     case ExamCategory.radicalName:
       return availableModesForLevel(level).contains(PracticeMode.radicalName)
           ? LevelKanjiData.forLevel(level)
@@ -234,6 +237,23 @@ List<EnhancedExamQuestion> _buildAll(
           options: [h.answer, ...others.take(3)]..shuffle(rnd),
           answer: h.answer,
           explanation: '正しくは「${h.answer}」です。',
+        ));
+      }
+      return out;
+    case ExamCategory.sanji:
+      final out = <EnhancedExamQuestion>[];
+      for (final s in sanjiForLevel(l)) {
+        final blank = sanjiBlank(s, rnd.nextInt(3), l, rnd);
+        if (blank == null) continue;
+        out.add(_make(
+          level: level,
+          category: c,
+          id: s.word,
+          kanji: blank.prompt, // 答えの漢字を、カタカナで伏せた形
+          question: '${blank.prompt}\n「${blank.prompt}」のカタカナを、漢字に直すと？',
+          options: blank.choices,
+          answer: blank.answer,
+          explanation: '正しくは「${s.word}」です。',
         ));
       }
       return out;
