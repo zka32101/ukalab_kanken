@@ -1,0 +1,84 @@
+# 4級〜2級の配当漢字の部首・部首名を決める規則表（scripts/generate_radical_upper.py が使う）。
+#
+# 方針
+#  1. 漢字の部首の「形」と「位置」は KanjiVG（kanjivg.tagaini.net, CC BY-SA 3.0）の部首情報から取る。
+#  2. 「形・位置 → 部首・部首名」は、アプリの既存データ（10級〜5級の1,026字。確認済み）で多数派のものを、
+#     この表に書き写して使う。既存データに無い形は、この表に私が書き足した（下の「追加」の行）。
+#  3. 規則では決まらない字（名前が複数ある部首・形が特殊な字）は、radical_upper_overrides.tsv で字ごとに決める。
+#
+# 列: KanjiVGの形<TAB>位置<TAB>部首<TAB>部首名   （位置の空欄=位置を問わない既定）
+# 位置: left right top bottom tare(たれ) nyo(にょう) kamae(かまえ) tarec/nyoc/kamaec(その他の囲み) none(全体)
+#
+# ===== 既存データから =====
+口	left	口	くちへん
+貝	left	貝	かいへん
+足	left	足	あしへん
+目	left	目	めへん
+馬	left	馬	うまへん
+糸	bottom	糸	いと
+山	left	山	やまへん
+山	top	山	やま
+巾	left	巾	はばへん
+巾	bottom	巾	はば
+弓	left	弓	ゆみへん
+虫	left	虫	むしへん
+虫	bottom	虫	むし
+車	bottom	車	くるま
+金	left	金	かねへん
+隹	right	隹	ふるとり
+彡	right	彡	さんづくり
+殳	right	殳	るまた
+走	nyo	走	そうにょう
+卩	right	卩	ふしづくり
+匸	kamae	匚	はこがまえ
+犬	right	犬	いぬ
+鳥	right	鳥	とり
+大	bottom	大	だい
+子	left	子	こへん
+寸	right	寸	すん
+又	right	又	また
+亠	top	亠	なべぶた
+勹	kamae	勹	つつみがまえ
+戈	none	戈	ほこづくり
+厂	tare	厂	がんだれ
+儿	none	儿	にんにょう
+田	bottom	田	た
+冖	top	冖	わかんむり
+歹	left	歹	がつへん
+丶	none	丶	てん
+衣	none	衣	ころも
+尸	none	尸	しかばね
+女	none	女	おんな
+士	top	士	さむらい
+土	top	土	つち
+八	top	八	はち
+手	bottom	手	て
+目	bottom	目	め
+# ===== 追加（既存データに無い形・私が決めたもの） =====
+疒	tare	疒	やまいだれ
+衤	left	衣	ころもへん
+酉	left	酉	とりへん
+舟	left	舟	ふねへん
+冫	left	冫	にすい
+⺨	left	犭	けものへん
+王	left	玉	たまへん
+戸	tare	戸	とだれ
+虍	tare	虍	とらかんむり
+魚	left	魚	うおへん
+骨	left	骨	ほねへん
+牛	left	牛	うしへん
+鹿	bottom	鹿	しか
+馬	bottom	馬	うま
+⺗	bottom	心	したごころ
+⺤	top	爪	つめかんむり
+辶	nyo	辶	しんにょう
+⻞	left	食	しょくへん
+玉	bottom	玉	たま
+斤	none	斤	おの
+幺	none	幺	いとがしら
+乙	bottom	乙	おつ
+覀	top	襾	にし
+廾	bottom	廾	にじゅうあし
+凵	none	凵	うけばこ
+凵	kamae	凵	うけばこ
+丿	none	丿	の
