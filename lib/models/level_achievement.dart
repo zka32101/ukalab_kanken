@@ -82,28 +82,32 @@ class LevelAchievement {
   static int percent(double rate) => (rate * 100).round();
 
   static LevelAchievement empty(String level) => LevelAchievement(
-        level: level,
-        totalKanji: LevelKanjiData.forLevel(level).length,
-        learnedKanji: 0,
-        correctKanji: 0,
-        hasQuestions: kLevelsWithQuestions.contains(level),
-      );
+    level: level,
+    totalKanji: LevelKanjiData.forLevel(level).length,
+    learnedKanji: 0,
+    correctKanji: 0,
+    hasQuestions: kLevelsWithQuestions.contains(level),
+  );
 
   /// [learnedIds]・[correctIds] は、問題IDの集合（例: `LEVEL_9-毎`）。IDの前半が級、後半が漢字。
-  /// 配当漢字に無い漢字のIDは数えない（割合が100%を超えないように）。
+  /// [masteredKanji] は、書く練習・漢字の学習で「覚えた」にした漢字そのものの集合（級は問わない）。
+  /// 「覚えた」の保存先は2つ（演習の「覚えた！次から出さない」と、書く練習の「覚えた」）なので、
+  /// 漢字の割合には、両方を合わせて数える。同じ漢字は1回だけ。
+  /// 配当漢字に無い漢字は数えない（割合が100%を超えないように）。
   static Map<String, LevelAchievement> compute({
     required Iterable<String> levels,
     required Set<String> learnedIds,
     required Set<String> correctIds,
+    Set<String> masteredKanji = const {},
   }) {
-    int countFor(String level, Set<String> ids, Set<String> allowed) {
+    Set<String> kanjiOf(String level, Set<String> ids, Set<String> allowed) {
       final prefix = '$level-';
-      var n = 0;
-      for (final id in ids) {
-        if (id.startsWith(prefix) &&
-            allowed.contains(id.substring(prefix.length))) n++;
-      }
-      return n;
+      return {
+        for (final id in ids)
+          if (id.startsWith(prefix) &&
+              allowed.contains(id.substring(prefix.length)))
+            id.substring(prefix.length),
+      };
     }
 
     return {
@@ -111,11 +115,15 @@ class LevelAchievement {
         level: () {
           final kanji = LevelKanjiData.forLevel(level);
           final allowed = kanji.toSet();
+          final learned = {
+            ...kanjiOf(level, learnedIds, allowed),
+            ...masteredKanji.where(allowed.contains),
+          };
           return LevelAchievement(
             level: level,
             totalKanji: kanji.length,
-            learnedKanji: countFor(level, learnedIds, allowed),
-            correctKanji: countFor(level, correctIds, allowed),
+            learnedKanji: learned.length,
+            correctKanji: kanjiOf(level, correctIds, allowed).length,
             hasQuestions: kLevelsWithQuestions.contains(level),
           );
         }(),

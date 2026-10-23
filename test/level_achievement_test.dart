@@ -48,6 +48,42 @@ void main() {
       expect(a['LEVEL_9']!.correctKanji, 1);
     });
 
+    test('書く練習の「覚えた」（漢字そのもの）も、漢字の割合に数える', () {
+      final k = LevelKanjiData.forLevel('LEVEL_10');
+      final a = LevelAchievement.compute(
+        levels: const ['LEVEL_10'],
+        learnedIds: const {},
+        correctIds: const {},
+        masteredKanji: {k[0], k[1], k[2]},
+      )['LEVEL_10']!;
+      expect(a.learnedKanji, 3);
+      expect(a.correctKanji, 0);
+    });
+
+    test('演習の「覚えた」と書く練習の「覚えた」が同じ漢字なら、1回だけ数える', () {
+      final k = LevelKanjiData.forLevel('LEVEL_10');
+      final a = LevelAchievement.compute(
+        levels: const ['LEVEL_10'],
+        learnedIds: {'LEVEL_10-${k[0]}', 'LEVEL_10-${k[1]}'},
+        correctIds: const {},
+        masteredKanji: {k[1], k[2]},
+      )['LEVEL_10']!;
+      expect(a.learnedKanji, 3); // k0, k1, k2
+    });
+
+    test('書く練習の「覚えた」は、その漢字が属する級にだけ数える（他の級の漢字は数えない）', () {
+      final l10 = LevelKanjiData.forLevel('LEVEL_10');
+      final l9 = LevelKanjiData.forLevel('LEVEL_9');
+      final a = LevelAchievement.compute(
+        levels: const ['LEVEL_10', 'LEVEL_9'],
+        learnedIds: const {},
+        correctIds: const {},
+        masteredKanji: {l10[0], l9[0], 'ゴミ'},
+      );
+      expect(a['LEVEL_10']!.learnedKanji, 1);
+      expect(a['LEVEL_9']!.learnedKanji, 1);
+    });
+
     test('同じIDを重ねて数えない（集合なので1つ）・配当に無い漢字や別の級のIDは数えない', () {
       final a = LevelAchievement.compute(
         levels: const ['LEVEL_10'],
