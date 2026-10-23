@@ -6,6 +6,7 @@ import '../providers/mock_exam_enhanced_provider.dart';
 import '../providers/exam_session_provider.dart';
 import '../providers/purchases_provider.dart' show hasPremiumProvider;
 import '../data/free_tier_quota.dart';
+import '../data/local_exam_questions.dart';
 import '../viewmodels/user_viewmodel.dart';
 import 'mock_exam_enhanced_screen.dart';
 import 'package:kanken/widgets/text_fit.dart';
@@ -359,6 +360,14 @@ class MockExamModesScreen extends ConsumerWidget {
     String? userId,
     int targetLevel,
   ) {
+    // 'mixed' は除く。アプリの中で作る分野は、その級に出るものだけを選べるようにする。
+    final available = localExamCategoriesForLevel(targetLevel);
+    final categories = [
+      for (final c in ExamCategory.values)
+        if (c != ExamCategory.mixed &&
+            (!kLocalExamCategories.contains(c) || available.contains(c)))
+          c,
+    ];
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -368,9 +377,9 @@ class MockExamModesScreen extends ConsumerWidget {
           width: double.maxFinite,
           child: ListView.builder(
             shrinkWrap: true,
-            itemCount: ExamCategory.values.length - 1, // Exclude 'mixed'
+            itemCount: categories.length,
             itemBuilder: (context, index) {
-              final category = ExamCategory.values[index];
+              final category = categories[index];
               final categoryName = categoryLabel(category.name);
 
               return ListTile(

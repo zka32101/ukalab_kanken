@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/local_exam_questions.dart';
 import '../models/mock_exam.dart';
 import '../models/mock_exam_modes.dart';
 
@@ -29,6 +30,30 @@ const int _kExamPoolLimit = 200;
 final enhancedExamQuestionsProvider =
     FutureProvider.family<List<EnhancedExamQuestion>, ExamConfig>(
   (ref, config) async {
+    // その級で、アプリの中で作れる出題分野（四字熟語・対義語・類義語 など）。
+    // 試験の分野に含まれるものだけを、Firestoreの問題に混ぜる。
+    final localCategories = localExamCategoriesForLevel(config.targetLevel)
+        .where(config.categories.contains)
+        .toList();
+    // 要求された分野がすべてアプリで作る分野なら、全問をそちらで作る。
+    final onlyLocal = config.categories.every(kLocalExamCategories.contains);
+    // 混ぜる割合: 作れる分野1つにつき1割、最大5割（標準試験では約半分を新しい形式にする）。
+    final localShare = onlyLocal ? 1.0 : (localCategories.length * 0.1).clamp(0.0, 0.5);
+    final localTarget = (config.questionCount * localShare).round();
+    final local = localTarget > 0
+        ? buildLocalExamQuestions(
+            level: config.targetLevel,
+            categories: localCategories,
+            count: localTarget,
+          )
+        : <EnhancedExamQuestion>[];
+    if (onlyLocal) {
+      if (local.isEmpty) {
+        throw Exception('この級には、選んだ分野の問題がありません');
+      }
+      return local;
+    }
+
     try {
       Query<Map<String, dynamic>> query = FirebaseFirestore.instance
           .collection('examQuestions')
@@ -66,9 +91,13 @@ final enhancedExamQuestionsProvider =
         questions.shuffle();
       }
 
-      // Return only the requested number
-      return questions.take(config.questionCount).toList();
+      // Firestoreの問題に、アプリの中で作った問題を混ぜて、要求された問題数にする。
+      final merged = [...questions.take(config.questionCount - local.length), ...local];
+      if (config.randomizeOrder) merged.shuffle();
+      return merged;
     } catch (e) {
+      // Firestoreが読めなくても、アプリの中で作れる問題だけで試験を成立させる。
+      if (local.isNotEmpty) return local;
       throw Exception('Failed to load enhanced exam questions: $e');
     }
   },
