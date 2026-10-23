@@ -29,6 +29,7 @@ enum ExamCategory {
   homophone, // 同音・同訓異字
   errorCorrection, // 誤字訂正
   radicalName, // 部首名
+  okurigana, // 送りがな
   mixed, // 混合
 }
 
