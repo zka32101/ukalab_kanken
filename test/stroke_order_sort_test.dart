@@ -38,20 +38,9 @@ void main() {
     }
   });
 
-  test('同じ画数の漢字は、配当表の順のまま（並びが毎回同じ）', () {
+  test('並びは毎回同じ（同じ画数は読み順で決まる）', () {
     for (final level in levels) {
-      final original = LevelKanjiData.forLevel(level);
-      final sorted = strokeOrderKanjiForLevel(level);
-      for (var i = 1; i < sorted.length; i++) {
-        if (strokeCountOf(sorted[i])! == strokeCountOf(sorted[i - 1])!) {
-          expect(
-            original.indexOf(sorted[i]),
-            greaterThan(original.indexOf(sorted[i - 1])),
-            reason: level,
-          );
-        }
-      }
-      expect(strokeOrderKanjiForLevel(level), sorted);
+      expect(strokeOrderKanjiForLevel(level), strokeOrderKanjiForLevel(level));
     }
   });
 
@@ -62,8 +51,13 @@ void main() {
     expect(l.take(3).every((k) => strokeCountOf(k)! <= 2), isTrue);
   });
 
-  test('sortByStrokeCount: 画数が分からない漢字は最後。同じ画数は元の順', () {
+  test('sortByStrokeCount: 画数が分からない漢字は最後。同じ画数は読み順', () {
     final r = sortByStrokeCount(['三', '〓', '一', '二', '十']);
-    expect(r, ['一', '二', '十', '三', '〓']);
+    expect(r, ['一', '十', '二', '三', '〓']);
+  });
+
+  test('sortByStrokeCount: 2画は読み順（きゅう・しち・じゅう・じん・に・にゅう・はち・りょく）', () {
+    final r = sortByStrokeCount(['人', '七', '九', '二', '十', '入', '力', '八']);
+    expect(r, ['九', '七', '十', '人', '二', '入', '八', '力']);
   });
 }
