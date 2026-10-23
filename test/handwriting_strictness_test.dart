@@ -25,8 +25,9 @@ Future<HandwritingJudgement> _judge(int pass) => HandwritingJudgeService().judge
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('合格点は 60/65/70/75/80、既定は65', () {
-    expect(HandwritingStrictness.values.map((e) => e.passingScore), [60, 65, 70, 75, 80]);
+  test('合格点は 50/60/65/70/75/80、既定は65（小学生向けの50点を足した）', () {
+    expect(HandwritingStrictness.values.map((e) => e.passingScore), [50, 60, 65, 70, 75, 80]);
+    expect(HandwritingStrictness.kids.passingScore, 50);
     expect(HandwritingStrictness.easy.passingScore, 60);
     expect(HandwritingStrictness.standard.passingScore, 65);
     expect(HandwritingStrictness.firm.passingScore, 75);

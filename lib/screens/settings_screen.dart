@@ -56,7 +56,7 @@ class HandwritingStrictnessTile extends ConsumerWidget {
     return ListTile(
       leading: const Icon(Icons.edit_outlined),
       title: const Text('手書きの判定'),
-      subtitle: const Text('やさしい：ざっくり合っていれば合格\nふつう\nきびしい：形をていねいに'),
+      subtitle: const Text('合格の点数を選びます。小学生は50点、大人は65点が目安です。点数が低いほど、ざっくり合っていれば合格です。'),
       isThreeLine: true,
       trailing: DropdownButton<HandwritingStrictness>(
                 value: level,
