@@ -12,6 +12,7 @@ import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
 import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
+import '../data/stroke_order_sample_data.dart';
 import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
 import '../providers/spaced_repetition_provider.dart';
@@ -30,6 +31,7 @@ const int practiceSessionSize = 10;
 /// - radical: 漢字を見て部首を答える（9級以上で出題）
 /// - compoundStructure: 二字熟語の構成（似た意味／対の意味／修飾／目的語）を答える（8級以下で出題）
 /// - strokeCount: 漢字の画数を答える（漢検の「筆順・画数」。10級〜5級で出題）
+/// - strokeOrder: 赤で示した画が何画目かを答える（漢検の「筆順」。10級〜5級で出題）
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
@@ -43,6 +45,7 @@ enum PracticeMode {
   radical,
   compoundStructure,
   strokeCount,
+  strokeOrder,
   yoji,
   antonym,
   synonym,
@@ -58,13 +61,19 @@ enum PracticeMode {
 List<PracticeMode> availableModesForLevel(String level) {
   switch (level) {
     case 'LEVEL_10':
-      return const [PracticeMode.reading, PracticeMode.writing, PracticeMode.strokeCount];
+      return const [
+        PracticeMode.reading,
+        PracticeMode.writing,
+        PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
+      ];
     case 'LEVEL_9':
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
         PracticeMode.radical,
         PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
       ];
     case 'LEVEL_8':
       return const [
@@ -73,6 +82,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
         PracticeMode.antonym,
         PracticeMode.radicalName,
       ];
@@ -83,6 +93,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
         PracticeMode.antonym,
         PracticeMode.homophone,
         PracticeMode.radicalName,
@@ -94,6 +105,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
@@ -106,6 +118,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
+        PracticeMode.strokeOrder,
         PracticeMode.yoji,
         PracticeMode.antonym,
         PracticeMode.synonym,
@@ -152,6 +165,9 @@ class PracticeQuestion {
   final List<String> choices;
   final String correctAnswer;
 
+  /// 筆順の問題で、赤く示す画（0始まり）。書き順の図は prompt の漢字のものを使う。筆順の問題以外は null。
+  final int? highlightStroke;
+
   const PracticeQuestion({
     required this.source,
     required this.actualMode,
@@ -159,6 +175,7 @@ class PracticeQuestion {
     required this.instruction,
     required this.choices,
     required this.correctAnswer,
+    this.highlightStroke,
   });
 }
 
@@ -303,6 +320,21 @@ String _stemReading(String r) => String.fromCharCodes([
         c >= 0x30A1 && c <= 0x30F6 ? c - 0x60 : c,
     ]);
 
+/// 筆順の問題（「赤い画は何画目？」）の選択肢（画の番号。1始まり）。正解の前後の番号を優先して
+/// 4つ選び、小さい順に並べる。全部で4画未満の字では、4つ作れないので null（画数の問題に回す）。
+List<int>? strokeOrderChoices(int answer, int total, Random random) {
+  if (total < 4 || answer < 1 || answer > total) return null;
+  final near = <int>[
+    for (final d in [1, -1, 2, -2, 3, -3])
+      if (answer + d >= 1 && answer + d <= total) answer + d,
+  ];
+  final rest = [
+    for (var n = 1; n <= total; n++)
+      if (n != answer && !near.contains(n)) n,
+  ]..shuffle(random);
+  return [answer, ...[...near, ...rest].take(3)]..sort();
+}
+
 /// 画数の問題の選択肢（画数）。正解の前後の画数から、紛らわしい候補を3つ足して4つにする（1画以上）。
 /// 小さい順に並べる。
 List<int> strokeCountChoices(int count) {
@@ -390,6 +422,27 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: 'この漢字の部首はどれ？',
           choices: choices,
           correctAnswer: info.radical,
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.strokeOrder) {
+      final data = StrokeOrderSampleData.getStrokeOrder(question.kanji);
+      final answerIndex = data == null ? 0 : random.nextInt(data.strokeCount);
+      final numbers =
+          data == null ? null : strokeOrderChoices(answerIndex + 1, data.strokeCount, random);
+      if (numbers == null) {
+        // 書き順のデータが無い字、4画未満の字は、画数の問題に回す。
+        actualMode = PracticeMode.strokeCount;
+      } else {
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: question.kanji,
+          instruction: '赤い画は、何画目？',
+          choices: [for (final n in numbers) '$n画目'],
+          correctAnswer: '${answerIndex + 1}画目',
+          highlightStroke: answerIndex,
         );
       }
     }
