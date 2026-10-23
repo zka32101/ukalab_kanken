@@ -9,6 +9,7 @@
 // is otherwise unchanged from the source.
 
 import '../models/stroke_order.dart';
+import 'stroke_order_upper_data.dart';
 
 class StrokeOrderSampleData {
   StrokeOrderSampleData._();
@@ -15835,11 +15836,16 @@ class StrokeOrderSampleData {
   };
 
   /// 書き順データが用意されている漢字一覧
-  static List<String> get availableKanji => _data.keys.toList();
+  static List<String> get availableKanji => [
+    ..._data.keys,
+    ...StrokeOrderUpperData.data.keys,
+  ];
 
   /// 指定した漢字の書き順データを取得（無ければnull）
-  static StrokeOrderData? getStrokeOrder(String kanji) => _data[kanji];
+  static StrokeOrderData? getStrokeOrder(String kanji) =>
+      _data[kanji] ?? StrokeOrderUpperData.data[kanji];
 
   /// 書き順データがあるか判定
-  static bool hasStrokeOrder(String kanji) => _data.containsKey(kanji);
+  static bool hasStrokeOrder(String kanji) =>
+      _data.containsKey(kanji) || StrokeOrderUpperData.data.containsKey(kanji);
 }

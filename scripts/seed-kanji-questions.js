@@ -28,6 +28,10 @@
  *
  * 使い方（scripts/ ディレクトリで実行）:
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json node seed-kanji-questions.js
+ *
+ * 投入する級を絞るときは SEED_LEVELS（カンマ区切り）を付ける。付けなければ全級。
+ *   SEED_LEVELS=LEVEL_4,LEVEL_3,LEVEL_2_PRE,LEVEL_2 GOOGLE_APPLICATION_CREDENTIALS=... node seed-kanji-questions.js
+ * SEED_DRY_RUN=1 を付けると、書き込まずに投入予定の件数だけ表示する。
  */
 
 const admin = require('firebase-admin');
@@ -67030,18 +67034,30 @@ const questions = [
 ];
 async function main() {
   const collection = db.collection('questions');
+  const only = (process.env.SEED_LEVELS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const targets = only.length ? questions.filter((q) => only.includes(q.level)) : questions;
+  const perLevel = {};
+  for (const q of targets) perLevel[q.level] = (perLevel[q.level] || 0) + 1;
+  console.log(`投入予定: ${targets.length}件`, perLevel);
+  if (process.env.SEED_DRY_RUN) {
+    console.log('SEED_DRY_RUN のため書き込みません。');
+    return;
+  }
   // Firestoreのbatchは1回500件までのため分割してコミットする
   const chunkSize = 400;
-  for (let i = 0; i < questions.length; i += chunkSize) {
-    const chunk = questions.slice(i, i + chunkSize);
+  for (let i = 0; i < targets.length; i += chunkSize) {
+    const chunk = targets.slice(i, i + chunkSize);
     const batch = db.batch();
     for (const q of chunk) {
       batch.set(collection.doc(q.id), q);
     }
     await batch.commit();
-    console.log(`✅ ${i + chunk.length}/${questions.length}件を投入しました。`);
+    console.log(`✅ ${i + chunk.length}/${targets.length}件を投入しました。`);
   }
-  console.log(`✅ 完了: 合計${questions.length}件を questions コレクションに投入しました。`);
+  console.log(`✅ 完了: 合計${targets.length}件を questions コレクションに投入しました。`);
 }
 
 main().catch((err) => {

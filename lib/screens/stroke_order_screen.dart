@@ -27,8 +27,8 @@ final _levelStrokeOrderKanjiProvider =
       return strokeOrderKanjiForLevel(level);
     });
 
-/// 級の配当漢字のうち書き順データがあるものだけを返す。画数の少ない漢字から順（同じ画数は配当表の順）。
-/// 書き順データが1字も無い級（現状は4級・3級）は、他の級の漢字で埋めずに空を返す。
+/// 級の配当漢字のうち書き順データがあるものだけを返す。画数の少ない漢字から順（同じ画数は読み順）。
+/// 書き順データが1字も無い級は、他の級の漢字で埋めずに空を返す。
 /// 以前は空のとき全漢字（小学校分）にフォールバックしていたため、
 /// 4級・3級を選んでも下の級の漢字が混ざって表示されていた。
 List<String> strokeOrderKanjiForLevel(String level) {
@@ -45,19 +45,42 @@ int? strokeCountOf(String kanji) =>
     kanjiStrokeCount(kanji) ??
     StrokeOrderSampleData.getStrokeOrder(kanji)?.strokeCount;
 
-/// 画数の少ない漢字から順に並べる。同じ画数の漢字は、元の並び（配当表の順）のまま。
-/// 画数が分からない漢字は、最後に回す。
+/// 画数の少ない漢字から順に並べる。同じ画数の漢字は、読み（五十音）順。
+/// 読みが分からない漢字は同じ画数の最後に、画数が分からない漢字は全体の最後に回す
+/// （どちらも元の並び＝配当表の順のまま）。
 List<String> sortByStrokeCount(List<String> kanji) {
   final indexed = [
     for (var i = 0; i < kanji.length; i++)
-      (kanji: kanji[i], index: i, count: strokeCountOf(kanji[i])),
+      (
+        kanji: kanji[i],
+        index: i,
+        count: strokeCountOf(kanji[i]),
+        reading: _sortReading(kanji[i]),
+      ),
   ];
   indexed.sort((a, b) {
     final ac = a.count ?? 1 << 30;
     final bc = b.count ?? 1 << 30;
-    return ac != bc ? ac.compareTo(bc) : a.index.compareTo(b.index);
+    if (ac != bc) return ac.compareTo(bc);
+    final ar = a.reading;
+    final br = b.reading;
+    if (ar != null && br != null && ar != br) return ar.compareTo(br);
+    if ((ar == null) != (br == null)) return ar == null ? 1 : -1;
+    return a.index.compareTo(b.index);
   });
   return [for (final e in indexed) e.kanji];
+}
+
+/// 並べ替えに使う読み。先頭の読み（音読み）から送り仮名の括弧を除き、ひらがなにしたもの。
+String? _sortReading(String kanji) {
+  final info = KanjiInfoData.get(kanji);
+  if (info == null || info.readings.isEmpty) return null;
+  final first = info.readings.first.split('（').first;
+  return String.fromCharCodes([
+    for (final c in first.runes)
+      // カタカナ（ァ〜ヶ）→ ひらがな
+      c >= 0x30A1 && c <= 0x30F6 ? c - 0x60 : c,
+  ]);
 }
 
 /// 漢字の学習画面（漢字一覧 → タップで書き順アニメーション・読み方・用例を表示）
