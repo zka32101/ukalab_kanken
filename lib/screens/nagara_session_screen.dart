@@ -81,6 +81,7 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
     PracticeMode.synonym => '「${q.prompt}」の類義語は「${q.correctAnswer}」です。',
     PracticeMode.homophone => '正しくは「${q.correctAnswer}」です。',
     PracticeMode.errorCorrection => '正しくは「${q.correctAnswer}」です。',
+    PracticeMode.radicalName => '「${q.source.kanji}」の部首名は「${q.correctAnswer}」です。',
     _ => '「${q.correctAnswer}」と書きます。',
   };
   return NagaraQuestion(

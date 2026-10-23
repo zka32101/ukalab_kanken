@@ -34,6 +34,7 @@ const int practiceSessionSize = 10;
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
 /// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。7級〜2級で出題）
+/// - radicalName: 漢字の部首名（「きへん」「さんずい」など）を答える（漢検の「部首・部首名」。8級〜5級で出題）
 /// - errorCorrection: 文の中の誤った漢字（同じ読みの別の字）を、正しい漢字に直す（漢検の「誤字訂正」。5級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
 enum PracticeMode {
@@ -47,6 +48,7 @@ enum PracticeMode {
   synonym,
   homophone,
   errorCorrection,
+  radicalName,
   mixed,
 }
 
@@ -72,6 +74,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.antonym,
+        PracticeMode.radicalName,
       ];
     case 'LEVEL_7':
       return const [
@@ -82,6 +85,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.strokeCount,
         PracticeMode.antonym,
         PracticeMode.homophone,
+        PracticeMode.radicalName,
       ];
     case 'LEVEL_6':
       return const [
@@ -93,6 +97,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.synonym,
         PracticeMode.homophone,
+        PracticeMode.radicalName,
       ];
     case 'LEVEL_5':
       return const [
@@ -106,6 +111,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.synonym,
         PracticeMode.homophone,
         PracticeMode.errorCorrection,
+        PracticeMode.radicalName,
       ];
     case 'LEVEL_4':
     case 'LEVEL_3':
@@ -184,6 +190,31 @@ List<HomophoneQuestion> homophonesForLevel(String level) {
           (rank <= 6 || q.kind == HomophoneKind.homophone))
         q,
   ];
+}
+
+/// 部首名の問題の選択肢（部首名4つ。正解を含む）。データに無い字は null。
+/// 紛らわしい候補は、別の部首の名前から選ぶ。正解と前方一致する名前（き／きへん など、同じ部首の
+/// 呼び方違い）は、どちらも正しく見えるので除く。
+List<String>? radicalNameChoices(String kanji, Random random) {
+  final info = KanjiRadicalData.get(kanji);
+  if (info == null) return null;
+  final answer = info.radicalName;
+  // 同じ部首の呼び方（言 = ごんべん／げん など）は、正解と同じ部首を指すので候補にしない。
+  final sameRadicalNames = <String>{
+    for (final e in KanjiRadicalData.entries)
+      if (e.value.radical == info.radical) e.value.radicalName,
+  };
+  final candidates = <String>{
+    for (final e in KanjiRadicalData.entries)
+      if (e.value.radical != info.radical &&
+          !sameRadicalNames.contains(e.value.radicalName) &&
+          !e.value.radicalName.startsWith(answer) &&
+          !answer.startsWith(e.value.radicalName))
+        e.value.radicalName,
+  }.toList()
+    ..shuffle(random);
+  if (candidates.length < 3) return null;
+  return [answer, ...candidates.take(3)]..shuffle(random);
 }
 
 /// 指定の級の演習で出す、誤字訂正の問題。同音・同訓異字の問題のうち、誤答が3つ以上あるもの
@@ -394,6 +425,22 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${yoji.meaning}（${yoji.reading}）\n□に入る漢字はどれ？',
           choices: yojiBlankChoices(yoji.word, index, level, random),
           correctAnswer: yoji.word[index],
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.radicalName) {
+      final choices = radicalNameChoices(question.kanji, random);
+      if (choices == null) {
+        actualMode = PracticeMode.writing;
+      } else {
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: question.kanji,
+          instruction: 'この漢字の部首名はどれ？',
+          choices: choices,
+          correctAnswer: KanjiRadicalData.get(question.kanji)!.radicalName,
         );
       }
     }
