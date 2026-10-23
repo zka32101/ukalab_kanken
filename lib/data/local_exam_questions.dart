@@ -66,6 +66,8 @@ int _poolSize(ExamCategory c, String level) {
   }
 }
 
+/// [kanji] は、模擬試験の画面で問題の上に大きく出る文字。答えが見えてしまわないよう、
+/// 答えを含まない文字（問われている語・読み・□で伏せた形）を渡す。
 EnhancedExamQuestion _make({
   required int level,
   required ExamCategory category,
@@ -143,7 +145,7 @@ List<EnhancedExamQuestion> _buildAll(
           level: level,
           category: c,
           id: y.word,
-          kanji: y.word,
+          kanji: y.word.replaceRange(index, index + 1, '□'), // 答えの字を伏せる
           question: '${y.meaning}（${y.reading}）\n'
               '「${y.word.replaceRange(index, index + 1, '□')}」の□に入る漢字はどれ？',
           options: yojiBlankChoices(y.word, index, l, rnd),
@@ -206,7 +208,7 @@ List<EnhancedExamQuestion> _buildAll(
               level: level,
               category: c,
               id: '${h.reading}-${h.answer}',
-              kanji: h.answer,
+              kanji: h.reading, // 答えの漢字ではなく、読みを出す
               question: '${h.sentence}\n'
                   '${h.kind == HomophoneKind.homophone ? '【 】のひらがなを漢字で書くと？' : '【 】のひらがなを、漢字と送りがなで書くと？'}',
               options: [
@@ -226,7 +228,7 @@ List<EnhancedExamQuestion> _buildAll(
           level: level,
           category: c,
           id: '${h.reading}-${h.answer}',
-          kanji: h.answer,
+          kanji: h.reading, // 答えの漢字ではなく、読みを出す
           question: '${h.sentence.replaceFirst('【${h.reading}】', '【$shown】')}\n'
               '【 】の漢字は誤りです。正しい漢字は？',
           options: [h.answer, ...others.take(3)]..shuffle(rnd),
@@ -260,7 +262,7 @@ List<EnhancedExamQuestion> _buildAll(
             level: level,
             category: c,
             id: o.word,
-            kanji: o.kanji,
+            kanji: o.reading, // 答えの漢字ではなく、読みを出す
             question: '「${o.reading}」を、漢字と送りがなで正しく書くと？',
             options: [o.word, ...o.wrong]..shuffle(rnd),
             answer: o.word,

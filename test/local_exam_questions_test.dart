@@ -61,6 +61,35 @@ void main() {
     }
   });
 
+  test('画面の大きい枠に出る文字（kanji）が、答えを含まない（実機で、四字熟語の答えが丸見えだった）', () {
+    // 問われている語そのものを出す分野（対義語・類義語・漢字作り・部首名）は、対象外。
+    // それ以外は、答えの漢字（語）が kanji に入っていてはいけない。
+    const hiding = [
+      ExamCategory.homophone,
+      ExamCategory.errorCorrection,
+      ExamCategory.okurigana,
+    ];
+    for (final level in [8, 7, 6, 5, 4, 3, 25, 2]) {
+      for (final c in hiding) {
+        final qs = buildLocalExamQuestions(
+            level: level, categories: [c], count: 200, random: Random(6));
+        for (final q in qs) {
+          expect(q.kanji.contains(q.correctAnswer), isFalse,
+              reason: '$level ${c.name}: 「${q.kanji}」が答え「${q.correctAnswer}」を含む');
+        }
+      }
+      // 四字熟語は、答えの字を□で伏せた形を出す（四苦八苦のように、同じ字が別の位置にもある語がある
+      // ので、「答えの字を含まない」ではなく「□がある（完成した語ではない）」で確かめる）。
+      final yoji = buildLocalExamQuestions(
+          level: level, categories: [ExamCategory.yoji], count: 200, random: Random(6));
+      for (final q in yoji) {
+        expect(q.kanji.contains('□'), isTrue, reason: '$level 「${q.kanji}」は答えの字を伏せた形');
+        expect(q.question.contains(q.kanji.replaceAll('□', q.correctAnswer)), isFalse,
+            reason: '$level 問題文に完成した語が出ている');
+      }
+    }
+  });
+
   test('分野は順番に回して出る（1分野に偏らない）', () {
     final qs = buildLocalExamQuestions(
         level: 5, categories: localExamCategoriesForLevel(5), count: 12, random: Random(2));
