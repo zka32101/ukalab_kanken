@@ -30,6 +30,7 @@ enum ExamCategory {
   errorCorrection, // 誤字訂正
   radicalName, // 部首名
   okurigana, // 送りがな
+  kanjiMaking, // 漢字作り
   mixed, // 混合
 }
 
