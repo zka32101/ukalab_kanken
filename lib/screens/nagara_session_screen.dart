@@ -79,6 +79,7 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
     PracticeMode.strokeOrder => '赤い画は「${q.source.kanji}」の${q.correctAnswer}です。',
     PracticeMode.okurigana => '正しくは「${q.correctAnswer}」です。',
     PracticeMode.kanjiMaking => '正しい組み合わせは「${q.correctAnswer}」です。',
+    PracticeMode.sanji => '正しくは「${q.correctAnswer}」です。',
     PracticeMode.yoji => '空欄には「${q.correctAnswer}」が入ります。',
     PracticeMode.antonym => '「${q.prompt}」の対義語は「${q.correctAnswer}」です。',
     PracticeMode.synonym => '「${q.prompt}」の類義語は「${q.correctAnswer}」です。',

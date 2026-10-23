@@ -14,6 +14,7 @@ const Map<String, String> categoryLabels = {
   'strokeOrder': '筆順',
   'okurigana': '送りがな',
   'kanjiMaking': '漢字作り',
+  'sanji': '三字熟語',
   'yoji': '四字熟語',
   'antonym': '対義語',
   'synonym': '類義語',

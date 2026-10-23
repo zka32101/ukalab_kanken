@@ -14,6 +14,7 @@ import '../data/kanji_making_data.dart';
 import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
 import '../data/okurigana_data.dart';
+import '../data/sanji_jukugo_data.dart';
 import '../data/stroke_order_sample_data.dart';
 import '../models/index.dart';
 import '../providers/learning_goal_provider.dart';
@@ -36,6 +37,7 @@ const int practiceSessionSize = 10;
 /// - strokeOrder: 赤で示した画が何画目かを答える（漢検の「筆順」。10級〜5級で出題）
 /// - okurigana: 正しい送りがなを選ぶ（漢検の「送りがな」。8級〜2級で出題）
 /// - kanjiMaking: 同じ読みの漢字を熟語の空欄に入れて、組み合わせを選ぶ（漢検の「漢字作り」。7級〜2級で出題）
+/// - sanji: 三字熟語の1字をカタカナにして、その漢字を答える（漢検の「三字熟語」。7級・6級で出題）
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
@@ -52,6 +54,7 @@ enum PracticeMode {
   strokeOrder,
   okurigana,
   kanjiMaking,
+  sanji,
   yoji,
   antonym,
   synonym,
@@ -105,6 +108,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.antonym,
         PracticeMode.homophone,
         PracticeMode.kanjiMaking,
+        PracticeMode.sanji,
         PracticeMode.radicalName,
       ];
     case 'LEVEL_6':
@@ -120,6 +124,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.synonym,
         PracticeMode.homophone,
         PracticeMode.kanjiMaking,
+        PracticeMode.sanji,
         PracticeMode.radicalName,
       ];
     case 'LEVEL_5':
@@ -247,6 +252,44 @@ List<String>? radicalNameChoices(String kanji, Random random) {
     ..shuffle(random);
   if (candidates.length < 3) return null;
   return [answer, ...candidates.take(3)]..shuffle(random);
+}
+
+/// 指定の級の演習で出す、三字熟語。語に含まれる字がすべて、その級以下の配当漢字にあるものだけ。
+/// 三字熟語は7級・6級で出題する（それ以外は空）。
+List<SanjiJukugo> sanjiForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 7 || rank < 6) return const [];
+  return [
+    for (final s in kSanjiJukugo)
+      if ((_levelRank[s.level] ?? 0) >= rank) s,
+  ];
+}
+
+/// 三字熟語の問題（『フ可能』の「フ」を漢字にする）。[index] 字目をカタカナにして、その漢字を選ばせる。
+/// 入れると別の三字熟語（データにある語）になる字は、選択肢に入れない。作れなければ null。
+({String prompt, String answer, List<String> choices})? sanjiBlank(
+  SanjiJukugo s,
+  int index,
+  String level,
+  Random random,
+) {
+  final answer = s.word[index];
+  final choices = kanjiBlankChoices(
+    answer,
+    level,
+    random,
+    isUsable: (c) {
+      if (s.word.contains(c)) return false;
+      final candidate = s.word.replaceRange(index, index + 1, c);
+      return !kSanjiJukugo.any((x) => x.word == candidate);
+    },
+  );
+  if (choices == null) return null;
+  return (
+    prompt: s.word.replaceRange(index, index + 1, s.readings[index]),
+    answer: answer,
+    choices: choices,
+  );
 }
 
 /// 指定の級の演習で出す、漢字作りの問題。使う字がすべて、その級以下の配当漢字にあるものだけ。
@@ -619,6 +662,27 @@ List<PracticeQuestion> _buildPracticeQuestions(
           choices: choices,
           correctAnswer: KanjiRadicalData.get(question.kanji)!.radicalName,
         );
+      }
+    }
+
+    if (actualMode == PracticeMode.sanji) {
+      final pool = sanjiForLevel(level);
+      if (pool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final s = pool[random.nextInt(pool.length)];
+        final blank = sanjiBlank(s, random.nextInt(3), level, random);
+        if (blank != null) {
+          return PracticeQuestion(
+            source: question,
+            actualMode: actualMode,
+            prompt: blank.prompt,
+            instruction: '「${blank.prompt}」のカタカナを、漢字に直すと？',
+            choices: blank.choices,
+            correctAnswer: blank.answer,
+          );
+        }
+        actualMode = PracticeMode.writing;
       }
     }
 
