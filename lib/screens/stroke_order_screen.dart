@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../data/kanji_info_data.dart';
 import '../data/kanji_radical_data.dart';
+import '../data/kanji_stroke_count_data.dart';
 import '../data/level_kanji_data.dart';
 import '../data/stroke_order_sample_data.dart';
 import '../providers/writing_mastery_provider.dart';
@@ -12,6 +14,7 @@ import '../views/handwriting_practice_screen.dart';
 import '../widgets/kanji_meaning_draft_section.dart';
 import '../widgets/stroke_order_animation.dart';
 import '../theme/app_theme.dart';
+
 import 'package:kanken/widgets/text_fit.dart';
 
 /// 選択中の級の配当漢字（公式級別漢字表準拠、`LevelKanjiData`）のうち、
@@ -21,16 +24,40 @@ import 'package:kanken/widgets/text_fit.dart';
 /// 公式配当漢字表のローカルデータを直接使う方式に変更した。
 final _levelStrokeOrderKanjiProvider =
     FutureProvider.family<List<String>, String>((ref, level) async {
-  return strokeOrderKanjiForLevel(level);
-});
+      return strokeOrderKanjiForLevel(level);
+    });
 
-/// 級の配当漢字のうち書き順データがあるものだけを返す（配当表の並び順）。
+/// 級の配当漢字のうち書き順データがあるものだけを返す。画数の少ない漢字から順（同じ画数は配当表の順）。
 /// 書き順データが1字も無い級（現状は4級・3級）は、他の級の漢字で埋めずに空を返す。
 /// 以前は空のとき全漢字（小学校分）にフォールバックしていたため、
 /// 4級・3級を選んでも下の級の漢字が混ざって表示されていた。
 List<String> strokeOrderKanjiForLevel(String level) {
   final available = StrokeOrderSampleData.availableKanji.toSet();
-  return LevelKanjiData.forLevel(level).where(available.contains).toList();
+  final kanji = LevelKanjiData.forLevel(level)
+      .where(available.contains)
+      .toList();
+  return sortByStrokeCount(kanji);
+}
+
+/// 漢字の画数。「全N画」の表示と同じ値（画数の一覧にあればそれ、無ければ書き順データの画数）。
+/// どちらも無ければ null。
+int? strokeCountOf(String kanji) =>
+    kanjiStrokeCount(kanji) ??
+    StrokeOrderSampleData.getStrokeOrder(kanji)?.strokeCount;
+
+/// 画数の少ない漢字から順に並べる。同じ画数の漢字は、元の並び（配当表の順）のまま。
+/// 画数が分からない漢字は、最後に回す。
+List<String> sortByStrokeCount(List<String> kanji) {
+  final indexed = [
+    for (var i = 0; i < kanji.length; i++)
+      (kanji: kanji[i], index: i, count: strokeCountOf(kanji[i])),
+  ];
+  indexed.sort((a, b) {
+    final ac = a.count ?? 1 << 30;
+    final bc = b.count ?? 1 << 30;
+    return ac != bc ? ac.compareTo(bc) : a.index.compareTo(b.index);
+  });
+  return [for (final e in indexed) e.kanji];
 }
 
 /// 漢字の学習画面（漢字一覧 → タップで書き順アニメーション・読み方・用例を表示）
@@ -53,10 +80,7 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
     final masteredAsync = ref.watch(masteredWritingKanjisProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const FitTitle('漢字の学習'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const FitTitle('漢字の学習'), centerTitle: true),
       body: kanjiListAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('エラー: $err')),
@@ -71,8 +95,8 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
           }
           final selected =
               (_selectedKanji != null && kanjiList.contains(_selectedKanji))
-                  ? _selectedKanji!
-                  : kanjiList.first;
+              ? _selectedKanji!
+              : kanjiList.first;
           final mastered = masteredAsync.valueOrNull ?? const <String>{};
           return _buildContent(context, level, kanjiList, selected, mastered);
         },
@@ -99,225 +123,253 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
     // 文字が大きいとき、下の「かんじをえらぼう」の見出しとグリッドの分を必ず残す。
     final scale = textScaleOf(context);
     final headerHeight = scale > 1.2 ? 28.0 * scale * 3 + 16 : 48.0;
-    return LayoutBuilder(builder: (context, constraints) {
-    final maxDetailHeight = math.min(
-      MediaQuery.of(context).size.height * 0.45,
-      math.max(120.0, constraints.maxHeight - headerHeight - 160),
-    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxDetailHeight = math.min(
+          MediaQuery.of(context).size.height * 0.45,
+          math.max(120.0, constraints.maxHeight - headerHeight - 160),
+        );
 
-    return Column(
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxDetailHeight),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Column(
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                transitionBuilder: (child, animation) =>
-                    FadeTransition(opacity: animation, child: child),
-                child: StrokeOrderAnimationWidget(
-                  key: ValueKey(selected),
-                  data: data,
-                  size: 160,
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => HandwritingPracticeScreen(
-                          level: level,
-                          kanji: selected,
-                        ),
+        return Column(
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxDetailHeight),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Column(
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: StrokeOrderAnimationWidget(
+                        key: ValueKey(selected),
+                        data: data,
+                        size: 160,
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('書く練習'),
-                ),
-              ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: info == null
-                    ? const SizedBox.shrink(key: ValueKey('no-info'))
-                    : Container(
-                        key: ValueKey('info-$selected'),
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '読み方',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                            const SizedBox(height: 4),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: info.readings.map((reading) {
-                                return Chip(
-                                  label: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Text(reading),
-                                  ),
-                                  backgroundColor: Colors.white,
-                                  visualDensity: VisualDensity.compact,
-                                );
-                              }).toList(),
-                            ),
-                            if (radicalInfo != null) ...[
-                              const SizedBox(height: 10),
-                              const Text(
-                                '部首',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                              const SizedBox(height: 4),
-                              Chip(
-                                label: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text('${radicalInfo.radical}（${radicalInfo.radicalName}）'),
-                                ),
-                                backgroundColor: Colors.white,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                            ],
-                            // 意味(AI下書き)。kKanjiMeaningVisible が false の間は何も出ない。
-                            KanjiMeaningDraftSection(kanji: selected),
-                            const SizedBox(height: 10),
-                            const Text(
-                              '使い方の例',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                            const SizedBox(height: 4),
-                            ...info.examples.map(
-                              (example) => Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  '・$example',
-                                  style: const TextStyle(fontSize: 13, color: Colors.black87),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ],
-            ),
-          ),
-        ),
-        const Divider(height: 1),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            runSpacing: 4,
-            children: [
-              Text(
-                'かんじをえらぼう',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 16),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      '${kanjiList.where(mastered.contains).length} / ${kanjiList.length} 覚えた',
-                      style: const TextStyle(fontSize: 13, color: Colors.black54),
                     ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => HandwritingPracticeScreen(
+                                level: level,
+                                kanji: selected,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text('書く練習'),
+                      ),
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: info == null
+                          ? const SizedBox.shrink(key: ValueKey('no-info'))
+                          : Container(
+                              key: ValueKey('info-$selected'),
+                              width: double.infinity,
+                              margin: const EdgeInsets.only(top: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    '読み方',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: info.readings.map((reading) {
+                                      return Chip(
+                                        label: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(reading),
+                                        ),
+                                        backgroundColor: Colors.white,
+                                        visualDensity: VisualDensity.compact,
+                                      );
+                                    }).toList(),
+                                  ),
+                                  if (radicalInfo != null) ...[
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      '部首',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Chip(
+                                      label: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          '${radicalInfo.radical}（${radicalInfo.radicalName}）',
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.white,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ],
+                                  // 意味(AI下書き)。kKanjiMeaningVisible が false の間は何も出ない。
+                                  KanjiMeaningDraftSection(kanji: selected),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    '使い方の例',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ...info.examples.map(
+                                    (example) => Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Text(
+                                        '・$example',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    'かんじをえらぼう',
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          '${kanjiList.where(mastered.contains).length} / ${kanjiList.length} 覚えた',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1,
             ),
-            itemCount: kanjiList.length,
-            itemBuilder: (context, index) {
-              final kanji = kanjiList[index];
-              final isSelected = kanji == selected;
-              final isMastered = mastered.contains(kanji);
-              final bgColor = isSelected
-                  ? AppColors.primary
-                  : isMastered
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1,
+                ),
+                itemCount: kanjiList.length,
+                itemBuilder: (context, index) {
+                  final kanji = kanjiList[index];
+                  final isSelected = kanji == selected;
+                  final isMastered = mastered.contains(kanji);
+                  final bgColor = isSelected
+                      ? AppColors.primary
+                      : isMastered
                       ? Colors.green.shade50
                       : Colors.white;
-              final borderColor = isSelected
-                  ? AppColors.primary
-                  : isMastered
+                  final borderColor = isSelected
+                      ? AppColors.primary
+                      : isMastered
                       ? Colors.green
                       : Colors.grey.shade300;
-              return Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => setState(() => _selectedKanji = kanji),
-                  child: Stack(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        decoration: BoxDecoration(
-                          color: bgColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: borderColor,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              kanji,
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected ? Colors.white : Colors.black87,
+                  return Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => setState(() => _selectedKanji = kanji),
+                      child: Stack(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: borderColor,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  kanji,
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          if (isMastered && !isSelected)
+                            const Positioned(
+                              top: 2,
+                              right: 2,
+                              child: Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 16,
+                              ),
+                            ),
+                        ],
                       ),
-                      if (isMastered && !isSelected)
-                        const Positioned(
-                          top: 2,
-                          right: 2,
-                          child: Icon(Icons.check_circle, color: Colors.green, size: 16),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
-    });
   }
 }
