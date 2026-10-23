@@ -18,8 +18,8 @@ const List<String> kKankenLevels = [
 
 /// 問題が用意されている級。
 ///
-/// 漢字（配当漢字）はどの級にもあるが、問題は 10級〜3級までしか入っていない
-/// （準2級・2級・準1級・1級は準備中）。問題を足したら、ここにも足す。
+/// 漢字（配当漢字）はどの級にもあるが、問題は 10級〜2級までしか入っていない
+/// （準1級・1級は準備中）。問題を足したら、ここにも足す。
 const Set<String> kLevelsWithQuestions = {
   'LEVEL_10',
   'LEVEL_9',
@@ -29,6 +29,8 @@ const Set<String> kLevelsWithQuestions = {
   'LEVEL_5',
   'LEVEL_4',
   'LEVEL_3',
+  'LEVEL_2_PRE',
+  'LEVEL_2',
 };
 
 /// questionStats の1件が「一度でも正解した」を表すか。

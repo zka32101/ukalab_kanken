@@ -123,13 +123,13 @@ void main() {
       expect(noQ.totalRate, closeTo(0.6, 1e-9));
     });
 
-    test('問題が用意されている級は 10級〜3級だけ', () {
+    test('問題が用意されている級は 10級〜2級だけ', () {
       final a = LevelAchievement.compute(
           levels: kKankenLevels, learnedIds: const {}, correctIds: const {});
-      for (final l in ['LEVEL_10', 'LEVEL_5', 'LEVEL_3']) {
+      for (final l in ['LEVEL_10', 'LEVEL_5', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
         expect(a[l]!.hasQuestions, isTrue, reason: l);
       }
-      for (final l in ['LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1']) {
+      for (final l in ['LEVEL_1_PRE', 'LEVEL_1']) {
         expect(a[l]!.hasQuestions, isFalse, reason: l);
       }
     });
@@ -192,8 +192,8 @@ void main() {
 
     testWidgets('問題が無い級は「問題 準備中」', (tester) async {
       const a = LevelAchievement(
-          level: 'LEVEL_2',
-          totalKanji: 185,
+          level: 'LEVEL_1_PRE',
+          totalKanji: 941,
           learnedKanji: 0,
           correctKanji: 0,
           hasQuestions: false);
