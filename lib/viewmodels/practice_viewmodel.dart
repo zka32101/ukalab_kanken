@@ -6,6 +6,7 @@ import '../data/compound_structure_data.dart';
 import '../data/exam_prep_data.dart' show historyProvider;
 import '../views/core_v069_entry.dart' show recordKankenReviewResult;
 import '../data/level_kanji_data.dart';
+import '../data/word_relation_data.dart';
 import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
@@ -29,8 +30,20 @@ const int practiceSessionSize = 10;
 /// - compoundStructure: 二字熟語の構成（似た意味／対の意味／修飾／目的語）を答える（8級以下で出題）
 /// - strokeCount: 漢字の画数を答える（漢検の「筆順・画数」。10級〜5級で出題）
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
+/// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
+/// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
-enum PracticeMode { reading, writing, radical, compoundStructure, strokeCount, yoji, mixed }
+enum PracticeMode {
+  reading,
+  writing,
+  radical,
+  compoundStructure,
+  strokeCount,
+  yoji,
+  antonym,
+  synonym,
+  mixed,
+}
 
 /// 級ごとに実際の漢検で出題される形式に合わせた、選択可能な出題形式一覧
 /// （mixedを除く）。10級は読み/書き取り/画数、9級から部首が加わり、
@@ -48,6 +61,14 @@ List<PracticeMode> availableModesForLevel(String level) {
       ];
     case 'LEVEL_8':
     case 'LEVEL_7':
+      return const [
+        PracticeMode.reading,
+        PracticeMode.writing,
+        PracticeMode.radical,
+        PracticeMode.compoundStructure,
+        PracticeMode.strokeCount,
+        PracticeMode.antonym,
+      ];
     case 'LEVEL_6':
       return const [
         PracticeMode.reading,
@@ -55,6 +76,8 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
+        PracticeMode.antonym,
+        PracticeMode.synonym,
       ];
     case 'LEVEL_5':
       return const [
@@ -64,6 +87,8 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
         PracticeMode.yoji,
+        PracticeMode.antonym,
+        PracticeMode.synonym,
       ];
     case 'LEVEL_4':
     case 'LEVEL_3':
@@ -75,6 +100,8 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.yoji,
+        PracticeMode.antonym,
+        PracticeMode.synonym,
       ];
     default: // 準1級・1級
       return const [
@@ -125,6 +152,44 @@ List<YojiJukugo> yojiForLevel(String level) {
     for (final y in kYojiJukugo)
       if ((_levelRank[y.level] ?? 0) >= rank) y,
   ];
+}
+
+/// 指定の級の演習で出す、対義語（または類義語）の組。2語に含まれる字がすべて、その級以下の
+/// 配当漢字にあるものだけ。対義語は8級〜2級、類義語は6級〜2級で出題する（それ以外は空）。
+List<WordRelation> wordRelationsForLevel(String level, WordRelationKind kind) {
+  final rank = _levelRank[level];
+  final minRank = kind == WordRelationKind.antonym ? 8 : 6;
+  if (rank == null || rank > minRank) return const [];
+  return [
+    for (final r in kWordRelations)
+      if (r.kind == kind && (_levelRank[r.level] ?? 0) >= rank) r,
+  ];
+}
+
+/// 対義語・類義語の問題の選択肢（語4つ。正解を含む）。[askWord] が問いの語、[answer] が正解。
+/// 紛らわしい候補は、同じ種類の他の組から、別の分野の語を選ぶ。問いの語・正解と
+/// 何らかの対義語・類義語の関係がある語（全データで）は、候補から除く。足りなければ null。
+List<String>? wordRelationChoices(
+  WordRelation relation,
+  bool reversed,
+  String level,
+  Random random,
+) {
+  final askWord = reversed ? relation.partner : relation.word;
+  final answer = reversed ? relation.word : relation.partner;
+  final related = <String>{askWord, answer};
+  for (final r in kWordRelations) {
+    if (r.word == askWord || r.partner == askWord || r.word == answer || r.partner == answer) {
+      related..add(r.word)..add(r.partner);
+    }
+  }
+  final candidates = <String>{
+    for (final r in wordRelationsForLevel(level, relation.kind))
+      if (r.group != relation.group) ...[r.word, r.partner],
+  }..removeAll(related);
+  if (candidates.length < 3) return null;
+  final picked = candidates.toList()..shuffle(random);
+  return [answer, ...picked.take(3)]..shuffle(random);
 }
 
 /// 四字熟語の空欄の選択肢（漢字4つ）。正解の字に、同じ読みの字（あれば最大2つ）と、
@@ -288,6 +353,34 @@ List<PracticeQuestion> _buildPracticeQuestions(
           correctAnswer: yoji.word[index],
         );
       }
+    }
+
+    if (actualMode == PracticeMode.antonym || actualMode == PracticeMode.synonym) {
+      final kind = actualMode == PracticeMode.antonym
+          ? WordRelationKind.antonym
+          : WordRelationKind.synonym;
+      final relations = wordRelationsForLevel(level, kind);
+      if (relations.isNotEmpty) {
+        final relation = relations[random.nextInt(relations.length)];
+        final reversed = random.nextBool();
+        final choices = wordRelationChoices(relation, reversed, level, random);
+        if (choices != null) {
+          final askWord = reversed ? relation.partner : relation.word;
+          final askReading = reversed ? relation.partnerReading : relation.reading;
+          final answer = reversed ? relation.word : relation.partner;
+          return PracticeQuestion(
+            source: question,
+            actualMode: actualMode,
+            prompt: askWord,
+            instruction: kind == WordRelationKind.antonym
+                ? '「$askWord（$askReading）」の対義語（反対の意味の言葉）はどれ？'
+                : '「$askWord（$askReading）」の類義語（ほぼ同じ意味の言葉）はどれ？',
+            choices: choices,
+            correctAnswer: answer,
+          );
+        }
+      }
+      actualMode = PracticeMode.writing;
     }
 
     if (actualMode == PracticeMode.compoundStructure) {
