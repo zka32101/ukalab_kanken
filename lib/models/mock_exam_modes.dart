@@ -34,6 +34,8 @@ enum ExamCategory {
   sanji, // 三字熟語
   compoundStructure, // 熟語の構成
   koji, // 故事・諺
+  wordReading, // 熟語の読み
+  wordWriting, // 熟語の書き取り
   mixed, // 混合
 }
 

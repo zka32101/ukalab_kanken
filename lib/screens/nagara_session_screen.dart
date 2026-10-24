@@ -75,6 +75,8 @@ NagaraQuestion toNagaraQuestion(PracticeQuestion q) {
   final example = q.source.example;
   final head = switch (q.actualMode) {
     PracticeMode.reading => '「${q.source.kanji}」は「${q.correctAnswer}」と読みます。',
+    PracticeMode.wordReading => '「${q.prompt}」は「${q.correctAnswer}」と読みます。',
+    PracticeMode.wordWriting => '「${q.prompt}」は「${q.correctAnswer}」と書きます。',
     PracticeMode.strokeCount => '「${q.source.kanji}」の画数は${q.correctAnswer}です。',
     PracticeMode.strokeOrder => '赤い画は「${q.source.kanji}」の${q.correctAnswer}です。',
     PracticeMode.okurigana => '正しくは「${q.correctAnswer}」です。',

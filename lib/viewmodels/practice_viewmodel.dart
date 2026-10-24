@@ -43,6 +43,8 @@ const int practiceSessionSize = 10;
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
 /// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。同音異字は8級〜2級、同訓異字は6級〜2級で出題）
+/// - wordReading: 熟語を見て読み方を答える（漢検の「読み」。熟語の読み。10級〜1級で出題）
+/// - wordWriting: 読み方を見て正しい熟語を答える（漢検の「書き取り」。熟語の書き取り。10級〜1級で出題）
 /// - koji: 故事成語・諺の空欄に入る漢字を答える（漢検の「故事・諺」。準1級・1級で出題）
 /// - radicalName: 漢字の部首名（「きへん」「さんずい」など）を答える（漢検の「部首・部首名」。8級〜5級で出題）
 /// - errorCorrection: 文の中の誤った漢字（同じ読みの別の字）を、正しい漢字に直す（漢検の「誤字訂正」。5級〜2級で出題）
@@ -64,6 +66,8 @@ enum PracticeMode {
   errorCorrection,
   radicalName,
   koji,
+  wordReading,
+  wordWriting,
   mixed,
 }
 
@@ -76,6 +80,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
       ];
@@ -83,6 +89,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.strokeCount,
         PracticeMode.strokeOrder,
@@ -91,6 +99,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
@@ -104,6 +114,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
@@ -119,6 +131,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
@@ -135,6 +149,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.strokeCount,
@@ -155,6 +171,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.okurigana,
@@ -170,6 +188,8 @@ List<PracticeMode> availableModesForLevel(String level) {
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
+        PracticeMode.wordReading,
+        PracticeMode.wordWriting,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
         PracticeMode.yoji,
@@ -402,6 +422,89 @@ List<KojiItem> kojiForLevel(String level) {
 }
 
 final RegExp _kanjiChar = RegExp(r'[一-鿿]');
+
+/// 熟語の用例（漢字ごとの用例のうち、漢字だけでできた2〜4字の語）と、その読み。
+class JukugoItem {
+  final String word;
+  final String reading; // ひらがな
+  /// 語に含まれる最も難しい字の級（例: 'LEVEL_5'）。この級以下の演習で出す。
+  final String level;
+  const JukugoItem(this.word, this.reading, this.level);
+}
+
+List<JukugoItem>? _jukugoCache;
+
+List<JukugoItem> get allJukugo => _jukugoCache ??= _buildJukugo();
+
+List<JukugoItem> _buildJukugo() {
+  final rankOf = <String, double>{};
+  for (final e in _levelRank.entries) {
+    for (final c in LevelKanjiData.forLevel(e.key)) {
+      rankOf[c] = e.value;
+    }
+  }
+  final levelOfRank = {for (final e in _levelRank.entries) e.value: e.key};
+  final exampleRe = RegExp(r'^(.+?)（(.+?)）$');
+  final wordRe = RegExp(r'^[一-鿿]{2,4}$');
+  final readingRe = RegExp(r'^[ぁ-ゖー]+$');
+  final seen = <String>{};
+  final out = <JukugoItem>[];
+  for (final entry in KanjiInfoData.entries) {
+    for (final ex in entry.value.examples) {
+      final m = exampleRe.firstMatch(ex);
+      if (m == null) continue;
+      final word = m.group(1)!;
+      final reading = m.group(2)!;
+      if (!wordRe.hasMatch(word) || !readingRe.hasMatch(reading) || !seen.add(word)) continue;
+      final ranks = [for (final c in word.split('')) rankOf[c]];
+      if (ranks.any((r) => r == null)) continue;
+      out.add(JukugoItem(word, reading, levelOfRank[ranks.whereType<double>().reduce(min)]!));
+    }
+  }
+  return out;
+}
+
+/// 指定の級の演習で出す熟語（語に含まれる字がすべて、その級以下の配当漢字にあるものだけ）。
+List<JukugoItem> jukugoForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null) return const [];
+  return [
+    for (final j in allJukugo)
+      if ((_levelRank[j.level] ?? 0) >= rank) j,
+  ];
+}
+
+/// 熟語の読みの選択肢（読み4つ。正解を含む）。紛らわしい読みは、同じ級の他の熟語の読みから、
+/// 長さの近いものを選ぶ。作れなければ null。
+List<String>? jukugoReadingChoices(JukugoItem item, List<JukugoItem> pool, Random random) {
+  final candidates = <String>{
+    for (final j in pool)
+      if (j.reading != item.reading && (j.reading.length - item.reading.length).abs() <= 1) j.reading,
+  }.toList()
+    ..shuffle(random);
+  if (candidates.length < 3) return null;
+  return [item.reading, ...candidates.take(3)]..shuffle(random);
+}
+
+/// 熟語の書き取りの選択肢（熟語4つ。正解を含む）。紛らわしい語は、正解と字を共有する同じ長さの語から選び、
+/// 足りなければ同じ長さの語から選ぶ。正解と同じ読みの語（同音異義語）は、正解になりうるので入れない。
+List<String>? jukugoWritingChoices(JukugoItem item, List<JukugoItem> pool, Random random) {
+  final sameLength = [
+    for (final j in pool)
+      if (j.word != item.word && j.reading != item.reading && j.word.length == item.word.length) j.word,
+  ];
+  final sharing = [
+    for (final w in sameLength)
+      if (w.split('').any(item.word.contains)) w,
+  ]..shuffle(random);
+  final others = [
+    for (final w in sameLength)
+      if (!sharing.contains(w)) w,
+  ]..shuffle(random);
+  final picked = <String>{...sharing.take(3), ...others}.take(3).toList();
+  if (picked.length < 3) return null;
+  return [item.word, ...picked]..shuffle(random);
+}
 
 /// 故事・諺の空欄の選択肢（漢字4つ）。答えが難しい字（準1級・1級の字）のときは、同じ難しさの字から、
 /// ふつうの字のときは、その級以下の配当漢字から、誤答を選ぶ。語に含まれる字は、選択肢に入れない。
@@ -701,6 +804,28 @@ List<PracticeQuestion> _buildPracticeQuestions(
           correctAnswer: yoji.word[index],
         );
       }
+    }
+
+    if (actualMode == PracticeMode.wordReading || actualMode == PracticeMode.wordWriting) {
+      final pool = jukugoForLevel(level);
+      if (pool.length >= 20) {
+        final item = pool[random.nextInt(pool.length)];
+        final reading = actualMode == PracticeMode.wordReading;
+        final choices = reading
+            ? jukugoReadingChoices(item, pool, random)
+            : jukugoWritingChoices(item, pool, random);
+        if (choices != null) {
+          return PracticeQuestion(
+            source: question,
+            actualMode: actualMode,
+            prompt: reading ? item.word : item.reading,
+            instruction: reading ? 'この熟語の読み方はどれ？' : 'この読み方の熟語はどれ？',
+            choices: choices,
+            correctAnswer: reading ? item.reading : item.word,
+          );
+        }
+      }
+      actualMode = PracticeMode.writing;
     }
 
     if (actualMode == PracticeMode.koji) {

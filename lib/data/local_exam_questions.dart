@@ -32,6 +32,8 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.sanji,
   ExamCategory.compoundStructure,
   ExamCategory.koji,
+  ExamCategory.wordReading,
+  ExamCategory.wordWriting,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -68,6 +70,11 @@ int _poolSize(ExamCategory c, String level) {
       return sanjiForLevel(level).length;
     case ExamCategory.koji:
       return kojiForLevel(level).length;
+    case ExamCategory.wordReading:
+    case ExamCategory.wordWriting:
+      // 熟語の読み・書き取りは、全ての級に出る（その級の熟語が20語以上あるとき）。
+      final n = jukugoForLevel(level).length;
+      return n >= 20 ? n : 0;
     case ExamCategory.compoundStructure:
       // 公式の出題は6級〜2級（準1級・1級は出ない）。
       return _compoundExamLevels.contains(level) ? CompoundStructureData.forLevel(level).length : 0;
@@ -267,6 +274,27 @@ List<EnhancedExamQuestion> _buildAll(
           options: blank.choices,
           answer: blank.answer,
           explanation: '正しくは「${s.word}」です。',
+        ));
+      }
+      return out;
+    case ExamCategory.wordReading:
+    case ExamCategory.wordWriting:
+      final pool = jukugoForLevel(l);
+      final isReading = c == ExamCategory.wordReading;
+      final picked = (pool.toList()..shuffle(rnd)).take(150);
+      final out = <EnhancedExamQuestion>[];
+      for (final j in picked) {
+        final choices = isReading ? jukugoReadingChoices(j, pool, rnd) : jukugoWritingChoices(j, pool, rnd);
+        if (choices == null) continue;
+        out.add(_make(
+          level: level,
+          category: c,
+          id: j.word,
+          kanji: isReading ? j.word : j.reading, // 問われている語（答えは出さない）
+          question: isReading ? '「${j.word}」の読み方はどれ？' : '「${j.reading}」を漢字で書くと？',
+          options: choices,
+          answer: isReading ? j.reading : j.word,
+          explanation: '「${j.word}」は「${j.reading}」と読みます。',
         ));
       }
       return out;

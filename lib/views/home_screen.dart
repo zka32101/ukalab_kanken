@@ -450,6 +450,9 @@ double _promptFontSize(PracticeMode mode) {
     case PracticeMode.writing:
     case PracticeMode.mixed:
       return 40;
+    case PracticeMode.wordReading:
+    case PracticeMode.wordWriting:
+      return 48;
   }
 }
 
@@ -459,6 +462,10 @@ IconData _practiceModeIcon(PracticeMode mode) {
       return Icons.record_voice_over;
     case PracticeMode.writing:
       return Icons.edit;
+    case PracticeMode.wordReading:
+      return Icons.record_voice_over;
+    case PracticeMode.wordWriting:
+      return Icons.draw;
     case PracticeMode.radical:
       return Icons.category;
     case PracticeMode.compoundStructure:
@@ -498,6 +505,10 @@ String _practiceModeLabel(PracticeMode mode) {
       return '読みがな';
     case PracticeMode.writing:
       return '漢字をあてる';
+    case PracticeMode.wordReading:
+      return '熟語の読み';
+    case PracticeMode.wordWriting:
+      return '熟語の書き取り';
     case PracticeMode.radical:
       return '部首';
     case PracticeMode.compoundStructure:
@@ -537,6 +548,10 @@ String _practiceModeDescription(PracticeMode mode) {
       return '漢字を見て読み方を答える';
     case PracticeMode.writing:
       return '読み方を見て漢字を答える';
+    case PracticeMode.wordReading:
+      return '熟語を見て読み方を答える';
+    case PracticeMode.wordWriting:
+      return '読み方を見て正しい熟語を答える';
     case PracticeMode.radical:
       return '漢字の部首を答える';
     case PracticeMode.compoundStructure:

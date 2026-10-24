@@ -19,8 +19,12 @@ void main() {
   });
 
   test('作れる分野は、漢検でその級に出る分野だけ（演習の出題形式と同じ級）', () {
-    expect(localExamCategoriesForLevel(10), isEmpty);
-    expect(localExamCategoriesForLevel(9), isEmpty);
+    // 10級・9級は、熟語の読み・書き取りだけ（公式も、読み・書き取り・筆順画数などが中心）。
+    expect(localExamCategoriesForLevel(10), unorderedEquals([ExamCategory.wordReading, ExamCategory.wordWriting]));
+    expect(localExamCategoriesForLevel(9), unorderedEquals([ExamCategory.wordReading, ExamCategory.wordWriting]));
+    for (final l in [10, 9, 8, 7, 6, 5, 4, 3, 25, 2, 15, 1]) {
+      expect(localExamCategoriesForLevel(l), containsAll([ExamCategory.wordReading, ExamCategory.wordWriting]), reason: '$l');
+    }
     expect(localExamCategoriesForLevel(8), containsAll([ExamCategory.antonym, ExamCategory.radicalName]));
     expect(localExamCategoriesForLevel(8), isNot(contains(ExamCategory.synonym)));
     expect(localExamCategoriesForLevel(7), contains(ExamCategory.homophone));
