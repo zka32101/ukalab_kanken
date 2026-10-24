@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../models/index.dart' show KanjiQuestion, QuestionType;
 import '../models/mock_exam_modes.dart';
 import '../viewmodels/practice_viewmodel.dart';
 import 'homophone_data.dart';
@@ -314,4 +315,55 @@ List<EnhancedExamQuestion> _buildAll(
     default:
       return const [];
   }
+}
+
+/// 漢字の問題（読み・書き取り）から、模擬試験の問題を [count] 問まで作る。Firestore の試験問題が
+/// 無い級（10級・準1級・1級）や、足りないとき・読み込めないとき（オフライン）の補いに使う。
+/// 前半は読み、後半は書き取り。その級の配当漢字の問題だけを使い、同じ字は重複させない。
+List<EnhancedExamQuestion> buildKanjiExamQuestions({
+  required int level,
+  required List<KanjiQuestion> kanjiQuestions,
+  required int count,
+  Random? random,
+}) {
+  final rnd = random ?? Random();
+  final levelString = examLevelToLevelString(level);
+  if (levelString == null || count <= 0) return const [];
+  final levelKanji = LevelKanjiData.forLevel(levelString).toSet();
+  final seen = <String>{};
+  final pool = [
+    for (final q in kanjiQuestions)
+      if (q.questionType == QuestionType.multipleChoice &&
+          (levelKanji.isEmpty || levelKanji.contains(q.kanji)) &&
+          seen.add(q.kanji))
+        q,
+  ]..shuffle(rnd);
+  final selected = pool.take(count).toList();
+  final half = (selected.length + 1) ~/ 2;
+  final built = [
+    ...buildKanjiPracticeQuestions(selected.take(half).toList(), PracticeMode.reading, levelString),
+    ...buildKanjiPracticeQuestions(selected.skip(half).toList(), PracticeMode.writing, levelString),
+  ];
+  return [
+    for (final p in built)
+      EnhancedExamQuestion(
+        questionId: 'kanji-${p.actualMode.name}-${p.source.id}',
+        kanji: p.prompt,
+        questionType: p.actualMode == PracticeMode.reading ? 'reading' : 'writing',
+        question: p.instruction,
+        options: p.choices,
+        correctAnswer: p.correctAnswer,
+        explanation: [
+          if ((p.source.reading ?? '').isNotEmpty) '読み: ${p.source.reading}',
+          if ((p.source.example ?? '').isNotEmpty) '用例: ${p.source.example}',
+        ].join('　'),
+        level: level,
+        difficulty: ExamDifficulty.medium,
+        category: p.actualMode == PracticeMode.reading ? ExamCategory.reading : ExamCategory.writing,
+        averageTimeSeconds: 30,
+        correctnessRate: 0,
+        userAttempts: 0,
+        commonMistakes: const [],
+      ),
+  ];
 }
