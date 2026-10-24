@@ -1,7 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../viewmodels/services_provider.dart';
 import 'package:kanken/widgets/text_fit.dart';
+
+/// ログインに失敗したときに出す文言。通信できないとき（初回はオフラインだと始められない）は、
+/// つなぎ直すよう案内する。
+String loginErrorMessage(Object error) {
+  if (error is FirebaseAuthException && error.code == 'network-request-failed') {
+    return 'ネットワークにつながっていません。つないでから、もう一度お試しください（最初の1回だけ通信が必要です）';
+  }
+  return 'ログインに失敗しました。もう一度お試しください';
+}
 
 /// ログイン方法を選ぶ画面（ゲスト or Google）
 class LoginChoiceScreen extends ConsumerStatefulWidget {
@@ -24,7 +34,7 @@ class _LoginChoiceScreenState extends ConsumerState<LoginChoiceScreen> {
       await action();
     } catch (e) {
       if (!mounted) return;
-      setState(() => _errorText = 'ログインに失敗しました。もう一度お試しください');
+      setState(() => _errorText = loginErrorMessage(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
