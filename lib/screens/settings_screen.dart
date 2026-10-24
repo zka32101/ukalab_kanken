@@ -43,6 +43,10 @@ const String appCredits =
     '・配当漢字: 常用漢字表（文化庁）、学年別漢字配当表（文部科学省）。\n'
     '・四字熟語の意味の一部: ウィクショナリー日本語版（ja.wiktionary.org）。'
     'クリエイティブ・コモンズ 表示-継承 4.0 国際（CC BY-SA 4.0）。\n'
+    '・対義語・類義語の一部: 日本語WordNet（Japanese WordNet Copyright 2009-2011 NICT, '
+    '2012-2024 Francis Bond ほか）と、ウィクショナリー日本語版（CC BY-SA 4.0）。'
+    'Japanese WordNet is provided "AS IS" and NICT makes no representations or warranties, '
+    'express or implied. NICT の名称は宣伝に使用しません。\n'
     'ライセンスの詳細は EDRDG ライセンスのページをご覧ください。';
 
 /// EDRDG ライセンスのページ（KANJIDIC2 の出典表示先）。
