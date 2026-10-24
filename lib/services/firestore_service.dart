@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../data/bundled_questions.dart';
 import '../models/index.dart';
 import '../models/level_achievement.dart' show questionStatCountsAsCorrect;
 
 class FirestoreService {
   final FirebaseFirestore _firestore;
 
-  FirestoreService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  /// アプリに同梱した問題。Firestore から問題が取れないとき（オフラインなど）に補う。
+  final BundledQuestions _bundled;
+
+  FirestoreService({FirebaseFirestore? firestore, BundledQuestions? bundled})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _bundled = bundled ?? BundledQuestions();
 
   /// オフライン時にサーバー応答待ち(数十秒)で出題が止まらないようにするための取得。
   /// まず通常の get() を [serverTimeout] だけ待ち、時間切れ/通信不可ならローカルキャッシュから読む。
@@ -161,17 +166,25 @@ class FirestoreService {
     String profileId = 'default',
     int masteryThreshold = 3,
   }) async {
-    final snapshot = await _getWithCacheFallback(_firestore
-        .collection('questions')
-        .where('level', isEqualTo: level)
-        .limit(limit));
-
-    var questions = snapshot.docs
-        .map((doc) => KanjiQuestion.fromJson({...doc.data(), 'id': doc.id}))
-        .toList();
+    var questions = <KanjiQuestion>[];
+    try {
+      final snapshot = await _getWithCacheFallback(_firestore
+          .collection('questions')
+          .where('level', isEqualTo: level)
+          .limit(limit));
+      questions = snapshot.docs
+          .map((doc) => KanjiQuestion.fromJson({...doc.data(), 'id': doc.id}))
+          .toList();
+    } catch (_) {
+      // 取れなければ、下で同梱の問題に切り替える。
+    }
+    // 取れなかった（オフラインで、端末にも無い）ときは、同梱の問題を使う。
+    if (questions.isEmpty) {
+      questions = (await _bundled.forLevel(level)).take(limit).toList();
+    }
 
     if (uid != null) {
-      final excludeIds = await getMasteredQuestionIds(
+      final excludeIds = await _masteredIdsOrEmpty(
         uid,
         profileId: profileId,
         masteryThreshold: masteryThreshold,
@@ -182,6 +195,24 @@ class FirestoreService {
     }
 
     return questions;
+  }
+
+  /// 「覚えた」問題のID。取れなければ（オフラインなど）空にして、出題を止めない。
+  Future<Set<String>> _masteredIdsOrEmpty(
+    String uid, {
+    required String profileId,
+    required int masteryThreshold,
+  }) async {
+    try {
+      return (await getMasteredQuestionIds(
+        uid,
+        profileId: profileId,
+        masteryThreshold: masteryThreshold,
+      ))
+          .toSet();
+    } catch (_) {
+      return <String>{};
+    }
   }
 
   /// 級内の全漢字から偏りなく出題するための取得。
@@ -202,12 +233,11 @@ class FirestoreService {
     final pool = [...kanjiPool]..shuffle();
     var excludeIds = <String>{};
     if (uid != null) {
-      excludeIds = (await getMasteredQuestionIds(
+      excludeIds = await _masteredIdsOrEmpty(
         uid,
         profileId: profileId,
         masteryThreshold: masteryThreshold,
-      ))
-          .toSet();
+      );
     }
     final result = <KanjiQuestion>[];
     for (var b = 0; b < maxBatches && result.length < need; b++) {
@@ -221,11 +251,25 @@ class FirestoreService {
           .toList();
       for (var i = 0; i < ids.length; i += 10) {
         final chunk = ids.sublist(i, i + 10 > ids.length ? ids.length : i + 10);
-        final snap = await _getWithCacheFallback(_firestore
-            .collection('questions')
-            .where(FieldPath.documentId, whereIn: chunk));
-        result.addAll(snap.docs.map(
-            (d) => KanjiQuestion.fromJson({...d.data(), 'id': d.id})));
+        try {
+          final snap = await _getWithCacheFallback(_firestore
+              .collection('questions')
+              .where(FieldPath.documentId, whereIn: chunk));
+          result.addAll(snap.docs.map(
+              (d) => KanjiQuestion.fromJson({...d.data(), 'id': d.id})));
+        } catch (_) {
+          // この分は取れなかった。下で同梱の問題で補う。
+        }
+      }
+    }
+    // 取れた問題が足りないとき（オフラインで、端末に無い字が多いとき）は、同梱の問題で補う。
+    if (result.length < need) {
+      final have = result.map((q) => q.id).toSet();
+      final bundled = (await _bundled.forLevel(level)).toList()..shuffle();
+      for (final q in bundled) {
+        if (result.length >= need) break;
+        if (have.contains(q.id) || excludeIds.contains(q.id)) continue;
+        result.add(q);
       }
     }
     return result;

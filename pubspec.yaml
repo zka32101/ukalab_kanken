@@ -93,5 +93,6 @@ flutter:
     - assets/icons_common/
     - assets/readings/
     - assets/features/
+    - assets/questions/
     - assets/fonts/OFL.txt
 
