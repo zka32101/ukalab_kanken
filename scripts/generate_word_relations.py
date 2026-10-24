@@ -13,7 +13,8 @@ TSV は「種類(対=対義語/類=類義語)<TAB>語<TAB>読み<TAB>相手の�
 import re
 
 ORDER = {'LEVEL_10': 10, 'LEVEL_9': 9, 'LEVEL_8': 8, 'LEVEL_7': 7, 'LEVEL_6': 6,
-         'LEVEL_5': 5, 'LEVEL_4': 4, 'LEVEL_3': 3, 'LEVEL_2_PRE': 2.5, 'LEVEL_2': 2}
+         'LEVEL_5': 5, 'LEVEL_4': 4, 'LEVEL_3': 3, 'LEVEL_2_PRE': 2.5, 'LEVEL_2': 2,
+         'LEVEL_1_PRE': 1.5, 'LEVEL_1': 1}
 LEVEL_NAME = {v: k for k, v in ORDER.items()}
 
 src = open('lib/data/level_kanji_data.dart', encoding='utf-8').read()
