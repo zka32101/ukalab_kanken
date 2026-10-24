@@ -94,7 +94,7 @@ void main() {
     expect(find.text('漢字の学習'), findsNothing);
   });
 
-  testWidgets('級カードに、達成度の2つの印（漢字・問題）が出る。問題が無い級は「準備中」', (t) async {
+  testWidgets('級カードに、達成度の2つの印（漢字・問題）が出る。1級にも問題がある', (t) async {
     await _pump(t, _app());
     final kanji = find.byKey(const ValueKey('achievementKanji_LEVEL_10'));
     await t.scrollUntilVisible(kanji, 200,
@@ -109,7 +109,7 @@ void main() {
     final pre = find.byKey(const ValueKey('achievementQuestion_LEVEL_1'));
     await t.scrollUntilVisible(pre, 200,
         scrollable: find.byType(Scrollable).first);
-    expect(find.descendant(of: pre, matching: find.text('問題 準備中')),
+    expect(find.descendant(of: pre, matching: find.text('問題 0%')),
         findsOneWidget);
   });
 

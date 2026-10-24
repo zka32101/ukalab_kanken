@@ -123,14 +123,11 @@ void main() {
       expect(noQ.totalRate, closeTo(0.6, 1e-9));
     });
 
-    test('問題が用意されている級は 10級〜2級だけ', () {
+    test('問題が用意されている級は 10級〜1級すべて', () {
       final a = LevelAchievement.compute(
           levels: kKankenLevels, learnedIds: const {}, correctIds: const {});
-      for (final l in ['LEVEL_10', 'LEVEL_5', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
+      for (final l in ['LEVEL_10', 'LEVEL_5', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1']) {
         expect(a[l]!.hasQuestions, isTrue, reason: l);
-      }
-      for (final l in ['LEVEL_1_PRE', 'LEVEL_1']) {
-        expect(a[l]!.hasQuestions, isFalse, reason: l);
       }
     });
   });
