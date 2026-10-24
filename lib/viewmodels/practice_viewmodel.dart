@@ -206,6 +206,15 @@ class PracticeQuestion {
   });
 }
 
+/// 漢字の問題から、読み・書き取りの練習問題を作る。模擬試験で、試験問題が足りない級（10級・準1級・1級など）や
+/// Firestore が読めないときの補いにも使う。
+List<PracticeQuestion> buildKanjiPracticeQuestions(
+  List<KanjiQuestion> questions,
+  PracticeMode mode,
+  String level,
+) =>
+    _buildPracticeQuestions(questions, mode, level);
+
 /// 級を「難しさの順位」にする（10級=10 … 2級=2、準2級=2.5、準1級=1.5、1級=1）。四字熟語を出す級の判定用。
 /// 準1級・1級用の熟語などのデータは、2級以下の配当漢字でできたものを使う（その全部が出る）。
 const Map<String, double> _levelRank = {

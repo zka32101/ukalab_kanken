@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/local_exam_questions.dart';
 import '../models/mock_exam.dart';
 import '../models/mock_exam_modes.dart';
+import '../viewmodels/services_provider.dart';
 
 /// 模擬試験の受験履歴（users/{uid}/examResults）を新しい順に取得
 final examHistoryProvider = FutureProvider<List<ExamResult>>((ref) async {
@@ -47,6 +48,25 @@ final enhancedExamQuestionsProvider =
             count: localTarget,
           )
         : <EnhancedExamQuestion>[];
+    // Firestore の試験問題が足りない（試験問題が無い級・読み込めないとき）分を、漢字の問題
+    // （読み・書き取り）から作って補う。10級・準1級・1級や、オフラインでも試験が成立する。
+    Future<List<EnhancedExamQuestion>> topUp(int missing) async {
+      if (missing <= 0) return const [];
+      final wantsKanji = config.categories.any((c) =>
+          c == ExamCategory.reading || c == ExamCategory.writing || c == ExamCategory.mixed);
+      final levelString = examLevelToLevelString(config.targetLevel);
+      if (!wantsKanji || levelString == null) return const [];
+      try {
+        final kanji = await ref
+            .read(firestoreServiceProvider)
+            .getQuestionsByLevel(levelString, limit: 300);
+        return buildKanjiExamQuestions(
+            level: config.targetLevel, kanjiQuestions: kanji, count: missing);
+      } catch (_) {
+        return const [];
+      }
+    }
+
     if (onlyLocal) {
       if (local.isEmpty) {
         throw Exception('この級には、選んだ分野の問題がありません');
@@ -92,12 +112,20 @@ final enhancedExamQuestionsProvider =
       }
 
       // Firestoreの問題に、アプリの中で作った問題を混ぜて、要求された問題数にする。
-      final merged = [...questions.take(config.questionCount - local.length), ...local];
+      // それでも足りない分は、漢字の問題から作って補う。
+      final fromFirestore = questions.take(config.questionCount - local.length).toList();
+      final extra = await topUp(config.questionCount - local.length - fromFirestore.length);
+      final merged = [...fromFirestore, ...local, ...extra];
       if (config.randomizeOrder) merged.shuffle();
       return merged;
     } catch (e) {
-      // Firestoreが読めなくても、アプリの中で作れる問題だけで試験を成立させる。
-      if (local.isNotEmpty) return local;
+      // Firestoreが読めなくても、アプリの中で作れる問題と、漢字の問題から作る問題で試験を成立させる。
+      final extra = await topUp(config.questionCount - local.length);
+      if (local.isNotEmpty || extra.isNotEmpty) {
+        final merged = [...local, ...extra];
+        if (config.randomizeOrder) merged.shuffle();
+        return merged;
+      }
       throw Exception('Failed to load enhanced exam questions: $e');
     }
   },
