@@ -240,7 +240,9 @@ class FirestoreService {
       );
     }
     final result = <KanjiQuestion>[];
-    for (var b = 0; b < maxBatches && result.length < need; b++) {
+    // オフラインで端末にも無いと分かったら、残りは取りに行かず同梱の問題で補う（待ち時間を積まない）。
+    var offlineMiss = false;
+    for (var b = 0; b < maxBatches && result.length < need && !offlineMiss; b++) {
       final start = b * batchSize;
       if (start >= pool.length) break;
       final ids = pool
@@ -249,7 +251,7 @@ class FirestoreService {
           .map((k) => '$level-$k')
           .where((id) => !excludeIds.contains(id))
           .toList();
-      for (var i = 0; i < ids.length; i += 10) {
+      for (var i = 0; i < ids.length && !offlineMiss; i += 10) {
         final chunk = ids.sublist(i, i + 10 > ids.length ? ids.length : i + 10);
         try {
           final snap = await _getWithCacheFallback(_firestore
@@ -257,8 +259,10 @@ class FirestoreService {
               .where(FieldPath.documentId, whereIn: chunk));
           result.addAll(snap.docs.map(
               (d) => KanjiQuestion.fromJson({...d.data(), 'id': d.id})));
+          if (snap.docs.isEmpty && _preferCache) offlineMiss = true;
         } catch (_) {
           // この分は取れなかった。下で同梱の問題で補う。
+          offlineMiss = true;
         }
       }
     }
