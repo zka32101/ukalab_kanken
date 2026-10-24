@@ -41,7 +41,7 @@ const int practiceSessionSize = 10;
 /// - yoji: 四字熟語の空欄に入る漢字を答える（漢検の「四字熟語」。5級〜2級で出題）
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
-/// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。7級〜2級で出題）
+/// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。同音異字は8級〜2級、同訓異字は6級〜2級で出題）
 /// - radicalName: 漢字の部首名（「きへん」「さんずい」など）を答える（漢検の「部首・部首名」。8級〜5級で出題）
 /// - errorCorrection: 文の中の誤った漢字（同じ読みの別の字）を、正しい漢字に直す（漢検の「誤字訂正」。5級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
@@ -94,6 +94,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.strokeOrder,
         PracticeMode.okurigana,
         PracticeMode.antonym,
+        PracticeMode.homophone,
         PracticeMode.radicalName,
       ];
     case 'LEVEL_7':
@@ -218,10 +219,10 @@ List<YojiJukugo> yojiForLevel(String level) {
 }
 
 /// 指定の級の演習で出す、同音・同訓異字の問題。文と選択肢の字がすべて、その級以下の配当漢字に
-/// あるものだけ。同音異字は7級〜2級、同訓異字は6級〜2級で出題する（それ以外は空）。
+/// あるものだけ。同音異字は8級〜2級、同訓異字は6級〜2級で出題する（それ以外は空）。
 List<HomophoneQuestion> homophonesForLevel(String level) {
   final rank = _levelRank[level];
-  if (rank == null || rank > 7) return const [];
+  if (rank == null || rank > 8) return const [];
   return [
     for (final q in kHomophoneQuestions)
       if ((_levelRank[q.level] ?? 0) >= rank &&
@@ -321,13 +322,13 @@ List<OkuriganaItem> okuriganaForLevel(String level) {
 }
 
 /// 指定の級の演習で出す、誤字訂正の問題。同音・同訓異字の問題のうち、誤答が3つ以上あるもの
-/// （誤答の1つを文に入れても、選択肢が3つ以上残る）。誤字訂正は5級〜2級で出題する（それ以外は空）。
+/// （誤答の1つを文に入れても、選択肢が3つ以上残る）。1字だけの答え（8級〜の同音異字）は、語として直す形ではないので除く。誤字訂正は5級〜2級で出題する（それ以外は空）。
 List<HomophoneQuestion> errorCorrectionForLevel(String level) {
   final rank = _levelRank[level];
   if (rank == null || rank > 5) return const [];
   return [
     for (final q in homophonesForLevel(level))
-      if (q.wrong.length >= 3) q,
+      if (q.wrong.length >= 3 && q.answer.length >= 2) q,
   ];
 }
 

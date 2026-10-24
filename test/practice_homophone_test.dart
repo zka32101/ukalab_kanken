@@ -62,15 +62,25 @@ void main() {
   });
 
   group('出す級', () {
-    test('同音異字は7級〜2級、同訓異字は6級〜2級だけに出る', () {
-      for (final l in ['LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
+    test('同音異字は8級〜2級、同訓異字は6級〜2級だけに出る', () {
+      for (final l in ['LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
         expect(availableModesForLevel(l), contains(PracticeMode.homophone), reason: l);
         expect(homophonesForLevel(l), isNotEmpty, reason: l);
       }
-      for (final l in ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_1_PRE', 'LEVEL_1']) {
+      for (final l in ['LEVEL_10', 'LEVEL_9', 'LEVEL_1_PRE', 'LEVEL_1']) {
         expect(availableModesForLevel(l), isNot(contains(PracticeMode.homophone)), reason: l);
         expect(homophonesForLevel(l), isEmpty, reason: l);
       }
+    });
+
+    test('8級は、小3までの漢字だけの同音異字（1字の答え）。誤字訂正には出ない', () {
+      final qs = homophonesForLevel('LEVEL_8');
+      expect(qs.length, greaterThanOrEqualTo(30));
+      expect(qs.every((q) => q.kind == HomophoneKind.homophone), isTrue);
+      expect(qs.where((q) => q.answer.length == 1).length, greaterThanOrEqualTo(30));
+      expect(qs.every((q) => q.wrong.isNotEmpty), isTrue);
+      expect(qs.map((q) => q.reading).toSet().length, greaterThanOrEqualTo(10));
+      expect(errorCorrectionForLevel('LEVEL_5').any((q) => q.answer.length == 1), isFalse);
     });
 
     test('7級は同音異字だけ。6級以上は同訓異字も出る', () {
