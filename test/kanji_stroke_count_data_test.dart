@@ -48,8 +48,8 @@ void main() {
   test('未設定の字は要確認一覧と一致する（自動で入れていない）', () {
     final unset = allKanji.where((k) => kanjiStrokeCount(k) == null).toSet();
     expect(unset, reviewKanji);
-    expect(unset.length, 396); // 画数なし25 + 複数値371
-    expect(kKanjiStrokeCount.length, 5478);
+    expect(unset.length, 328); // 画数なし25 + 複数値303
+    expect(kKanjiStrokeCount.length, 5546);
     expect(kKanjiStrokeCount.length + unset.length, allKanji.length);
   });
 
