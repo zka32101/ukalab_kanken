@@ -34,6 +34,13 @@ void main() {
       // 部首名は、公式の出題内容どおり8級〜2級に出る（4級〜2級の部首データができたため）。
       expect(localExamCategoriesForLevel(l), contains(ExamCategory.radicalName), reason: '$l');
     }
+    // 故事・諺は、公式の出題どおり準1級・1級だけ。
+    for (final l in [15, 1]) {
+      expect(localExamCategoriesForLevel(l), contains(ExamCategory.koji), reason: '$l');
+    }
+    for (final l in [10, 9, 8, 7, 6, 5, 4, 3, 25, 2]) {
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.koji)), reason: '$l');
+    }
     // 熟語の構成は、公式の出題どおり6級〜2級（8級・7級・準1級・1級には出ない）。
     for (final l in [6, 5, 4, 3, 25, 2]) {
       expect(localExamCategoriesForLevel(l), contains(ExamCategory.compoundStructure), reason: '$l');
