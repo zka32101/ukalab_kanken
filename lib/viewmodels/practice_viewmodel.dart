@@ -163,12 +163,17 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.errorCorrection,
         PracticeMode.radicalName,
       ];
-    default: // 準1級・1級
+    default: // 準1級・1級（公式の出題: 読み・書取・故事諺・対義語類義語・同音同訓異字・誤字訂正・四字熟語）
       return const [
         PracticeMode.reading,
         PracticeMode.writing,
         PracticeMode.radical,
         PracticeMode.compoundStructure,
+        PracticeMode.yoji,
+        PracticeMode.antonym,
+        PracticeMode.synonym,
+        PracticeMode.homophone,
+        PracticeMode.errorCorrection,
       ];
   }
 }
@@ -201,10 +206,12 @@ class PracticeQuestion {
   });
 }
 
-/// 級を「難しさの順位」にする（10級=10 … 2級=2、準2級=2.5）。四字熟語を出す級の判定用。
+/// 級を「難しさの順位」にする（10級=10 … 2級=2、準2級=2.5、準1級=1.5、1級=1）。四字熟語を出す級の判定用。
+/// 準1級・1級用の熟語などのデータは、2級以下の配当漢字でできたものを使う（その全部が出る）。
 const Map<String, double> _levelRank = {
   'LEVEL_10': 10, 'LEVEL_9': 9, 'LEVEL_8': 8, 'LEVEL_7': 7, 'LEVEL_6': 6,
   'LEVEL_5': 5, 'LEVEL_4': 4, 'LEVEL_3': 3, 'LEVEL_2_PRE': 2.5, 'LEVEL_2': 2,
+  'LEVEL_1_PRE': 1.5, 'LEVEL_1': 1,
 };
 
 /// 指定の級の演習で出す四字熟語。語に含まれる字がすべて、その級以下の配当漢字にあるものだけ。
@@ -298,7 +305,7 @@ List<SanjiJukugo> sanjiForLevel(String level) {
 /// 漢字作りは7級〜2級で出題する（それ以外は空）。
 List<KanjiMakingItem> kanjiMakingForLevel(String level) {
   final rank = _levelRank[level];
-  if (rank == null || rank > 7) return const [];
+  if (rank == null || rank > 7 || rank < 2) return const []; // 準1級・1級には出さない
   return [
     for (final k in kKanjiMaking)
       if ((_levelRank[k.level] ?? 0) >= rank) k,
@@ -314,7 +321,7 @@ String kanjiMakingChoiceText(List<String> kanji) => [
 /// （それ以外は空）。
 List<OkuriganaItem> okuriganaForLevel(String level) {
   final rank = _levelRank[level];
-  if (rank == null || rank > 8) return const [];
+  if (rank == null || rank > 8 || rank < 2) return const []; // 準1級・1級には出さない
   return [
     for (final o in kOkurigana)
       if ((_levelRank[o.level] ?? 0) >= rank) o,
@@ -400,7 +407,8 @@ List<String>? kanjiBlankChoices(
   final rank = _levelRank[level] ?? 10;
   final pool = <String>[
     for (final e in _levelRank.entries)
-      if (e.value >= rank) ...LevelKanjiData.forLevel(e.key),
+      // 誤答の字は、ふつうの字（2級以下）から選ぶ。準1級・1級の難しい字は混ぜない。
+      if (e.value >= rank && e.value >= 2) ...LevelKanjiData.forLevel(e.key),
   ];
   bool valid(String c) => c != answer && isUsable(c);
 
