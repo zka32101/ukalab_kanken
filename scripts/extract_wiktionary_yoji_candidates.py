@@ -18,109 +18,12 @@
 出典: Wiktionary (CC BY-SA 4.0), KANJIDIC2 (c) EDRDG (CC BY-SA 4.0)。
 """
 import json
-import re
+import os
 import sys
-import xml.etree.ElementTree as ET
 
-LEVEL_RANK = {'LEVEL_2_PRE': 2.5, 'LEVEL_2': 2, 'LEVEL_1_PRE': 1.5, 'LEVEL_1': 1}
-RANK_NAME = {1.5: '準1級', 1: '1級'}
-
-KATA2HIRA = {c: chr(ord(c) - 0x60) for c in map(chr, range(0x30A1, 0x30F7))}
-SMALL = str.maketrans('ゃゅょっぁぃぅぇぉ', 'やゆよつあいうえお')
-VOICE = dict(zip('かきくけこさしすせそたちつてとはひふへほ', 'がぎぐげござじずぜぞだぢづでどばびぶべぼ'))
-HALF = dict(zip('はひふへほ', 'ぱぴぷぺぽ'))
-KANJI = re.compile(r'[一-鿿]')
-
-
-def hira(s):
-    return ''.join(KATA2HIRA.get(c, c) for c in s)
-
-
-def unsmall(s):
-    return s.translate(SMALL)
-
-
-def kanji_levels():
-    src = open('lib/data/level_kanji_data.dart', encoding='utf-8').read()
-    out = {}
-    for name in ('LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3'):
-        m = re.search(r"'%s':\s*'([^']*)'" % name, src)
-        for c in m.group(1):
-            out[c] = 5
-    for name, r in LEVEL_RANK.items():
-        m = re.search(r"'%s':\s*'([^']*)'" % name, src)
-        for c in m.group(1):
-            out[c] = r
-    return out
-
-
-def kanjidic(path):
-    """字 -> 読みの候補 [(比較用の形, 現代仮名の形)]（音読み・訓読みの語幹。濁音化・半濁音化・促音化を含む）"""
-    out = {}
-    for ch in ET.parse(path).getroot().iter('character'):
-        lit = ch.findtext('literal')
-        forms = set()
-        for r in ch.iter('reading'):
-            if r.get('r_type') not in ('ja_on', 'ja_kun'):
-                continue
-            s = hira(r.text or '').replace('-', '')
-            s = s.split('.')[0]
-            if not s:
-                continue
-            forms.add(s)
-        more = set()
-        for s in forms:
-            if s[0] in VOICE:
-                more.add(VOICE[s[0]] + s[1:])
-            if s[0] in HALF:
-                more.add(HALF[s[0]] + s[1:])
-        forms |= more
-        more = set()
-        for s in forms:
-            if len(s) >= 2 and s[-1] in 'つちくき':
-                more.add(s[:-1] + 'っ')
-        forms |= more
-        out[lit] = sorted({(unsmall(s), s) for s in forms})
-    return out
-
-
-def segment(reading, word, kd):
-    """読みを、字ごとの読みに分けて、現代仮名の読みの集合を返す（分けられなければ空）。"""
-    target = unsmall(reading)
-    results = set()
-
-    def go(i, pos, acc):
-        if i == len(word):
-            if pos == len(target):
-                results.add(acc)
-            return
-        for plain, modern in kd.get(word[i], []):
-            if target.startswith(plain, pos):
-                go(i + 1, pos + len(plain), acc + modern)
-
-    go(0, 0, '')
-    return results
-
-
-def clean_markup(s):
-    s = re.sub(r'<ref[^>]*>.*?</ref>', '', s, flags=re.S)
-    s = re.sub(r'\{\{[^{}]*\}\}', '', s)
-    s = re.sub(r'\[\[(?:[^\]|]*\|)?([^\]]*)\]\]', r'\1', s)
-    s = re.sub(r"'''?", '', s)
-    return s.strip()
-
-
-def headline_reading(w):
-    m = re.search(r"（([ぁ-ゟァ-ヺー・ 　]+)）", w)
-    if m:
-        return hira(m.group(1)).replace('・', '').replace(' ', '').replace('　', '')
-    m = re.search(r'\{\{kana-DEFAULTSORT\|([ぁ-ゟ]+)', w) or re.search(r'DEFAULTSORT:([ぁ-ゟ]+)', w)
-    return m.group(1) if m else None
-
-
-def gloss(w):
-    m = re.search(r'^#(?![*:#])\s*(.+)$', w, re.M)
-    return clean_markup(m.group(1)) if m else ''
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wiktionary_idiom_common import (  # noqa: E402
+    KANJI, RANK_NAME, check_reading, glosses, headline_reading, kanjidic, kanji_levels)
 
 
 def main():
@@ -137,20 +40,8 @@ def main():
         if hardest > 1.5:
             continue  # 2級以下の字だけの語は、すでにある四字熟語のデータの範囲
         raw = headline_reading(w)
-        if raw is None:
-            reading, check = '', '読み無し'
-        else:
-            segs = segment(raw, title, kd)
-            if not segs:
-                reading, check = raw, '要確認（字の読みに分けられない）'
-            elif len(segs) == 1:
-                reading, check = next(iter(segs)), 'OK'
-            elif raw in segs:
-                # 小書きの違い（っ／つ など）で複数に分かれるが、元の読みがそのまま現代仮名づかいの形
-                reading, check = raw, 'OK'
-            else:
-                reading, check = sorted(segs)[0], '要確認（読みが複数: %s）' % '／'.join(sorted(segs))
-        g = gloss(w)
+        reading, check = check_reading(raw, title, kd)
+        g = (glosses(w, 1) or [''])[0]
         note = []
         if len(g) < 10:
             note.append('意味が短い')
