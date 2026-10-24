@@ -31,6 +31,7 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.kanjiMaking,
   ExamCategory.sanji,
   ExamCategory.compoundStructure,
+  ExamCategory.koji,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -65,6 +66,8 @@ int _poolSize(ExamCategory c, String level) {
       return kanjiMakingForLevel(level).length;
     case ExamCategory.sanji:
       return sanjiForLevel(level).length;
+    case ExamCategory.koji:
+      return kojiForLevel(level).length;
     case ExamCategory.compoundStructure:
       // 公式の出題は6級〜2級（準1級・1級は出ない）。
       return _compoundExamLevels.contains(level) ? CompoundStructureData.forLevel(level).length : 0;
@@ -264,6 +267,27 @@ List<EnhancedExamQuestion> _buildAll(
           options: blank.choices,
           answer: blank.answer,
           explanation: '正しくは「${s.word}」です。',
+        ));
+      }
+      return out;
+    case ExamCategory.koji:
+      final out = <EnhancedExamQuestion>[];
+      for (final k in kojiForLevel(l)) {
+        final positions = [
+          for (var i = 0; i < k.phrase.length; i++)
+            if (RegExp(r'[一-鿿]').hasMatch(k.phrase[i])) i,
+        ];
+        final index = positions[rnd.nextInt(positions.length)];
+        final blanked = k.phrase.replaceRange(index, index + 1, '□');
+        out.add(_make(
+          level: level,
+          category: c,
+          id: k.phrase,
+          kanji: blanked, // 答えの字を伏せた形
+          question: '${k.meaning}（${k.reading}）\n□に入る漢字はどれ？',
+          options: kojiBlankChoices(k.phrase, index, l, rnd),
+          answer: k.phrase[index],
+          explanation: '正しくは「${k.phrase}」です。',
         ));
       }
       return out;

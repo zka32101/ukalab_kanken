@@ -11,6 +11,7 @@ import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
 import '../data/kanji_making_data.dart';
+import '../data/koji_data.dart';
 import '../data/homophone_data.dart';
 import '../data/kanji_stroke_count_data.dart';
 import '../data/okurigana_data.dart';
@@ -42,6 +43,7 @@ const int practiceSessionSize = 10;
 /// - antonym: 熟語の対義語を答える（漢検の「対義語」。8級〜2級で出題）
 /// - synonym: 熟語の類義語を答える（漢検の「類義語」。6級〜2級で出題）
 /// - homophone: 文の中のひらがなを、同じ読みの漢字から選んで答える（漢検の「同音・同訓異字」。同音異字は8級〜2級、同訓異字は6級〜2級で出題）
+/// - koji: 故事成語・諺の空欄に入る漢字を答える（漢検の「故事・諺」。準1級・1級で出題）
 /// - radicalName: 漢字の部首名（「きへん」「さんずい」など）を答える（漢検の「部首・部首名」。8級〜5級で出題）
 /// - errorCorrection: 文の中の誤った漢字（同じ読みの別の字）を、正しい漢字に直す（漢検の「誤字訂正」。5級〜2級で出題）
 /// - mixed: 問題ごとにその級で出題可能な形式からランダムに出題
@@ -61,6 +63,7 @@ enum PracticeMode {
   homophone,
   errorCorrection,
   radicalName,
+  koji,
   mixed,
 }
 
@@ -174,6 +177,7 @@ List<PracticeMode> availableModesForLevel(String level) {
         PracticeMode.synonym,
         PracticeMode.homophone,
         PracticeMode.errorCorrection,
+        PracticeMode.koji,
       ];
   }
 }
@@ -384,6 +388,37 @@ List<String>? wordRelationChoices(
   if (candidates.length < 3) return null;
   final picked = candidates.toList()..shuffle(random);
   return [answer, ...picked.take(3)]..shuffle(random);
+}
+
+/// 指定の級の演習で出す故事・諺。語に含まれる字がすべて、その級以下の配当漢字にあるものだけ。
+/// 故事・諺は準1級・1級で出題する（それ以外の級は空）。
+List<KojiItem> kojiForLevel(String level) {
+  final rank = _levelRank[level];
+  if (rank == null || rank > 1.5) return const [];
+  return [
+    for (final k in kKoji)
+      if ((_levelRank[k.level] ?? 0) >= rank) k,
+  ];
+}
+
+final RegExp _kanjiChar = RegExp(r'[一-鿿]');
+
+/// 故事・諺の空欄の選択肢（漢字4つ）。答えが難しい字（準1級・1級の字）のときは、同じ難しさの字から、
+/// ふつうの字のときは、その級以下の配当漢字から、誤答を選ぶ。語に含まれる字は、選択肢に入れない。
+List<String> kojiBlankChoices(String phrase, int index, String level, Random random) {
+  final answer = phrase[index];
+  final hardPool = <String>[
+    ...LevelKanjiData.forLevel('LEVEL_1_PRE'),
+    ...LevelKanjiData.forLevel('LEVEL_1'),
+  ];
+  if (hardPool.contains(answer)) {
+    final candidates = [
+      for (final c in hardPool)
+        if (c != answer && !phrase.contains(c)) c,
+    ]..shuffle(random);
+    return [answer, ...candidates.take(3)]..shuffle(random);
+  }
+  return kanjiBlankChoices(answer, level, random, isUsable: (c) => !phrase.contains(c)) ?? [answer];
 }
 
 /// 四字熟語の空欄の選択肢（漢字4つ）。正解の字に、同じ読みの字（あれば最大2つ）と、
@@ -664,6 +699,28 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${yoji.meaning}（${yoji.reading}）\n□に入る漢字はどれ？',
           choices: yojiBlankChoices(yoji.word, index, level, random),
           correctAnswer: yoji.word[index],
+        );
+      }
+    }
+
+    if (actualMode == PracticeMode.koji) {
+      final kojiPool = kojiForLevel(level);
+      if (kojiPool.isEmpty) {
+        actualMode = PracticeMode.writing;
+      } else {
+        final koji = kojiPool[random.nextInt(kojiPool.length)];
+        final positions = [
+          for (var i = 0; i < koji.phrase.length; i++)
+            if (_kanjiChar.hasMatch(koji.phrase[i])) i,
+        ];
+        final index = positions[random.nextInt(positions.length)];
+        return PracticeQuestion(
+          source: question,
+          actualMode: actualMode,
+          prompt: koji.phrase.replaceRange(index, index + 1, '□'),
+          instruction: '${koji.meaning}（${koji.reading}）\n□に入る漢字はどれ？',
+          choices: kojiBlankChoices(koji.phrase, index, level, random),
+          correctAnswer: koji.phrase[index],
         );
       }
     }
