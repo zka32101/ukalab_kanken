@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kanken/data/bundled_questions.dart';
 import 'package:kanken/data/level_kanji_data.dart';
-import 'package:kanken/models/index.dart';
 import 'package:kanken/services/firestore_service.dart';
 import 'package:mocktail/mocktail.dart';
 
