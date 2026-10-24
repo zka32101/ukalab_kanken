@@ -10,20 +10,22 @@ void main() {
   final allKanji = <String>{
     for (final l in [
       'LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5',
-      'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2',
+      'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1',
     ])
       ...LevelKanjiData.forLevel(l),
   };
   final hira = RegExp(r'^[ぁ-ゖー]+$');
 
   group('四字熟語データ（レビューの機械チェック）', () {
-    test('語は4字・読みはひらがな・意味あり・重複なし・すべて10級〜2級の配当漢字', () {
+    test('語は4字・読みはひらがな・意味あり・重複なし・すべて10級〜1級の配当漢字', () {
       final seen = <String>{};
       for (final y in kYojiJukugo) {
         expect(y.word.runes.length, 4, reason: y.word);
         expect(allKanji.containsAll(y.word.split('')), isTrue, reason: y.word);
         expect(hira.hasMatch(y.reading), isTrue, reason: '${y.word} ${y.reading}');
         expect(y.meaning.trim(), isNotEmpty, reason: y.word);
+        // ウィクショナリー由来の意味に、記法の残りが混ざらない
+        expect(RegExp(r'[\[\]{}<>|]|&[a-z]+;|http').hasMatch(y.meaning), isFalse, reason: '${y.word} ${y.meaning}');
         expect(seen.add(y.word), isTrue, reason: '${y.word} が重複');
       }
     });
@@ -38,6 +40,7 @@ void main() {
       const rank = {
         'LEVEL_10': 10, 'LEVEL_9': 9, 'LEVEL_8': 8, 'LEVEL_7': 7, 'LEVEL_6': 6,
         'LEVEL_5': 5, 'LEVEL_4': 4, 'LEVEL_3': 3, 'LEVEL_2_PRE': 2.5, 'LEVEL_2': 2,
+        'LEVEL_1_PRE': 1.5, 'LEVEL_1': 1,
       };
       for (final y in kYojiJukugo) {
         final hardest = y.word
