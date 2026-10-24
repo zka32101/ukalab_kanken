@@ -6,6 +6,7 @@ import '../data/compound_structure_data.dart';
 import '../data/exam_prep_data.dart' show historyProvider;
 import '../views/core_v069_entry.dart' show recordKankenReviewResult;
 import '../data/level_kanji_data.dart';
+import '../data/upper_jukugo_data.dart';
 import '../data/word_relation_data.dart';
 import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
@@ -460,6 +461,13 @@ List<JukugoItem> _buildJukugo() {
       if (ranks.any((r) => r == null)) continue;
       out.add(JukugoItem(word, reading, levelOfRank[ranks.whereType<double>().reduce(min)]!));
     }
+  }
+  // 準1級・1級の字を含む熟語（用例だけでは足りない分）。
+  for (final e in kUpperJukugo.entries) {
+    if (!seen.add(e.key)) continue;
+    final ranks = [for (final c in e.key.split('')) rankOf[c]];
+    if (ranks.any((r) => r == null)) continue;
+    out.add(JukugoItem(e.key, e.value, levelOfRank[ranks.whereType<double>().reduce(min)]!));
   }
   return out;
 }

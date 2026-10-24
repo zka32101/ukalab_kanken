@@ -47,6 +47,8 @@ const String appCredits =
     '2012-2024 Francis Bond ほか）と、ウィクショナリー日本語版（CC BY-SA 4.0）。'
     'Japanese WordNet is provided "AS IS" and NICT makes no representations or warranties, '
     'express or implied. NICT の名称は宣伝に使用しません。\n'
+    '・準1級・1級の熟語の一部: JMdict（EDRDG）、ウィクショナリー日本語版、日本語WordNet。'
+    'JMdict は CC BY-SA 4.0。\n'
     'ライセンスの詳細は EDRDG ライセンスのページをご覧ください。';
 
 /// EDRDG ライセンスのページ（KANJIDIC2 の出典表示先）。
