@@ -32,6 +32,7 @@ enum ExamCategory {
   okurigana, // 送りがな
   kanjiMaking, // 漢字作り
   sanji, // 三字熟語
+  compoundStructure, // 熟語の構成
   mixed, // 混合
 }
 

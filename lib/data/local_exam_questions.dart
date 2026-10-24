@@ -3,6 +3,7 @@ import 'dart:math';
 import '../models/index.dart' show KanjiQuestion, QuestionType;
 import '../models/mock_exam_modes.dart';
 import '../viewmodels/practice_viewmodel.dart';
+import 'compound_structure_data.dart';
 import 'homophone_data.dart';
 import 'kanji_radical_data.dart';
 import 'level_kanji_data.dart';
@@ -29,6 +30,7 @@ const List<ExamCategory> kLocalExamCategories = [
   ExamCategory.okurigana,
   ExamCategory.kanjiMaking,
   ExamCategory.sanji,
+  ExamCategory.compoundStructure,
 ];
 
 /// 指定の級で、その場で作れる分野（漢検でその級に出る分野だけ）。
@@ -40,6 +42,10 @@ List<ExamCategory> localExamCategoriesForLevel(int level) {
       if (_poolSize(c, l) > 0) c,
   ];
 }
+
+const Set<String> _compoundExamLevels = {
+  'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2',
+};
 
 int _poolSize(ExamCategory c, String level) {
   switch (c) {
@@ -59,6 +65,9 @@ int _poolSize(ExamCategory c, String level) {
       return kanjiMakingForLevel(level).length;
     case ExamCategory.sanji:
       return sanjiForLevel(level).length;
+    case ExamCategory.compoundStructure:
+      // 公式の出題は6級〜2級（準1級・1級は出ない）。
+      return _compoundExamLevels.contains(level) ? CompoundStructureData.forLevel(level).length : 0;
     case ExamCategory.radicalName:
       return availableModesForLevel(level).contains(PracticeMode.radicalName)
           ? LevelKanjiData.forLevel(level)
@@ -258,6 +267,20 @@ List<EnhancedExamQuestion> _buildAll(
         ));
       }
       return out;
+    case ExamCategory.compoundStructure:
+      return [
+        for (final q in CompoundStructureData.forLevel(l))
+          _make(
+            level: level,
+            category: c,
+            id: q.jukugo,
+            kanji: '${q.jukugo}（${q.reading}）', // 問われている語（構成の答えは出さない）
+            question: '「${q.jukugo}」の熟語の構成として正しいものはどれ？',
+            options: compoundStructureLabels.values.toList()..shuffle(rnd),
+            answer: q.correctLabel,
+            explanation: '「${q.jukugo}」は、${q.correctLabel}です。',
+          ),
+      ];
     case ExamCategory.kanjiMaking:
       return [
         for (final k in kanjiMakingForLevel(l))

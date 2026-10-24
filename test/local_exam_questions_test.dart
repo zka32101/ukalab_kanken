@@ -34,6 +34,13 @@ void main() {
       // 部首名は、公式の出題内容どおり8級〜2級に出る（4級〜2級の部首データができたため）。
       expect(localExamCategoriesForLevel(l), contains(ExamCategory.radicalName), reason: '$l');
     }
+    // 熟語の構成は、公式の出題どおり6級〜2級（8級・7級・準1級・1級には出ない）。
+    for (final l in [6, 5, 4, 3, 25, 2]) {
+      expect(localExamCategoriesForLevel(l), contains(ExamCategory.compoundStructure), reason: '$l');
+    }
+    for (final l in [10, 9, 8, 7, 15, 1]) {
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.compoundStructure)), reason: '$l');
+    }
     // 準1級・1級は、公式の出題どおり四字熟語・対義語・類義語・同音同訓異字・誤字訂正。
     // 部首名・送りがな・漢字作り・三字熟語は出ない。
     for (final l in [15, 1]) {
@@ -63,7 +70,8 @@ void main() {
         expect(q.level, level, reason: q.questionId);
         expect(cats, contains(q.category), reason: q.questionId);
         expect(q.question.trim(), isNotEmpty, reason: q.questionId);
-        expect(q.options.length, inInclusiveRange(3, 4), reason: q.questionId);
+        // 熟語の構成は、公式どおりア〜オの5択。
+        expect(q.options.length, inInclusiveRange(3, 5), reason: q.questionId);
         expect(q.options.toSet().length, q.options.length, reason: q.questionId);
         expect(q.options, contains(q.correctAnswer), reason: q.questionId);
         expect(q.explanation.trim(), isNotEmpty, reason: q.questionId);
