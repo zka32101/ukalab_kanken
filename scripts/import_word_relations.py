@@ -5,6 +5,7 @@
   python3 -I scripts/generate_word_relations.py
 
 候補は extract_word_relation_candidates.py で作る（scripts/data/word_relation_candidates.tsv）。
+候補度Bのうち、目で見て選んだ類義語の組（word_relation_reviewed_b.txt）も取り込む。
 候補度Aの全件を目で確認し、意味が違う・まれな語・片方が別の関係・子ども向けに向かない組は
 下の EXCLUDED に理由つきで残して除いた（取り込む前に確認した記録）。分野は「その他」（誤答の選択肢は
 別の分野の語から選ぶので、手で付けた分野の語から選ばれる）。すでにある組は入れない。
@@ -32,6 +33,14 @@ ANT_EXCLUDED = {
     '分割/統一': '対義語ではない', '分離/編入': '対義語ではない', '養母/養父': '対義語ではない', '卵白/卵黄': '対義語ではない',
 }
 
+# 候補度Bのうち、目で見て選んだ類義語の組（scripts/data/word_relation_reviewed_b.txt）。
+REVIEWED_B = set()
+for _line in open('scripts/data/word_relation_reviewed_b.txt', encoding='utf-8'):
+    _line = _line.strip()
+    if _line and not _line.startswith('#'):
+        _a, _b = _line.split('/')
+        REVIEWED_B.add(frozenset((_a, _b)))
+
 DEST = 'scripts/data/word_relations.tsv'
 SRC = 'scripts/data/word_relation_candidates.tsv'
 
@@ -48,7 +57,7 @@ out = []
 for line in open(SRC, encoding='utf-8'):
     f = line.rstrip('\n').split('\t')
     kind, w1, r1, w2, r2, group, why, tier = f
-    if tier != 'A':
+    if tier != 'A' and not (kind == '類' and frozenset((w1, w2)) in REVIEWED_B):
         continue
     excluded = (SYN_EXCLUDED if kind == '類' else ANT_EXCLUDED)
     if '%s/%s' % (w1, w2) in excluded or '%s/%s' % (w2, w1) in excluded:
