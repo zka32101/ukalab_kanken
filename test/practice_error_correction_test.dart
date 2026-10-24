@@ -3,12 +3,12 @@ import 'package:kanken/viewmodels/practice_viewmodel.dart';
 
 /// 漢検の「誤字訂正」に合わせた演習（同音・同訓異字の問題から作る）。
 void main() {
-  test('誤字訂正は5級〜2級だけに出る', () {
-    for (final l in ['LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
+  test('誤字訂正は5級〜1級だけに出る', () {
+    for (final l in ['LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1']) {
       expect(availableModesForLevel(l), contains(PracticeMode.errorCorrection), reason: l);
       expect(errorCorrectionForLevel(l), isNotEmpty, reason: l);
     }
-    for (final l in ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_1_PRE', 'LEVEL_1']) {
+    for (final l in ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6']) {
       expect(availableModesForLevel(l), isNot(contains(PracticeMode.errorCorrection)), reason: l);
       expect(errorCorrectionForLevel(l), isEmpty, reason: l);
     }

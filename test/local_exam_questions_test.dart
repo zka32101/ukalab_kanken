@@ -34,8 +34,17 @@ void main() {
       // 部首名は、公式の出題内容どおり8級〜2級に出る（4級〜2級の部首データができたため）。
       expect(localExamCategoriesForLevel(l), contains(ExamCategory.radicalName), reason: '$l');
     }
-    expect(localExamCategoriesForLevel(15), isEmpty);
-    expect(localExamCategoriesForLevel(1), isEmpty);
+    // 準1級・1級は、公式の出題どおり四字熟語・対義語・類義語・同音同訓異字・誤字訂正。
+    // 部首名・送りがな・漢字作り・三字熟語は出ない。
+    for (final l in [15, 1]) {
+      expect(localExamCategoriesForLevel(l),
+          containsAll([ExamCategory.yoji, ExamCategory.antonym, ExamCategory.synonym, ExamCategory.homophone, ExamCategory.errorCorrection]),
+          reason: '$l');
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.radicalName)), reason: '$l');
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.okurigana)), reason: '$l');
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.kanjiMaking)), reason: '$l');
+      expect(localExamCategoriesForLevel(l), isNot(contains(ExamCategory.sanji)), reason: '$l');
+    }
   });
 
   test('作った問題は、選択肢が重複せず正解を含み、級と分野が合っている', () {

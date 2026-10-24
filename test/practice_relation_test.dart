@@ -44,14 +44,14 @@ void main() {
   });
 
   group('出す級', () {
-    test('対義語は8級〜2級、類義語は6級〜2級だけに出る', () {
-      for (final l in ['LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
+    test('対義語は8級〜1級、類義語は6級〜1級だけに出る', () {
+      for (final l in ['LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1']) {
         expect(availableModesForLevel(l), contains(PracticeMode.antonym), reason: l);
       }
-      for (final l in ['LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2']) {
+      for (final l in ['LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1']) {
         expect(availableModesForLevel(l), contains(PracticeMode.synonym), reason: l);
       }
-      for (final l in ['LEVEL_10', 'LEVEL_9', 'LEVEL_1_PRE', 'LEVEL_1']) {
+      for (final l in ['LEVEL_10', 'LEVEL_9']) {
         expect(availableModesForLevel(l), isNot(contains(PracticeMode.antonym)), reason: l);
         expect(wordRelationsForLevel(l, WordRelationKind.antonym), isEmpty, reason: l);
       }
