@@ -20,6 +20,12 @@ import xml.etree.ElementTree as ET
 
 DART = 'lib/data/kanji_stroke_count_data.dart'
 REVIEW = 'docs/data_verification/stroke_count_review.md'
+# 画数が複数値でも、先頭値（常用漢字表の字体の画数）を採る字。しんにょう（辶）・おおざと（阝）は
+# 3画で数え、2つめの値は旧字体（辶=4画など）の数え方。乏・極・収も常用漢字表の画数が先頭値。
+FIRST_VALUE_OK = set(
+    '通近遠道週進遊部送追運返速都極辺達郡連選適迷造逆述過遺延郷収郵退'
+    '巡巨込迎迫逃透途遅違遣避郎乏墜廊逮遂遇遭遵邦郊郭'
+    '堕迅逸遮遷還邸迭逐逓逝遍')
 LEVELS = ['10', '9', '8', '7', '6', '5', '4', '3', '2_PRE', '2', '1_PRE', '1']
 
 
@@ -47,8 +53,10 @@ def main(xml_path):
             sc = kd.get(ch)
             if not sc:
                 missing.append((lv, ch))
-            elif len(sc) > 1:
+            elif len(sc) > 1 and ch not in FIRST_VALUE_OK:
                 multi.append((lv, ch, sc))
+            elif len(sc) > 1:
+                counts[ch] = sc[0]
             else:
                 counts[ch] = sc[0]
     with open(DART, 'w', encoding='utf-8') as f:
