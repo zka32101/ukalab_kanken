@@ -811,6 +811,9 @@ class PracticeScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(height: 4),
+          // 「覚えた」・ブックマーク・メモは、漢字の問題（ID）に付く操作。熟語系の出題は、土台の漢字が
+          // 問題と関係ないので、出さない（出すと、無関係な漢字が覚えた扱いになる）。
+          if (practiceModeRecordsKanjiHistory(question.actualMode))
           Wrap(
             alignment: WrapAlignment.center,
             crossAxisAlignment: WrapCrossAlignment.center,
