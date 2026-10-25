@@ -1,3 +1,4 @@
+import 'dart:math' show Random;
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,7 +6,9 @@ import '../router/app_router.dart';
 import 'package:ukalab_core/ui.dart';
 import 'package:ukalab_core/ukalab_core.dart';
 
+import '../data/content_mistake_store.dart';
 import '../data/exam_prep_data.dart';
+import '../models/category_label.dart' show categoryLabel;
 import '../models/kanji_question.dart' as k;
 import '../screens/study_notes_screen.dart' show KanjiQuestionLoader;
 import '../viewmodels/practice_viewmodel.dart';
@@ -184,6 +187,9 @@ class MistakeNoteScreen extends ConsumerStatefulWidget {
 
 class _MistakeNoteScreenState extends ConsumerState<MistakeNoteScreen> {
   final Map<String, k.KanjiQuestion?> _questions = {};
+
+  /// 熟語系の問題の控え（問題IDが [contentQuestionIdPrefix] で始まるもの）。
+  final Map<String, ContentMistakeSnapshot?> _contents = {};
   String _sig = '';
   Future<void>? _loading;
 
@@ -206,9 +212,15 @@ class _MistakeNoteScreenState extends ConsumerState<MistakeNoteScreen> {
   }
 
   Future<void> _loadMissing(List<MistakeNoteEntry> entries) async {
+    if (entries.any((e) => _isContent(e.qid) && !_contents.containsKey(e.qid))) {
+      final all = {for (final s in await ContentMistakeStore.readAll()) s.id: s};
+      for (final e in entries) {
+        if (_isContent(e.qid)) _contents[e.qid] = all[e.qid];
+      }
+    }
     await Future.wait([
       for (final e in entries)
-        if (!_questions.containsKey(e.qid))
+        if (!_isContent(e.qid) && !_questions.containsKey(e.qid))
           () async {
             try {
               _questions[e.qid] = await _loader(e.qid);
@@ -219,17 +231,23 @@ class _MistakeNoteScreenState extends ConsumerState<MistakeNoteScreen> {
     ]);
   }
 
+  static bool _isContent(String qid) => qid.startsWith(contentQuestionIdPrefix);
+
   bool _isShowable(MistakeNoteEntry e) =>
-      _questions[e.qid] != null && HomeScreen.levels.contains(e.topicId);
+      (_isContent(e.qid) ? _contents[e.qid] != null : _questions[e.qid] != null) &&
+      HomeScreen.levels.contains(e.topicId);
 
   Future<void> _retry(MistakeNoteEntry entry) async {
+    final content = _contents[entry.qid];
     final target = _questions[entry.qid];
     final level = entry.topicId;
-    if (target == null || level == null) return;
+    if ((content == null && target == null) || level == null) return;
     final messenger = ScaffoldMessenger.of(context);
     List<PracticeQuestion> pq;
     try {
-      pq = buildRetryPracticeQuestions(target, await _poolLoader(level), level);
+      pq = content != null
+          ? [practiceQuestionFromSnapshot(content, Random())]
+          : buildRetryPracticeQuestions(target!, await _poolLoader(level), level);
     } catch (_) {
       messenger.showSnackBar(
           const SnackBar(content: Text('問題を読み込めませんでした。あとでもう一度ためしてね')));
@@ -279,6 +297,17 @@ class _MistakeNoteScreenState extends ConsumerState<MistakeNoteScreen> {
               celebrateQids: data.celebrate,
               topicLabel: kankenLevelLabel,
               questionBuilder: (context, e) {
+                final c = _contents[e.qid];
+                if (c != null) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(categoryLabel(c.mode), style: Theme.of(context).textTheme.labelLarge),
+                      const SizedBox(height: 4),
+                      Text(c.prompt, style: Theme.of(context).textTheme.titleLarge),
+                    ],
+                  );
+                }
                 final q = _questions[e.qid]!;
                 final reading = q.reading;
                 return Text(

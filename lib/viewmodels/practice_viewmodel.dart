@@ -6,6 +6,7 @@ import '../data/compound_structure_data.dart';
 import '../data/exam_prep_data.dart' show historyProvider;
 import '../views/core_v069_entry.dart' show recordKankenReviewResult;
 import '../data/level_kanji_data.dart';
+import '../data/content_mistake_store.dart';
 import '../data/upper_jukugo_data.dart';
 import '../data/word_relation_data.dart';
 import '../data/yoji_jukugo_data.dart';
@@ -1225,6 +1226,45 @@ bool practiceModeRecordsKanjiHistory(PracticeMode mode) {
   }
 }
 
+/// 熟語系の問題の、内容から決まる安定したID（間違いノート・復習の記録に使う）。
+String contentIdOf(PracticeQuestion q) =>
+    contentQuestionId(q.actualMode.name, q.prompt, q.correctAnswer);
+
+/// 熟語系の問題の控え（間違いノートの表示・解き直し用）。
+ContentMistakeSnapshot contentSnapshotOf(PracticeQuestion q, String level) => ContentMistakeSnapshot(
+      id: contentIdOf(q),
+      mode: q.actualMode.name,
+      level: level,
+      prompt: q.prompt,
+      instruction: q.instruction,
+      choices: q.choices,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
+    );
+
+/// 控えから、解き直し用の問題を作る。土台の漢字は持たないので、IDを控えのIDにした仮の問題を入れる
+/// （答えを記録する側は、IDが [contentQuestionIdPrefix] で始まる問題を、漢字の問題としては数えない）。
+PracticeQuestion practiceQuestionFromSnapshot(ContentMistakeSnapshot s, Random random) {
+  final mode = PracticeMode.values.firstWhere((m) => m.name == s.mode, orElse: () => PracticeMode.writing);
+  return PracticeQuestion(
+    source: KanjiQuestion(
+      id: s.id,
+      level: s.level,
+      kanji: '',
+      questionType: QuestionType.multipleChoice,
+      choices: s.choices,
+      correctAnswer: s.correctAnswer,
+      version: 1,
+    ),
+    actualMode: mode,
+    prompt: s.prompt,
+    instruction: s.instruction,
+    choices: List<String>.from(s.choices)..shuffle(random),
+    correctAnswer: s.correctAnswer,
+    explanation: s.explanation,
+  );
+}
+
 class PracticeViewModel extends StateNotifier<PracticeState> {
   final Ref ref;
 
@@ -1253,6 +1293,12 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
           (questions != null && index < questions.length) ? questions[index] : null;
 
       if (question != null) {
+        // 間違いノートの解き直しで開いた熟語系の問題は、土台の漢字の問題ではない（仮のIDを持つ）ので、
+        // 漢字の問題としての記録（答ログ・推しの成長・コイン）は付けない。
+        final isRetrySource = question.source.id.startsWith(contentQuestionIdPrefix);
+        // 熟語系の出題は、内容から決まるIDで、履歴・間隔反復に記録する（土台の漢字では記録しない）。
+        final isContent = !practiceModeRecordsKanjiHistory(question.actualMode);
+        final recordId = isContent ? contentIdOf(question) : question.source.id;
         // 答ログを保存
         final log = UserAnswerLog(
           id: '',
@@ -1266,42 +1312,51 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
         );
         // 通信がないと Firestore の書き込みは完了しない。待つと機内モードで答えが進まなくなるので、
         // 待たずに書く(オフラインの間は端末内に溜まり、通信が戻ったら送られる)。
-        unawaited(firestoreService.addAnswerLog(log).catchError((_) {}));
+        if (!isRetrySource) {
+          unawaited(firestoreService.addAnswerLog(log).catchError((_) {}));
+        }
 
         // 推しの成長（網羅率）に使う、解いた問題IDの端末内記録。
         // 失敗しても学習フローは止めない。
-        try {
-          await OshiProgressStore.markAnswered(
-            profileId: user?.profileId ?? 'default',
-            level: level,
-            questionId: question.source.id,
-          );
-        } catch (_) {}
+        if (!isRetrySource) {
+          try {
+            await OshiProgressStore.markAnswered(
+              profileId: user?.profileId ?? 'default',
+              level: level,
+              questionId: question.source.id,
+            );
+          } catch (_) {}
+        }
 
         // 試験に向けて（10分プラン・書き出し）用の端末内の解答履歴。失敗しても止めない。
         // 今日の復習の予定にも同じ時刻で反映する（履歴より先に。履歴更新で復習の件数が作り直されるため）。
         final answeredAt = DateTime.now();
-        if (practiceModeRecordsKanjiHistory(question.actualMode)) {
+        if (!isContent) {
           await recordKankenReviewResult(question.source.id,
               correct: isCorrect, at: answeredAt);
-          try {
-            await ref.read(historyProvider.notifier).recordAnswer(
-                  questionId: question.source.id,
-                  level: level,
-                  correct: isCorrect,
-                  at: answeredAt,
-                );
-          } catch (_) {}
+        } else if (!isCorrect) {
+          // 間違いノートで見せて解き直せるよう、問題の内容を控えておく。
+          await ContentMistakeStore.save(contentSnapshotOf(question, level));
         }
+        try {
+          await ref.read(historyProvider.notifier).recordAnswer(
+                questionId: recordId,
+                level: level,
+                correct: isCorrect,
+                at: answeredAt,
+              );
+        } catch (_) {}
 
         // 学習コイン：初めて解く問題で付与（同じ問題は二度付与されない）。
         // コインは付加機能なので、未設定・失敗しても学習フローは止めない。
-        try {
-          unawaited(ref
-              .read(coinProvider.notifier)
-              .grant(CoinEvent.newQuestion(question.source.id))
-              .catchError((_) => null));
-        } catch (_) {}
+        if (!isRetrySource) {
+          try {
+            unawaited(ref
+                .read(coinProvider.notifier)
+                .grant(CoinEvent.newQuestion(question.source.id))
+                .catchError((_) => null));
+          } catch (_) {}
+        }
 
         // 状態を更新
         if (isCorrect) {
@@ -1320,7 +1375,7 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
           // 復習リストに追加する（完了を待たずバックグラウンドで実行）。
           addToSpacedRepetitionWithRef(
             ref,
-            questionId: question.source.id,
+            questionId: recordId,
             kanji: question.source.kanji,
             category: question.actualMode.toString().split('.').last,
             question: question.instruction,
