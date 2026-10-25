@@ -926,8 +926,8 @@ class PracticeScreen extends ConsumerWidget {
       _showIncorrectFeedback(context, question);
     }
 
-    // 読み方・用例を読む時間を確保してから次の問題へ
-    await Future.delayed(const Duration(milliseconds: 2200));
+    // 読み方・用例を読む時間を確保してから次の問題へ（間違えたときの説明は、少し長く出す）
+    await Future.delayed(Duration(milliseconds: _feedbackMillis(question, isCorrect)));
 
     // 演習セッション(practiceSessionSize問)の最後の1問が終わったタイミングのみ、
     // 広告ゲートがインタースティシャルを挟む（加入中・間隔/日次上限内は出さない）。
@@ -981,6 +981,9 @@ class PracticeScreen extends ConsumerWidget {
   /// 読み仮名・用例があれば付け足した解説文を作る
   String? _buildExplanation(PracticeQuestion? question) {
     if (question == null) return null;
+    // 熟語系の出題は、土台の漢字（source）が問題と関係ないので、問題ごとの説明だけを出す。
+    if (question.explanation != null) return question.explanation;
+    if (!practiceModeRecordsKanjiHistory(question.actualMode)) return null;
     final source = question.source;
     final parts = <String>[];
     if (source.reading != null && source.reading!.isNotEmpty) {
@@ -1007,6 +1010,10 @@ class PracticeScreen extends ConsumerWidget {
     );
   }
 
+  /// 答えたあとの表示時間。間違えたときに説明（正解の語など）があれば、読めるよう長めにする。
+  int _feedbackMillis(PracticeQuestion? question, bool isCorrect) =>
+      !isCorrect && question?.explanation != null ? 3600 : 2200;
+
   void _showIncorrectFeedback(BuildContext context, PracticeQuestion? question) {
     final explanation = _buildExplanation(question);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1015,7 +1022,7 @@ class PracticeScreen extends ConsumerWidget {
           explanation == null ? '⚠️ 不正解' : '⚠️ 不正解\n$explanation',
         ),
         backgroundColor: Colors.red,
-        duration: const Duration(milliseconds: 2200),
+        duration: Duration(milliseconds: _feedbackMillis(question, false)),
         behavior: SnackBarBehavior.floating,
       ),
     );
