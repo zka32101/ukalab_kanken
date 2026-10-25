@@ -18,9 +18,11 @@ jobs:
           flutter-version: '3.47.4'
           channel: 'stable'
       - name: Bump ukalab_core ref
-        run: sed -i 's/ref. v0\.83\.0/ref: v0.86.0/' pubspec.yaml
+        run: |
+          sed -i 's/ref. v0\.83\.0/ref: v0.86.0/' pubspec.yaml
+          grep -n 'v0.86.0' pubspec.yaml
       - run: flutter pub get
-      - name: Commit pubspec.yaml / pubspec.lock
+      - name: Commit pubspec.yaml and pubspec.lock
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
