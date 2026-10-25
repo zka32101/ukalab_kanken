@@ -306,7 +306,13 @@ List<String>? radicalNameChoices(String kanji, Random random) {
   }.toList()
     ..shuffle(random);
   if (candidates.length < 3) return null;
-  return [answer, ...candidates.take(3)]..shuffle(random);
+  // 間違えやすいよう、正解と同じ種類の呼び名（〜へん・〜かんむり・〜づくり など）を優先して入れる。
+  const kinds = ['へん', 'づくり', 'かんむり', 'あし', 'がまえ', 'かまえ', 'にょう', 'たれ'];
+  final kind = kinds.where(answer.endsWith).firstOrNull;
+  final similar = kind == null ? const <String>[] : [for (final c in candidates) if (c.endsWith(kind)) c];
+  final rest = [for (final c in candidates) if (!similar.contains(c)) c];
+  final picked = [...similar.take(2), ...rest].take(3).toList();
+  return [answer, ...picked]..shuffle(random);
 }
 
 /// 指定の級の演習で出す、三字熟語。語に含まれる字がすべて、その級以下の配当漢字にあるものだけ。
@@ -513,13 +519,22 @@ List<JukugoItem> jukugoForLevel(String level) {
 /// 熟語の読みの選択肢（読み4つ。正解を含む）。紛らわしい読みは、同じ級の他の熟語の読みから、
 /// 長さの近いものを選ぶ。作れなければ null。
 List<String>? jukugoReadingChoices(JukugoItem item, List<JukugoItem> pool, Random random) {
-  final candidates = <String>{
+  bool near(JukugoItem j) =>
+      j.reading != item.reading && (j.reading.length - item.reading.length).abs() <= 1;
+  // 間違えやすいよう、同じ字を含む熟語（同じ字の別の読み・似た読み）の読みを優先して入れる。
+  final sharing = <String>{
     for (final j in pool)
-      if (j.reading != item.reading && (j.reading.length - item.reading.length).abs() <= 1) j.reading,
+      if (near(j) && j.word != item.word && j.word.split('').any(item.word.contains)) j.reading,
   }.toList()
     ..shuffle(random);
-  if (candidates.length < 3) return null;
-  return [item.reading, ...candidates.take(3)]..shuffle(random);
+  final others = <String>{
+    for (final j in pool)
+      if (near(j) && !sharing.contains(j.reading)) j.reading,
+  }.toList()
+    ..shuffle(random);
+  final picked = [...sharing.take(2), ...others].take(3).toList();
+  if (picked.length < 3) return null;
+  return [item.reading, ...picked]..shuffle(random);
 }
 
 /// 熟語の書き取りの選択肢（熟語4つ。正解を含む）。紛らわしい語は、正解と字を共有する同じ長さの語から選び、
@@ -602,11 +617,25 @@ List<String>? kanjiBlankChoices(
     for (final c in pool)
       if (valid(c) && readingOf(c).any(answerReadings.contains)) c,
   ]..shuffle(random);
+  // 間違えやすいよう、正解と同じ部首の字（形が似た字）を優先して入れる。
+  final answerRadical = KanjiRadicalData.get(answer)?.radical;
+  final lookAlikes = answerRadical == null
+      ? <String>[]
+      : [
+          for (final c in pool)
+            if (valid(c) && !homophones.contains(c) && KanjiRadicalData.get(c)?.radical == answerRadical) c,
+        ]
+    ..shuffle(random);
   final others = [
     for (final c in pool)
-      if (valid(c) && !homophones.contains(c)) c,
+      if (valid(c) && !homophones.contains(c) && !lookAlikes.contains(c)) c,
   ]..shuffle(random);
-  final picked = [...homophones.take(2), ...others].take(3).toList();
+  final picked = [
+    ...homophones.take(1),
+    ...lookAlikes.take(2),
+    ...homophones.skip(1).take(1),
+    ...others,
+  ].take(3).toList();
   if (picked.length < 3) return null;
   return [answer, ...picked]..shuffle(random);
 }
@@ -697,12 +726,46 @@ List<int>? strokeOrderChoices(int answer, int total, Random random) {
 
 /// 画数の問題の選択肢（画数）。正解の前後の画数から、紛らわしい候補を3つ足して4つにする（1画以上）。
 /// 小さい順に並べる。
-List<int> strokeCountChoices(int count) {
-  final near = <int>[
-    for (final d in [1, -1, 2, -2, 3, -3])
-      if (count + d >= 1) count + d,
+List<int> strokeCountChoices(int count, [Random? random]) {
+  // 正解を含む連続した4つの画数。正解の位置が毎回同じにならないよう、窓の位置を選ぶ。
+  final starts = [
+    for (var s = count - 3; s <= count; s++)
+      if (s >= 1) s,
   ];
-  return [count, ...near.take(3)]..sort();
+  final start = starts[(random ?? Random()).nextInt(starts.length)];
+  return [for (var i = 0; i < 4; i++) start + i];
+}
+
+/// 書き取り（読み → 漢字）の選択肢。元の選択肢のうち2つを、正解と同じ部首の字（形が似た字）に
+/// 入れ替えて、間違えやすくする。入れ替える字は、問題の読みのどれとも同じ読みを持たない字だけ
+/// （同じ読みの字は、正解になりうるので入れない）。作れないときは、元の選択肢をそのまま混ぜる。
+List<String> writingChoicesWithLookAlikes(KanjiQuestion q, String level, Random random) {
+  final base = List<String>.from(q.choices);
+  final answer = q.correctAnswer;
+  bool single(String s) => s.runes.length == 1;
+  if (!single(answer) || !base.every(single) || base.length < 3) return base..shuffle(random);
+  final radical = KanjiRadicalData.get(answer)?.radical;
+  if (radical == null) return base..shuffle(random);
+  final rank = _levelRank[level] ?? 10;
+  final questionReadings = <String>{
+    for (final r in q.allReadings) _stemReading(r.reading),
+  };
+  List<String> readingOf(String k) =>
+      (KanjiInfoData.get(k)?.readings ?? const <String>[]).map(_stemReading).toList();
+  final candidates = <String>[
+    for (final e in _levelRank.entries)
+      if (e.value >= rank && e.value >= 2)
+        for (final c in LevelKanjiData.forLevel(e.key))
+          if (c != answer &&
+              !base.contains(c) &&
+              KanjiRadicalData.get(c)?.radical == radical &&
+              !readingOf(c).any(questionReadings.contains))
+            c,
+  ]..shuffle(random);
+  final distractors = base.where((c) => c != answer).toList()..shuffle(random);
+  final swap = candidates.take(2).length;
+  final kept = distractors.skip(swap).toList();
+  return [answer, ...candidates.take(2), ...kept]..shuffle(random);
 }
 
 /// KanjiQuestionの一覧から、指定モードに沿ったPracticeQuestionを組み立てる。
@@ -812,7 +875,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
       if (count == null) {
         actualMode = PracticeMode.writing;
       } else {
-        final counts = strokeCountChoices(count);
+        final counts = strokeCountChoices(count, random);
         return PracticeQuestion(
           source: question,
           actualMode: actualMode,
@@ -1083,7 +1146,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
       // Firestore上のchoicesは正解位置が問題ごとに固定されているため、
       // 同じ問題を再度出題した際に「位置で覚えてしまう」ことがないよう
       // 表示のたびにシャッフルする。
-      choices: List<String>.from(question.choices)..shuffle(random),
+      choices: writingChoicesWithLookAlikes(question, level, random),
       correctAnswer: question.correctAnswer,
     );
   }).toList();
