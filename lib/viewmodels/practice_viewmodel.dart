@@ -1177,6 +1177,25 @@ final comboCountProvider = StateProvider<int>((ref) => 0);
 // Aha Moment到達フラグ（初回3問正解）
 final ahaMomentReachedProvider = StateProvider<bool>((ref) => false);
 
+/// 答えた問題を、間違いノート・今日の復習（問題IDで漢字の問題を読み直す仕組み）に記録する出題形式か。
+/// 熟語系の出題（四字熟語・故事・諺・対義語など）は、内部では適当な漢字の問題を土台にして作るので、
+/// 土台の漢字を記録すると、間違いノートに関係のない漢字が出る。そのため記録しない
+/// （間違えた問題そのものは、間隔反復の復習に、問題文と選択肢ごと残る）。
+bool practiceModeRecordsKanjiHistory(PracticeMode mode) {
+  switch (mode) {
+    case PracticeMode.reading:
+    case PracticeMode.writing:
+    case PracticeMode.radical:
+    case PracticeMode.radicalName:
+    case PracticeMode.strokeCount:
+    case PracticeMode.strokeOrder:
+    case PracticeMode.okurigana:
+      return true;
+    default:
+      return false;
+  }
+}
+
 class PracticeViewModel extends StateNotifier<PracticeState> {
   final Ref ref;
 
@@ -1233,16 +1252,18 @@ class PracticeViewModel extends StateNotifier<PracticeState> {
         // 試験に向けて（10分プラン・書き出し）用の端末内の解答履歴。失敗しても止めない。
         // 今日の復習の予定にも同じ時刻で反映する（履歴より先に。履歴更新で復習の件数が作り直されるため）。
         final answeredAt = DateTime.now();
-        await recordKankenReviewResult(question.source.id,
-            correct: isCorrect, at: answeredAt);
-        try {
-          await ref.read(historyProvider.notifier).recordAnswer(
-                questionId: question.source.id,
-                level: level,
-                correct: isCorrect,
-                at: answeredAt,
-              );
-        } catch (_) {}
+        if (practiceModeRecordsKanjiHistory(question.actualMode)) {
+          await recordKankenReviewResult(question.source.id,
+              correct: isCorrect, at: answeredAt);
+          try {
+            await ref.read(historyProvider.notifier).recordAnswer(
+                  questionId: question.source.id,
+                  level: level,
+                  correct: isCorrect,
+                  at: answeredAt,
+                );
+          } catch (_) {}
+        }
 
         // 学習コイン：初めて解く問題で付与（同じ問題は二度付与されない）。
         // コインは付加機能なので、未設定・失敗しても学習フローは止めない。
