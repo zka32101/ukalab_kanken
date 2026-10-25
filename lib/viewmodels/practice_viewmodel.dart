@@ -260,16 +260,22 @@ List<YojiJukugo> yojiForLevel(String level) {
 }
 
 /// 指定の級の演習で出す、同音・同訓異字の問題。文と選択肢の字がすべて、その級以下の配当漢字に
-/// あるものだけ。同音異字は8級〜2級、同訓異字は6級〜2級で出題する（それ以外は空）。
+/// あるものだけ。同音異字は8級〜1級、同訓異字は6級〜1級で出題する（それ以外は空）。
 List<HomophoneQuestion> homophonesForLevel(String level) {
   final rank = _levelRank[level];
   if (rank == null || rank > 8) return const [];
-  return [
+  final all = [
     for (final q in kHomophoneQuestions)
       if ((_levelRank[q.level] ?? 0) >= rank &&
           (rank <= 6 || q.kind == HomophoneKind.homophone))
         q,
   ];
+  // 準1級・1級は、準1級・1級の字を含む問題を出す（足りないときだけ2級以下の問題を混ぜる）。
+  if (rank < 2) {
+    final upper = [for (final q in all) if ((_levelRank[q.level] ?? 0) < 2) q];
+    if (upper.length >= 20) return upper;
+  }
+  return all;
 }
 
 /// 部首名の問題の選択肢（部首名4つ。正解を含む）。データに無い字は null。
