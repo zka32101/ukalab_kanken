@@ -6,6 +6,7 @@ import 'package:ukalab_core/ui.dart';
 import '../views/core_features_entry.dart' show kankenMistakeNoteStore;
 import '../views/core_v069_entry.dart' show kankenReviewSchedulerStore;
 import '../screens/glossary_screen.dart' show kankenLearnedTermsStore;
+import 'content_mistake_store.dart';
 import 'exam_prep_data.dart';
 
 /// 設定画面「データの管理」（書き出し・読み込み・リセット）の対象。
@@ -50,6 +51,22 @@ final List<DataPart> kankenDataParts = [
   ),
   // 間違いノート（問題ID・日時・原因・級・回数だけ。画面は開くたびに端末内から読み直す）
   mistakeNoteDataPart(kankenMistakeNoteStore),
+  // 熟語系の出題で間違えた問題の控え（問題文・選択肢・正解。間違いノートの表示と解き直しに使う）
+  DataPart(
+    id: 'contentMistakes',
+    export: (ref) async => [
+      for (final s in await ContentMistakeStore.readAll()) s.toJson(),
+    ],
+    restore: (ref, json) async {
+      final list = <ContentMistakeSnapshot>[
+        if (json is List)
+          for (final j in json)
+            if (ContentMistakeSnapshot.fromJson(j) case final s?) s,
+      ];
+      await ContentMistakeStore.writeAll(list);
+    },
+    reset: (ref) => ContentMistakeStore.clear(),
+  ),
   // 今日の復習の予定（問題ID・段・次回の日だけ。間違いノートから作り直せる）
   reviewSchedulerDataPart(kankenReviewSchedulerStore),
   // 用語集の「覚えた」（用語IDだけ）
