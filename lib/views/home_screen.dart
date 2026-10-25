@@ -902,7 +902,12 @@ class PracticeScreen extends ConsumerWidget {
   Future<void> _handleAnswer(BuildContext context, WidgetRef ref, bool isCorrect) async {
     final practiceVM = ref.read(practiceViewModelProvider.notifier);
     final level = ref.read(currentLevelProvider);
-    final question = ref.read(practiceViewModelProvider).currentQuestion;
+    // 答えた問題。practiceViewModelProvider の currentQuestion はどこでも入れていないので、
+    // 答えを記録する処理（answerQuestion）と同じく、出題の一覧と今の番号から取る。
+    final question = answeredPracticeQuestion(
+      ref.read(practiceQuestionsProvider(level)).valueOrNull,
+      ref.read(currentQuestionIndexProvider),
+    );
 
     await practiceVM.answerQuestion(isCorrect);
     // デイリーミッション（学習リマインダーの判定にも使う）
@@ -979,22 +984,7 @@ class PracticeScreen extends ConsumerWidget {
   }
 
   /// 読み仮名・用例があれば付け足した解説文を作る
-  String? _buildExplanation(PracticeQuestion? question) {
-    if (question == null) return null;
-    // 熟語系の出題は、土台の漢字（source）が問題と関係ないので、問題ごとの説明だけを出す。
-    if (question.explanation != null) return question.explanation;
-    if (!practiceModeRecordsKanjiHistory(question.actualMode)) return null;
-    final source = question.source;
-    final parts = <String>[];
-    if (source.reading != null && source.reading!.isNotEmpty) {
-      parts.add('読み方: ${source.reading}');
-    }
-    if (source.example != null && source.example!.isNotEmpty) {
-      parts.add('例: ${source.example}');
-    }
-    if (parts.isEmpty) return null;
-    return parts.join(' / ');
-  }
+  String? _buildExplanation(PracticeQuestion? question) => practiceAnswerExplanation(question);
 
   void _showCorrectFeedback(BuildContext context, PracticeQuestion? question) {
     final explanation = _buildExplanation(question);
@@ -1119,4 +1109,27 @@ class _LevelCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 答えた問題。出題の一覧 [questions] の、今の番号 [index] の問題（無ければ null）。
+/// practiceViewModelProvider の currentQuestion はどこでも入れていないので、そこからは取れない。
+PracticeQuestion? answeredPracticeQuestion(List<PracticeQuestion>? questions, int index) =>
+    (questions != null && index >= 0 && index < questions.length) ? questions[index] : null;
+
+/// 答えたあとに出す説明。熟語系の出題は、土台の漢字（source）が問題と関係ないので、問題ごとの
+/// 説明だけを出す。漢字そのものを問う形式は、その漢字の読み・用例を出す。出す内容が無ければ null。
+String? practiceAnswerExplanation(PracticeQuestion? question) {
+  if (question == null) return null;
+  if (question.explanation != null) return question.explanation;
+  if (!practiceModeRecordsKanjiHistory(question.actualMode)) return null;
+  final source = question.source;
+  final parts = <String>[];
+  if (source.reading != null && source.reading!.isNotEmpty) {
+    parts.add('読み方: ${source.reading}');
+  }
+  if (source.example != null && source.example!.isNotEmpty) {
+    parts.add('例: ${source.example}');
+  }
+  if (parts.isEmpty) return null;
+  return parts.join(' / ');
 }
