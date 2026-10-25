@@ -5,7 +5,7 @@ import 'package:kanken/viewmodels/practice_viewmodel.dart';
 
 /// 漢検の「同音・同訓異字」に合わせた演習。
 void main() {
-  const levels = ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2'];
+  const levels = ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1'];
   final allKanji = <String>{for (final l in levels) ...LevelKanjiData.forLevel(l)};
   final kanjiChar = RegExp(r'[一-鿿]');
   final hira = RegExp(r'^[ぁ-ゖー]+$');
@@ -22,7 +22,7 @@ void main() {
       }
     });
 
-    test('文と選択肢の字は、すべて10級〜2級の配当漢字', () {
+    test('文と選択肢の字は、すべて10級〜1級の配当漢字', () {
       for (final q in kHomophoneQuestions) {
         final chars = (q.sentence + q.answer + q.wrong.join()).split('').where(kanjiChar.hasMatch);
         expect(allKanji.containsAll(chars), isTrue, reason: q.sentence);
