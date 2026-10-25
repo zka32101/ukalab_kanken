@@ -17,7 +17,8 @@ jobs:
         with:
           flutter-version: '3.47.4'
           channel: 'stable'
-      - run: sed -i 's/ref: v0.83.0/ref: v0.86.0/' pubspec.yaml
+      - name: Bump ukalab_core ref
+        run: sed -i 's/ref. v0\.83\.0/ref: v0.86.0/' pubspec.yaml
       - run: flutter pub get
       - name: Commit pubspec.yaml / pubspec.lock
         run: |
