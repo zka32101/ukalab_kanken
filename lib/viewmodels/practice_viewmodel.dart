@@ -270,9 +270,9 @@ List<HomophoneQuestion> homophonesForLevel(String level) {
           (rank <= 6 || q.kind == HomophoneKind.homophone))
         q,
   ];
-  // 準1級・1級は、準1級・1級の字を含む問題を出す（足りないときだけ2級以下の問題を混ぜる）。
+  // 準1級・1級は、準2級以上の字を含む問題を出す（3級以下の字だけの問題は、足りないときだけ混ぜる）。
   if (rank < 2) {
-    final upper = [for (final q in all) if ((_levelRank[q.level] ?? 0) < 2) q];
+    final upper = [for (final q in all) if ((_levelRank[q.level] ?? 0) < 3) q];
     if (upper.length >= 20) return upper;
   }
   return all;
@@ -386,9 +386,9 @@ List<WordRelation> wordRelationsForLevel(String level, WordRelationKind kind) {
   final minRank = kind == WordRelationKind.antonym ? 8 : 6;
   if (rank == null || rank > minRank) return const [];
   final all = [for (final r in kWordRelations) if (r.kind == kind && (_levelRank[r.level] ?? 0) >= rank) r];
-  // 準1級・1級は、準1級・1級の字を含む組を出す（2級以下の字だけの組は、足りないときだけ混ぜる）。
+  // 準1級・1級は、準2級以上の字を含む組を出す（3級以下の字だけの組は、足りないときだけ混ぜる）。
   if (rank < 2) {
-    final upper = [for (final r in all) if ((_levelRank[r.level] ?? 0) < 2) r];
+    final upper = [for (final r in all) if ((_levelRank[r.level] ?? 0) < 3) r];
     if (upper.length >= 20) return upper;
   }
   return all;
