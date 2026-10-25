@@ -12,11 +12,11 @@ void main() {
   final kanjiChar = RegExp(r'[\u2E80-\u2FDF\u3400-\u9FFF\uF900-\uFAFF\u{20000}-\u{2FA1F}]', unicode: true);
 
   /// 確信が持てず、出題しない字（scripts/data/radical_upper_excluded.tsv）。
-  const excluded = '戒戯肩雇戻鬼魂魅魔曹曽更旨普暦替暫旬巨匠甚甘為爪企傘介舗';
+  const excluded = '肩雇曹曽更替為舗';
 
-  test('4級〜2級の配当漢字1,110字のうち、除外した28字以外は、すべて部首・部首名を持つ', () {
+  test('4級〜2級の配当漢字1,110字のうち、除外した8字以外は、すべて部首・部首名を持つ', () {
     expect(upper.length, 1110);
-    expect(excluded.runes.length, 28);
+    expect(excluded.runes.length, 8);
     final missing = upper.where((k) => KanjiRadicalData.get(k) == null).toSet();
     expect(missing, excluded.split('').toSet(), reason: '部首が無い字は、除外した字だけ');
   });
