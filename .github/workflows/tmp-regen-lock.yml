@@ -1,0 +1,29 @@
+name: tmp-regen-lock
+
+on:
+  push:
+    branches: [chore/core-v0.86.0-startup-splash]
+    paths: ['.github/workflows/tmp-regen-lock.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+      - run: sed -i 's/ref: v0.83.0/ref: v0.86.0/' pubspec.yaml
+      - run: flutter pub get
+      - name: Commit pubspec.yaml / pubspec.lock
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add pubspec.yaml pubspec.lock
+          git commit -m 'chore: ukalab_core を v0.86.0 に更新（pubspec.lock を CI で再生成）' || echo none
+          git pull --rebase origin chore/core-v0.86.0-startup-splash
+          git push origin HEAD:chore/core-v0.86.0-startup-splash
