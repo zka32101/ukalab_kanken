@@ -220,6 +220,10 @@ class PracticeQuestion {
   /// 筆順の問題で、赤く示す画（0始まり）。書き順の図は prompt の漢字のものを使う。筆順の問題以外は null。
   final int? highlightStroke;
 
+  /// 答えたあとに出す、正解の語・意味などの1〜2行の説明。熟語系の出題は、土台の漢字（source）が
+  /// 問題と関係ないので、source の読み・用例ではなく、この説明を出す。null なら出さない。
+  final String? explanation;
+
   const PracticeQuestion({
     required this.source,
     required this.actualMode,
@@ -228,6 +232,7 @@ class PracticeQuestion {
     required this.choices,
     required this.correctAnswer,
     this.highlightStroke,
+    this.explanation,
   });
 }
 
@@ -356,6 +361,19 @@ List<KanjiMakingItem> kanjiMakingForLevel(String level) {
 String kanjiMakingChoiceText(List<String> kanji) => [
       for (var i = 0; i < kanji.length; i++) '${'ABC'[i]}${kanji[i]}',
     ].join('　');
+
+/// 漢字作りの正解を、問題の A・B・C に入れた形（例: 夜景・景品）。
+String kanjiMakingCompleted(KanjiMakingItem k) {
+  var s = k.prompt;
+  for (var i = 0; i < k.answer.length; i++) {
+    s = s.replaceAll('ABC'[i], k.answer[i]);
+  }
+  return s;
+}
+
+/// 対義語・類義語の答え合わせの説明（例: 勝利（しょうり）⇔ 敗北（はいぼく））。
+String relationExplanation(WordRelation r, WordRelationKind kind) =>
+    '${r.word}（${r.reading}）${kind == WordRelationKind.antonym ? '⇔' : '＝'}${r.partner}（${r.partnerReading}）';
 
 /// 指定の級の演習で出す、送りがなの問題。その級以下の字の語だけ。送りがなは8級〜2級で出題する
 /// （それ以外は空）。
@@ -819,6 +837,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${yoji.meaning}（${yoji.reading}）\n□に入る漢字はどれ？',
           choices: yojiBlankChoices(yoji.word, index, level, random),
           correctAnswer: yoji.word[index],
+          explanation: '正解: ${yoji.word}（${yoji.reading}）',
         );
       }
     }
@@ -839,6 +858,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
             instruction: reading ? 'この熟語の読み方はどれ？' : 'この読み方の熟語はどれ？',
             choices: choices,
             correctAnswer: reading ? item.reading : item.word,
+            explanation: '${item.word}（${item.reading}）',
           );
         }
       }
@@ -863,6 +883,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '${koji.meaning}（${koji.reading}）\n□に入る漢字はどれ？',
           choices: kojiBlankChoices(koji.phrase, index, level, random),
           correctAnswer: koji.phrase[index],
+          explanation: '正解: ${koji.phrase}（${koji.reading}）',
         );
       }
     }
@@ -898,6 +919,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
             instruction: '「${blank.prompt}」のカタカナを、漢字に直すと？',
             choices: blank.choices,
             correctAnswer: blank.answer,
+            explanation: '正解: ${s.word}',
           );
         }
         actualMode = PracticeMode.writing;
@@ -920,6 +942,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
             for (final w in k.wrong) kanjiMakingChoiceText(w),
           ]..shuffle(random),
           correctAnswer: kanjiMakingChoiceText(k.answer),
+          explanation: '正解: ${kanjiMakingCompleted(k)}',
         );
       }
     }
@@ -937,6 +960,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '「${o.reading}」を、漢字と送りがなで正しく書くと？',
           choices: [o.word, ...o.wrong]..shuffle(random),
           correctAnswer: o.word,
+          explanation: '正解: ${o.word}（${o.reading}）',
         );
       }
     }
@@ -957,6 +981,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: '【 】の漢字は誤りです。正しい漢字は？',
           choices: [h.answer, ...others.take(3)]..shuffle(random),
           correctAnswer: h.answer,
+          explanation: '正しい文: ${h.sentence.replaceFirst('【${h.reading}】', '【${h.answer}】')}',
         );
       }
     }
@@ -978,6 +1003,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
               : '【 】のひらがなを、漢字と送りがなで書くと？',
           choices: choices,
           correctAnswer: h.answer,
+          explanation: '正解: ${h.sentence.replaceFirst('【${h.reading}】', '【${h.answer}】')}',
         );
       }
     }
@@ -1001,6 +1027,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
                 : '「${blank.askWord}（${blank.askReading}）」の類義語になるように、□に入る漢字はどれ？',
             choices: blank.choices,
             correctAnswer: blank.answerChar,
+            explanation: relationExplanation(relation, kind),
           );
         }
         final choices = wordRelationChoices(relation, reversed, level, random);
@@ -1017,6 +1044,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
                 : '「$askWord（$askReading）」の類義語（ほぼ同じ意味の言葉）はどれ？',
             choices: choices,
             correctAnswer: answer,
+            explanation: relationExplanation(relation, kind),
           );
         }
       }
@@ -1037,6 +1065,7 @@ List<PracticeQuestion> _buildPracticeQuestions(
           instruction: 'この熟語の構成として正しいものはどれ？',
           choices: choices,
           correctAnswer: compound.correctLabel,
+          explanation: '${compound.jukugo}は「${compound.correctLabel}」',
         );
       }
     }
