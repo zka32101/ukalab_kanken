@@ -7,12 +7,12 @@ import 'package:kanken/viewmodels/practice_viewmodel.dart';
 
 /// 漢検の「対義語・類義語」に合わせた演習。
 void main() {
-  const levels = ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2'];
+  const levels = ['LEVEL_10', 'LEVEL_9', 'LEVEL_8', 'LEVEL_7', 'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2', 'LEVEL_1_PRE', 'LEVEL_1'];
   final allKanji = <String>{for (final l in levels) ...LevelKanjiData.forLevel(l)};
   final hira = RegExp(r'^[ぁ-ゖー]+$');
 
   group('組のデータ（レビューの機械チェック）', () {
-    test('2語とも2字以上・読みはひらがな・すべて10級〜2級の配当漢字', () {
+    test('2語とも2字以上・読みはひらがな・すべて10級〜1級の配当漢字', () {
       for (final r in kWordRelations) {
         for (final w in [r.word, r.partner]) {
           expect(w.runes.length, inInclusiveRange(2, 4), reason: w);

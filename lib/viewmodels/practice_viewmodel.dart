@@ -374,15 +374,18 @@ List<HomophoneQuestion> errorCorrectionForLevel(String level) {
 }
 
 /// 指定の級の演習で出す、対義語（または類義語）の組。2語に含まれる字がすべて、その級以下の
-/// 配当漢字にあるものだけ。対義語は8級〜2級、類義語は6級〜2級で出題する（それ以外は空）。
+/// 配当漢字にあるものだけ。対義語は8級〜1級、類義語は6級〜1級で出題する（それ以外は空）。
 List<WordRelation> wordRelationsForLevel(String level, WordRelationKind kind) {
   final rank = _levelRank[level];
   final minRank = kind == WordRelationKind.antonym ? 8 : 6;
   if (rank == null || rank > minRank) return const [];
-  return [
-    for (final r in kWordRelations)
-      if (r.kind == kind && (_levelRank[r.level] ?? 0) >= rank) r,
-  ];
+  final all = [for (final r in kWordRelations) if (r.kind == kind && (_levelRank[r.level] ?? 0) >= rank) r];
+  // 準1級・1級は、準1級・1級の字を含む組を出す（2級以下の字だけの組は、足りないときだけ混ぜる）。
+  if (rank < 2) {
+    final upper = [for (final r in all) if ((_levelRank[r.level] ?? 0) < 2) r];
+    if (upper.length >= 20) return upper;
+  }
+  return all;
 }
 
 /// 対義語・類義語の問題の選択肢（語4つ。正解を含む）。[askWord] が問いの語、[answer] が正解。
