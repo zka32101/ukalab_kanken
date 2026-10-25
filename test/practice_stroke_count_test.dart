@@ -27,7 +27,15 @@ void main() {
 
   test('1画の漢字でも、選択肢が足りなくならない', () {
     expect(strokeCountChoices(1), [1, 2, 3, 4]);
-    expect(strokeCountChoices(2), [1, 2, 3, 4]);
+    // 2画は、窓が2通り（1〜4 か 2〜5）。どちらでも、1画以上の連続した4つで、正解を含む。
+    final seen = <String>{};
+    for (var i = 0; i < 100; i++) {
+      final c = strokeCountChoices(2);
+      expect(c, contains(2));
+      expect(c.first, greaterThanOrEqualTo(1));
+      seen.add(c.join(','));
+    }
+    expect(seen, {'1,2,3,4', '2,3,4,5'});
   });
 
   test('10級〜5級の配当漢字は、画数が分かる字が大半（分からない字は書き取りに回る）', () {
