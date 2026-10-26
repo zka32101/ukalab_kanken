@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/learning_recommendation.dart';
+import '../services/learning_plan_limits.dart';
 import '../viewmodels/user_viewmodel.dart' as user_vm;
 import 'weak_area_provider.dart';
 
@@ -20,7 +21,8 @@ final learningPlanProvider = FutureProvider<LearningPlan>((ref) async {
 
   final recommendations = <LearningRecommendation>[];
 
-  for (final weakArea in analysis.weakAreas) {
+  final targets = pickPlanTargets(analysis.weakAreas);
+  for (final weakArea in targets) {
     // 優先度を決定（正答率に基づく）
     RecommendationPriority priority;
     if (weakArea.accuracyRate < 0.3) {
@@ -78,7 +80,8 @@ final learningPlanProvider = FutureProvider<LearningPlan>((ref) async {
       priority: priority,
       difficulty: difficulty,
       reason: reason,
-      recommendedDailyQuestions: weakArea.getRecommendedQuestionCount(),
+      recommendedDailyQuestions:
+          planDailyQuestions(weakArea, targetCount: targets.length),
       estimatedDaysToImprove: estimatedDays,
       createdAt: DateTime.now(),
     );
