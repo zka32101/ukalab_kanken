@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../data/exam_prep_data.dart' show historyProvider;
 import '../models/analytics.dart';
+import '../services/local_analytics.dart';
 import '../viewmodels/user_viewmodel.dart' as user_vm;
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
@@ -33,41 +35,15 @@ DocumentReference<Map<String, dynamic>> _profileDoc(String uid, String profileId
       .doc(profileId);
 }
 
-/// ユーザーの学習分析データを取得（プロフィール単位）
+/// 学習分析データ。解答の記録は端末内にしかないので、履歴から集計する。
 final userLearningAnalyticsProvider =
     FutureProvider<LearningAnalytics?>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return null;
-
-  final profileId = ref.watch(_currentProfileIdProvider);
-  final doc = await _profileDoc(userId, profileId).get();
-
-  if (!doc.exists) return null;
-
-  return LearningAnalytics.fromJson({
-    'userId': userId,
-    ...doc.data() ?? {},
-  });
+  return analyticsFromHistory(ref.watch(historyProvider));
 });
 
-/// ユーザーの成長データ（過去30日）を取得（プロフィール単位）
-final userGrowthDataProvider =
-    FutureProvider<List<GrowthData>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-
-  final profileId = ref.watch(_currentProfileIdProvider);
-  final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-
-  final querySnapshot = await _profileDoc(userId, profileId)
-      .collection('growthData')
-      .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(thirtyDaysAgo))
-      .orderBy('date', descending: false)
-      .get();
-
-  return querySnapshot.docs
-      .map((doc) => GrowthData.fromJson(doc.data()))
-      .toList();
+/// 成長データ（過去30日）。端末内の履歴から集計する。
+final userGrowthDataProvider = FutureProvider<List<GrowthData>>((ref) async {
+  return growthFromHistory(ref.watch(historyProvider));
 });
 
 /// ユーザーの学習トレンド（プロフィール単位）

@@ -116,7 +116,7 @@ class WeakArea {
       totalAttempts: json['totalAttempts'] as int? ?? 0,
       correctAnswers: json['correctAnswers'] as int? ?? 0,
       accuracyRate: accuracyRate,
-      level: hasAccuracyRate ? _levelFromAccuracy(accuracyRate) : WeakLevel.excellent,
+      level: hasAccuracyRate ? weakLevelFromAccuracy(accuracyRate) : WeakLevel.excellent,
       recentStreakDays: json['recentStreakDays'] as int? ?? 0,
       lastAttemptAt: json['lastAttemptAt'] is Timestamp
           ? (json['lastAttemptAt'] as Timestamp).toDate()
@@ -145,7 +145,7 @@ class WeakArea {
 }
 
 /// 正答率から苦手レベルを判定
-WeakLevel _levelFromAccuracy(double accuracy) {
+WeakLevel weakLevelFromAccuracy(double accuracy) {
   if (accuracy >= 0.9) return WeakLevel.excellent;
   if (accuracy >= 0.7) return WeakLevel.good;
   if (accuracy >= 0.5) return WeakLevel.normal;
