@@ -1,43 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../data/exam_prep_data.dart' show historyProvider;
 import '../models/weak_area.dart';
+import '../services/local_analytics.dart';
+import '../views/core_features_entry.dart' show kankenLevelLabel;
 
-/// 苦手分野分析を取得
+/// 苦手分野分析。解答の記録は端末内にしかないので、履歴から級ごとに集計する。
 final weakAreaAnalysisProvider = FutureProvider<WeakAreaAnalysis>((ref) async {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null) {
-    return WeakAreaAnalysis(
-      allAreas: [],
-      overallAccuracy: 0.0,
-      analyzedAt: DateTime.now(),
-    );
-  }
-
-  final snapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(userId)
-      .collection('weakAreas')
-      .orderBy('accuracyRate')
-      .get();
-
-  final allAreas = snapshot.docs
-      .map((doc) => WeakArea.fromJson(doc.data()))
-      .toList();
-
-  // 全体正答率を計算
-  int totalAttempts = 0;
-  int totalCorrect = 0;
-  for (final area in allAreas) {
-    totalAttempts += area.totalAttempts;
-    totalCorrect += area.correctAnswers;
-  }
-  final overallAccuracy = totalAttempts > 0 ? totalCorrect / totalAttempts : 0.0;
-
-  return WeakAreaAnalysis(
-    allAreas: allAreas,
-    overallAccuracy: overallAccuracy,
-    analyzedAt: DateTime.now(),
+  return weakAreasFromHistory(
+    ref.watch(historyProvider),
+    nameOf: kankenLevelLabel,
   );
 });
 

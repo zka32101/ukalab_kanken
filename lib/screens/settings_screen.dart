@@ -18,6 +18,7 @@ import '../services/firestore_service.dart';
 import '../services/handwriting_strictness.dart';
 import '../services/learning_transfer_service.dart';
 import '../viewmodels/user_viewmodel.dart';
+import '../views/core_features_entry.dart' show kankenLevelLabel;
 import '../viewmodels/services_provider.dart';
 import 'package:app_common_kit/parental_gate.dart';
 import 'package:kanken/widgets/ukalab_emoji.dart';
@@ -450,14 +451,14 @@ class _ProfileManagementSection extends ConsumerWidget {
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          FitText(profile.currentLevel),
+                          FitText(kankenLevelLabel(profile.currentLevel)),
                           Wrap(
                             crossAxisAlignment: WrapCrossAlignment.center,
                             children: actions,
                           ),
                         ],
                       )
-                    : Text(profile.currentLevel),
+                    : Text(kankenLevelLabel(profile.currentLevel)),
                 trailing: narrow
                     ? null
                     : Row(mainAxisSize: MainAxisSize.min, children: actions),
