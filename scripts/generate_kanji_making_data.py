@@ -36,6 +36,24 @@ for m in re.finditer(r"'(LEVEL_\w+)':\s*'([^']*)'", src):
 KANJI = re.compile(r'[一-鿿]')
 rows, dropped, errors = [], [], []
 
+# 既知の熟語(2字の連続)。S型で「正解の字を入れ替えた誤答」を足すとき、入れ替えた結果が
+# 実在する熟語になって、誤答が正解にもなってしまうのを避けるために使う。
+# 各データの2字の連続を全て集める(熟語でない連続も入るが、多めに弾くだけで安全側)。
+_WORD_FILES = [
+    'joyo_adopted_examples.tsv', 'upper_jukugo_pool.tsv', 'sanji_jukugo.tsv',
+    'yoji_jukugo.tsv', 'word_relations.tsv', 'homophones.tsv',
+    'compound_structure.tsv', 'kanji_making.tsv',
+]
+KNOWN_PAIRS = set()
+# アプリの用例データ(各字の用例)も見る。演習のテストが、誤答の組から実在の二字熟語ができないことを
+# 確かめるのに、この用例を使っているため。
+_APP_FILES = ['lib/data/kanji_info_data.dart']
+for _f in _WORD_FILES + _APP_FILES:
+    for _line in open(_f if '/' in _f else 'scripts/data/' + _f, encoding='utf-8'):
+        for _run in re.findall(r'[一-鿿]+', _line):
+            for _i in range(len(_run) - 1):
+                KNOWN_PAIRS.add(_run[_i:_i + 2])
+
 
 def check(cond, msg, line):
     if not cond:
@@ -91,6 +109,12 @@ for n, line in enumerate(open('scripts/data/kanji_making.tsv', encoding='utf-8')
             check(len(x) == 1 and len(y) == 1 and [x, y] != answers, '誤答の組が不正', line)
             wrongs.append([x, y])
         check(len(wrongs) >= 2, '誤答は2組', line)
+        # 正解の字を入れ替えた組(例: 刺・励 → 励・刺)を、先頭の誤答にする。
+        # 入れ替えた結果が実在する熟語になるときは、正解になりうるので使わない。
+        swap = [b, a]
+        if (swap != answers and swap not in wrongs
+                and b + shared not in KNOWN_PAIRS and shared + a not in KNOWN_PAIRS):
+            wrongs.insert(0, swap)
         prompt = 'A%s・%sB' % (shared, shared)
         instruction = 'AとBに入る漢字の組み合わせはどれ？'
         used = shared + a + b + ''.join(''.join(w) for w in wrongs)
