@@ -163,3 +163,62 @@ WeakAreaAnalysis weakAreasFromHistory(
     analyzedAt: at,
   );
 }
+
+/// 学習効率。効率スコアは「(正答数 / 学習分数) × 正答率」(モデルの定義どおり)。
+/// 履歴が空なら null。
+StudyEfficiency? efficiencyFromHistory(
+  List<ProgressRecord> records, {
+  DateTime? now,
+  String userId = 'local',
+}) {
+  if (records.isEmpty) return null;
+  final minutes = estimateStudyMinutes(records);
+  final correct = records.where((r) => r.correct).length;
+  final accuracy = correct / records.length;
+  final score = minutes > 0 ? (correct / minutes) * accuracy : 0.0;
+  return StudyEfficiency(
+    userId: userId,
+    minutesStudied: minutes,
+    questionsCompleted: records.length,
+    accuracyRate: accuracy,
+    efficiencyScore: score,
+    calculatedAt: now ?? DateTime.now(),
+  );
+}
+
+/// この回数以上の解答がある級だけ、トレンドを出す(少ないと傾きが当てにならない)。
+const _trendMinAnswers = 6;
+
+/// 級ごとの正答率の推移。解答を古い順に半分ずつに分け、後半が前半より
+/// 5ポイント以上高ければ up、低ければ down、それ以外は stable。
+/// [trendData] は、古い順に並べた解答を最大5つの区間に分けた正答率(0.0〜1.0)。
+List<LearningTrend> trendsFromHistory(
+  List<ProgressRecord> records, {
+  required String Function(String levelId) nameOf,
+}) {
+  final byTopic = <String, List<ProgressRecord>>{};
+  for (final r in records) {
+    byTopic.putIfAbsent(r.topicId ?? _unknownTopic, () => []).add(r);
+  }
+  final out = <LearningTrend>[];
+  for (final e in byTopic.entries) {
+    if (e.value.length < _trendMinAnswers) continue;
+    final sorted = [...e.value]..sort((a, b) => a.at.compareTo(b.at));
+    final buckets = sorted.length < 10 ? 2 : 5;
+    final size = (sorted.length / buckets).ceil();
+    final data = <double>[];
+    for (var i = 0; i < sorted.length; i += size) {
+      final part = sorted.sublist(i, (i + size).clamp(0, sorted.length));
+      data.add(part.where((r) => r.correct).length / part.length);
+    }
+    final diff = data.last - data.first;
+    out.add(LearningTrend(
+      category: e.key == _unknownTopic ? 'その他' : nameOf(e.key),
+      trendData: data,
+      averageTrend: diff,
+      trend: diff >= 0.05 ? 'up' : (diff <= -0.05 ? 'down' : 'stable'),
+    ));
+  }
+  out.sort((a, b) => b.averageTrend.compareTo(a.averageTrend));
+  return out;
+}

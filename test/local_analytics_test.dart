@@ -139,4 +139,66 @@ void main() {
       expect(a.allAreas.single.categoryName, 'その他');
     });
   });
+
+  group('efficiencyFromHistory', () {
+    test('履歴が空なら null', () {
+      expect(efficiencyFromHistory(const [], now: now), isNull);
+    });
+
+    test('効率スコアは (正答数 / 分数) × 正答率', () {
+      // 4問・3正解。9:00,9:01,9:02,9:03 → 30 + 60 + 60 + 60 = 210秒 → 4分(3.5を丸め)
+      final e = efficiencyFromHistory([
+        _r(DateTime(2026, 10, 26, 9, 0)),
+        _r(DateTime(2026, 10, 26, 9, 1)),
+        _r(DateTime(2026, 10, 26, 9, 2), correct: false),
+        _r(DateTime(2026, 10, 26, 9, 3)),
+      ], now: now)!;
+      expect(e.questionsCompleted, 4);
+      expect(e.minutesStudied, 4);
+      expect(e.accuracyRate, 0.75);
+      expect(e.efficiencyScore, closeTo((3 / 4) * 0.75, 1e-9));
+    });
+  });
+
+  group('trendsFromHistory', () {
+    List<ProgressRecord> run(List<bool> results, {String level = 'LEVEL_2'}) => [
+          for (var i = 0; i < results.length; i++)
+            _r(DateTime(2026, 10, 1).add(Duration(minutes: i)),
+                correct: results[i], level: level),
+        ];
+
+    test('解答が少ない級は出さない', () {
+      expect(
+          trendsFromHistory(run([true, false, true]), nameOf: (id) => id),
+          isEmpty);
+    });
+
+    test('後半の正答率が高ければ up', () {
+      final t = trendsFromHistory(
+          run([false, false, false, true, true, true]),
+          nameOf: (id) => '名:$id');
+      expect(t.single.category, '名:LEVEL_2');
+      expect(t.single.trend, 'up');
+      expect(t.single.trendData.first, 0.0);
+      expect(t.single.trendData.last, 1.0);
+    });
+
+    test('後半の正答率が低ければ down', () {
+      final t = trendsFromHistory(
+          run([true, true, true, false, false, false]),
+          nameOf: (id) => id);
+      expect(t.single.trend, 'down');
+    });
+
+    test('ほぼ同じなら stable', () {
+      final t = trendsFromHistory(
+          run([true, false, true, true, false, true]), nameOf: (id) => id);
+      expect(t.single.trend, 'stable');
+    });
+
+    test('10問以上は5区間に分ける', () {
+      final t = trendsFromHistory(run(List.filled(10, true)), nameOf: (id) => id);
+      expect(t.single.trendData.length, 5);
+    });
+  });
 }
