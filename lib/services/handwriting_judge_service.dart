@@ -3,6 +3,7 @@ import 'dart:ui' show Offset;
 
 import 'package:path_drawing/path_drawing.dart';
 
+import '../data/handwriting_confusables.dart';
 import '../data/stroke_order_sample_data.dart';
 
 /// 手書き判定サービス
@@ -60,7 +61,25 @@ class HandwritingJudgeService {
               referenceStrokes: referencePolylines(ref.strokePaths, ref.viewBox),
               canvasSize: [canvasW, canvasH],
             );
-      final isCorrect = score >= passingScore;
+      var isCorrect = score >= passingScore;
+
+      // 形が似た別の字(提と堤など)を書いていないか。合格点を超えても、似た字の基準のほうが
+      // 書いた形に近ければ、別の字を書いたとみなして不合格にする。
+      if (isCorrect && ref != null && kanji != null) {
+        final other = closerConfusable(
+          kanji: kanji,
+          targetScore: score,
+          strokes: strokes,
+          canvasSize: [canvasW, canvasH],
+        );
+        if (other != null) {
+          return HandwritingJudgement(
+            isCorrect: false,
+            confidence: score / 100,
+            message: '形が似た別の字に近いようです。もう一度ていねいに書いてみましょう（$score点）',
+          );
+        }
+      }
 
       return HandwritingJudgement(
         isCorrect: isCorrect,
@@ -74,6 +93,31 @@ class HandwritingJudgeService {
         message: '判定エラー：${e.toString()}',
       );
     }
+  }
+
+  /// [kanji] と形が似た字([kHandwritingConfusables])のうち、書いた線の形が [kanji] より
+  /// 近いもの(点数が [targetScore] を上回る字)を返す。なければ null。
+  /// 基準データがない字は見ない。正しく書いた字は、基準との点数が最も高くなるので、
+  /// 似た字に負けない。
+  static String? closerConfusable({
+    required String kanji,
+    required int targetScore,
+    required List<List<List<double>>> strokes,
+    List<double>? canvasSize,
+  }) {
+    final candidates = kHandwritingConfusables[kanji];
+    if (candidates == null) return null;
+    for (final c in candidates.split('')) {
+      final d = StrokeOrderSampleData.getStrokeOrder(c);
+      if (d == null) continue;
+      final other = shapeScore(
+        strokes: strokes,
+        referenceStrokes: referencePolylines(d.strokePaths, d.viewBox),
+        canvasSize: canvasSize,
+      );
+      if (other > targetScore) return c;
+    }
+    return null;
   }
 
   /// 書き順データの各画（SVGパス）を、点列に直す。
