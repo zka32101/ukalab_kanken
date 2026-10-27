@@ -6,7 +6,7 @@ import 'purchases_service.dart';
 
 /// 広告まわりの初期化とAdGate(app_common_kit)の保持。
 ///
-/// 児童向けアプリのため、常に子供向けタグ・最大レーティングG・非パーソナライズ広告を指定する。
+/// 子ども向けの指定はしない(他のうかラボアプリと同じ設定)。
 /// 表示ルール(うかラボ共通方針): インタースティシャルは演習セッション終了時のみ
 /// (最短3分間隔・1日5回)、バナーはホームのみ。出題中は出さない。
 /// 広告非表示プラン加入中は広告SDKを初期化せず何も出さない。
@@ -42,12 +42,9 @@ class AdService {
       _gate = await AdGate.init(
         // 本番IDが未指定(空)のリリースでは、広告SDKを使わない実装にして、広告を出さない。
         backend: ids.banner.isEmpty && ids.interstitial.isEmpty ? NoAdsBackend() : null,
-        config: AdConfig(
-          unitIds: ids,
-          childDirected: true,
-          maxAdContentRating: AdContentRating.g,
-          nonPersonalizedAds: true,
-        ),
+        // 他のうかラボアプリと同じ設定(児童向けにしない・広告の最大レーティングの制限なし・
+        // パーソナライズあり)。対象年齢はPlay Consoleの申告と合わせる。
+        config: AdConfig(unitIds: ids),
         adsHidden: () => PurchasesService.entitlement?.state.adsHidden ?? false,
       );
     } catch (e) {

@@ -63,7 +63,7 @@ void main() async {
   // 購入（広告なし・プレミアム。買い切り）初期化
   await PurchasesService.initialize();
 
-  // 広告初期化（児童向け設定を含む。権利状態に依存するため購入初期化の後）
+  // 広告初期化（権利状態に依存するため購入初期化の後）
   await AdService.initialize();
 
   // 文字の大きさ（アプリ内設定）を復元する
