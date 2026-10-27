@@ -9,6 +9,7 @@ import '../data/level_kanji_data.dart';
 import '../data/content_mistake_store.dart';
 import '../data/upper_jukugo_data.dart';
 import '../data/word_relation_data.dart';
+import '../data/word_meaning_data.dart';
 import '../data/yoji_jukugo_data.dart';
 import '../data/kanji_radical_data.dart';
 import '../data/kanji_info_data.dart';
@@ -379,8 +380,16 @@ String kanjiMakingCompleted(KanjiMakingItem k) {
 }
 
 /// 対義語・類義語の答え合わせの説明（例: 勝利（しょうり）⇔ 敗北（はいぼく））。
-String relationExplanation(WordRelation r, WordRelationKind kind) =>
-    '${r.word}（${r.reading}）${kind == WordRelationKind.antonym ? '⇔' : '＝'}${r.partner}（${r.partnerReading}）';
+/// 語の意味が [kWordMeanings] にあれば、2行目以降に「語：意味」を付ける。
+String relationExplanation(WordRelation r, WordRelationKind kind) {
+  final head =
+      '${r.word}（${r.reading}）${kind == WordRelationKind.antonym ? '⇔' : '＝'}${r.partner}（${r.partnerReading}）';
+  final lines = [
+    for (final w in [r.word, r.partner])
+      if (kWordMeanings[w] case final m?) '$w：$m',
+  ];
+  return lines.isEmpty ? head : '$head\n${lines.join('\n')}';
+}
 
 /// 指定の級の演習で出す、送りがなの問題。その級以下の字の語だけ。送りがなは8級〜2級で出題する
 /// （それ以外は空）。
