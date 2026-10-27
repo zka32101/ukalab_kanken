@@ -14,6 +14,7 @@ import '../data/kanken_data_parts.dart';
 import '../data/peer_stats_prep.dart';
 import '../widgets/peer_stats_settings_tile.dart';
 import '../models/user.dart';
+import 'content_counts_screen.dart';
 import '../services/firestore_service.dart';
 import '../services/handwriting_strictness.dart';
 import '../services/learning_transfer_service.dart';
@@ -332,6 +333,16 @@ class SettingsScreen extends ConsumerWidget {
                 currentAppId: 'com.yourwish.ukarulab.kanji',
                 isChildDirected: true,
                 beforeOpenStore: (context) => requireParentalGate(context),
+              ),
+              ListTile(
+                key: const ValueKey('settingsContentCounts'),
+                leading: const Icon(Icons.format_list_numbered),
+                title: const Text('収録問題数'),
+                subtitle: const Text('級ごとの、問題の数を見られます'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const ContentCountsScreen()),
+                ),
               ),
               const _SectionHeader('このアプリについて'),
               const Padding(
