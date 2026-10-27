@@ -1,7 +1,6 @@
 import '../data/level_kanji_data.dart';
 import '../data/local_exam_questions.dart';
 import '../models/category_label.dart';
-import '../models/mock_exam_modes.dart';
 
 /// 「収録問題数」の一覧の、1つの級ぶん。
 class ContentCountRow {
