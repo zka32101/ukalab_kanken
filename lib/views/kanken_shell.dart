@@ -10,7 +10,7 @@ import 'home_screen.dart';
 /// 下部5タブ（ホーム／学ぶ／模擬／記録／設定）。他のうかラボアプリと同じ [UkalabShell]。
 ///
 /// 約30の個別画面はタブの外で Navigator.push で開く（そのあいだ下部タブとバナーは出ない）。
-/// バナー広告はタブ共通で下部に1枠だけ置く。非表示・児童向け設定は [BannerAdWidget]（AdGate）側。
+/// バナー広告はタブ共通で下部に1枠だけ置く。非表示設定は [BannerAdWidget]（AdGate）側。
 class KankenShell extends StatelessWidget {
   const KankenShell({Key? key}) : super(key: key);
 
