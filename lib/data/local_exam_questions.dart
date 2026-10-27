@@ -50,6 +50,10 @@ const Set<String> _compoundExamLevels = {
   'LEVEL_6', 'LEVEL_5', 'LEVEL_4', 'LEVEL_3', 'LEVEL_2_PRE', 'LEVEL_2',
 };
 
+/// 指定の級の演習で、出せる問題の数（分野ごと）。「収録問題数」の一覧が使う。
+/// その級で出題しない分野は 0。
+int examPoolSize(ExamCategory c, String level) => _poolSize(c, level);
+
 int _poolSize(ExamCategory c, String level) {
   switch (c) {
     case ExamCategory.yoji:
