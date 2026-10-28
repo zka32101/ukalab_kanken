@@ -31,7 +31,13 @@ class KanjiMeaningDraftSection extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 4),
-          Text(entry.meaning, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+          Text(
+            entry.meaning,
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );

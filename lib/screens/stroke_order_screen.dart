@@ -264,9 +264,9 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                                       padding: const EdgeInsets.only(top: 2),
                                       child: Text(
                                         '・$example',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.black87,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -304,9 +304,9 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                       Flexible(
                         child: Text(
                           '${kanjiList.where(mastered.contains).length} / ${kanjiList.length} 覚えた',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: Colors.black54,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
