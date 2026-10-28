@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/kanji_meaning_draft_data.dart';
 
 /// 漢字の「意味(AI下書き・未確認)」を表示する。
-/// [visible] が false(既定は [kKanjiMeaningVisible] = false)のとき、または
+/// [visible] が false(既定は [kKanjiMeaningVisible] = true)のとき、または
 /// その字の下書きが無いときは何も描かない。
 /// 意味は AI が書いた下書きで、公的データでも検定協会の公式でもない。
 class KanjiMeaningDraftSection extends StatelessWidget {
