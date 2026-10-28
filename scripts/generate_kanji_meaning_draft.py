@@ -3,7 +3,7 @@
 
 重要: 意味の文はすべて AI(Claude)が自分の言葉で下書きしたもの。公的データでも
 検定協会の公式でもない。辞書・参考書・Wikipedia 等の文章は転載・要約していない。
-人の確認が済むまで本番画面には出さない(kKanjiMeaningVisible = false)。
+本番画面には「AI下書き・未確認」ラベル付きで表示する(kKanjiMeaningVisible = true)。
 
 使い方:
   python3 -I scripts/generate_kanji_meaning_draft.py
@@ -50,8 +50,8 @@ def main():
         f.write('// 公式でもない。人(漢検の指導者等)の確認が済むまで本番画面には出さない。\n')
         f.write('// 辞書・参考書等の文章は転載していない。入力元: scripts/data/kanji_meaning_draft_source.tsv\n')
         f.write('// 意味を入れていない字・要確認の字: docs/data_verification/meaning_review.md\n\n')
-        f.write('/// 意味(AI下書き)を画面に出すか。人の確認が済むまで false のまま。\n')
-        f.write('const bool kKanjiMeaningVisible = false;\n\n')
+        f.write('/// 意味(AI下書き)を画面に出すか。true(ユーザー承認済み)。未確認分は「AI下書き・未確認」ラベル付きで出す。\n')
+        f.write('const bool kKanjiMeaningVisible = true;\n\n')
         f.write('/// draft = AIの下書き(未確認) / needsReview = 疑わしい・多義で要確認。\n')
         f.write('enum KanjiMeaningReviewStatus { draft, needsReview }\n\n')
         f.write('class KanjiMeaningDraft {\n  final String meaning;\n  final KanjiMeaningReviewStatus reviewStatus;\n')
@@ -71,7 +71,7 @@ def main():
     with open(REVIEW, 'w', encoding='utf-8') as f:
         f.write('# 漢字の意味(AI下書き)の要確認一覧\n\n')
         f.write('**この意味は AI(Claude)が書いた下書きです。公的データ・検定協会の公式ではありません。** ')
-        f.write('人(漢検の指導者等)の確認が済むまで本番画面には出しません(`kKanjiMeaningVisible = false`)。\n\n')
+        f.write('本番画面には「AI下書き・未確認」ラベル付きで表示しています(`kKanjiMeaningVisible = true`)。人(漢検の指導者等)の確認は未了です。\n\n')
         f.write('対象は10級〜2級(準2級を含む)の2,136字。辞書・参考書等の文章は転載せず、短い自作の言い換えで書いています。\n')
         f.write('この一覧は `scripts/generate_kanji_meaning_draft.py` が `scripts/data/kanji_meaning_draft_source.tsv` から生成します。\n\n')
         f.write(f'| 区分 | 字数 |\n|---|---|\n| draft(意味あり・未確認) | {n["draft"]} |\n')

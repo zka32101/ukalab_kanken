@@ -1,6 +1,6 @@
 # 漢字の意味(AI下書き)の要確認一覧
 
-**この意味は AI(Claude)が書いた下書きです。公的データ・検定協会の公式ではありません。** 人(漢検の指導者等)の確認が済むまで本番画面には出しません(`kKanjiMeaningVisible = false`)。
+**この意味は AI(Claude)が書いた下書きです。公的データ・検定協会の公式ではありません。** 本番画面には「AI下書き・未確認」ラベル付きで表示しています(`kKanjiMeaningVisible = true`)。人(漢検の指導者等)の確認は未了です。
 
 対象は10級〜2級(準2級を含む)の2,136字。辞書・参考書等の文章は転載せず、短い自作の言い換えで書いています。
 この一覧は `scripts/generate_kanji_meaning_draft.py` が `scripts/data/kanji_meaning_draft_source.tsv` から生成します。

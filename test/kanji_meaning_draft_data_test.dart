@@ -76,14 +76,42 @@ void main() {
     );
   });
 
-  test('表示フラグの既定は false', () {
-    expect(kKanjiMeaningVisible, isFalse);
+  test('表示フラグの既定は true(ユーザー承認済み)', () {
+    expect(kKanjiMeaningVisible, isTrue);
+  });
+
+  test('空欄の字は下書きが無く、要確認の字は needsReview', () {
+    for (final k in blank) {
+      expect(kanjiMeaningDraftEntry(k), isNull, reason: k);
+    }
+    final nr = kKanjiMeaningDraft.values
+        .where((v) => v.reviewStatus == KanjiMeaningReviewStatus.needsReview);
+    expect(nr.length, 104);
   });
 
   Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));
 
-  testWidgets('既定(フラグ false)では何も表示しない', (tester) async {
+  testWidgets('既定(フラグ true)で「AI下書き・未確認」付きで表示する', (tester) async {
     await tester.pumpWidget(host(const KanjiMeaningDraftSection(kanji: '山')));
+    expect(find.text('意味（AI下書き・未確認）'), findsOneWidget);
+    expect(find.text(kanjiMeaningDraft('山')!), findsOneWidget);
+  });
+
+  testWidgets('visible: false では何も表示しない', (tester) async {
+    await tester.pumpWidget(host(const KanjiMeaningDraftSection(kanji: '山', visible: false)));
+    expect(find.textContaining('AI下書き'), findsNothing);
+  });
+
+  testWidgets('要確認の字は「要確認」ラベル付きで表示する', (tester) async {
+    final k = kKanjiMeaningDraft.entries
+        .firstWhere((e) => e.value.reviewStatus == KanjiMeaningReviewStatus.needsReview)
+        .key;
+    await tester.pumpWidget(host(KanjiMeaningDraftSection(kanji: k)));
+    expect(find.text('意味（AI下書き・未確認・要確認）'), findsOneWidget);
+  });
+
+  testWidgets('空欄の字は既定でも何も出さない', (tester) async {
+    await tester.pumpWidget(host(KanjiMeaningDraftSection(kanji: blank.first)));
     expect(find.textContaining('AI下書き'), findsNothing);
   });
 

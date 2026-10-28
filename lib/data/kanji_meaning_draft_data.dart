@@ -2,12 +2,12 @@
 //
 // 漢字の「意味」の下書き(10級〜2級の2,136字のうち意味を入れた字)。
 // 【重要】この意味は AI(Claude)が自分の言葉で書いた下書きで、公的データでも検定協会の
-// 公式でもない。人(漢検の指導者等)の確認が済むまで本番画面には出さない。
+// 公式でもない。本番画面には「AI下書き・未確認」ラベル付きで表示する(人の確認は未了)。
 // 辞書・参考書等の文章は転載していない。入力元: scripts/data/kanji_meaning_draft_source.tsv
 // 意味を入れていない字・要確認の字: docs/data_verification/meaning_review.md
 
-/// 意味(AI下書き)を画面に出すか。人の確認が済むまで false のまま。
-const bool kKanjiMeaningVisible = false;
+/// 意味(AI下書き)を画面に出すか。true(ユーザー承認済み)。未確認分は「AI下書き・未確認」ラベル付きで出す。
+const bool kKanjiMeaningVisible = true;
 
 /// draft = AIの下書き(未確認) / needsReview = 疑わしい・多義で要確認。
 enum KanjiMeaningReviewStatus { draft, needsReview }

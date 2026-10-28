@@ -248,7 +248,7 @@ class _StrokeOrderScreenState extends ConsumerState<StrokeOrderScreen> {
                                       visualDensity: VisualDensity.compact,
                                     ),
                                   ],
-                                  // 意味(AI下書き)。kKanjiMeaningVisible が false の間は何も出ない。
+                                  // 意味(AI下書き)。kKanjiMeaningVisible が true の間、下書きのある字に「AI下書き・未確認」ラベル付きで出る。
                                   KanjiMeaningDraftSection(kanji: selected),
                                   const SizedBox(height: 10),
                                   const Text(
